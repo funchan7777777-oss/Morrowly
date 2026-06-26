@@ -1,0 +1,24 @@
+abstract final class WelcomeArtwork {
+  static const splash = 'assets/images/Spalsh.png';
+  static const invitation = 'assets/images/Afterglow.png';
+  static const credential = 'assets/images/Era.png';
+  static const profile = 'assets/images/Circle.png';
+  static const appMark = 'assets/images/Inbox.png';
+  static const appleButton = 'assets/images/Whisper.png';
+  static const accessButton = 'assets/images/Promise.png';
+  static const loginButton = 'assets/images/Aura.png';
+  static const nextButton = 'assets/images/Souvenir.png';
+  static const startButton = 'assets/images/Tomorrow.png';
+  static const inactiveLogin = 'assets/images/Linkup.png';
+  static const inactiveSignup = 'assets/images/Companion.png';
+  static const activeUnderline = 'assets/images/Thread.png';
+  static const activeSignupWord = 'assets/images/Horizon.png';
+  static const fieldClear = 'assets/images/Moment.png';
+  static const eyeOpen = 'assets/images/Echo.png';
+  static const eyeQuiet = 'assets/images/Keepsake.png';
+  static const camera = 'assets/images/Signal.png';
+  static const female = 'assets/images/Past.png';
+  static const male = 'assets/images/Epoch.png';
+  static const femaleMuted = 'assets/images/Rendezvous.png';
+  static const maleMuted = 'assets/images/Wish.png';
+}

@@ -13,58 +13,56 @@ class MemoryRibbonScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final turningPoints = LocalMorrowlyDaybook.memoryRibbon;
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Memory ribbon',
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  MorrowlyCopy.ribbonTagline,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 22),
-                SoftPanel(
-                  surfaceTint: DawnTonalTokens.paper,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.bookmark_border,
-                        color: DawnTonalTokens.clay,
-                        size: 28,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 38, 20, 28),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Memory ribbon',
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                MorrowlyCopy.ribbonTagline,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 22),
+              SoftPanel(
+                surfaceTint: DawnTonalTokens.paper,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.bookmark_border,
+                      color: DawnTonalTokens.clay,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        'Not every note needs a folder. Some just need a clear reason to return tomorrow.',
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          'Not every note needs a folder. Some just need a clear reason to return tomorrow.',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 26),
-                SectionTitleRow(
-                  heading: 'Kept turning points',
-                  leadingGlyph: Icons.bookmark_border,
-                  trailingNote: '${turningPoints.length} notes',
-                ),
-                const SizedBox(height: 12),
-                for (final point in turningPoints) ...[
-                  RecentTurningPointTile(turningPoint: point),
-                  if (point != turningPoints.last) const SizedBox(height: 12),
-                ],
+              ),
+              const SizedBox(height: 26),
+              SectionTitleRow(
+                heading: 'Kept turning points',
+                leadingGlyph: Icons.bookmark_border,
+                trailingNote: '${turningPoints.length} notes',
+              ),
+              const SizedBox(height: 12),
+              for (final point in turningPoints) ...[
+                RecentTurningPointTile(turningPoint: point),
+                if (point != turningPoints.last) const SizedBox(height: 12),
               ],
-            ),
+            ],
           ),
         ),
       ),

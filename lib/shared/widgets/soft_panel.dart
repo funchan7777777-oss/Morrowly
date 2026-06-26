@@ -24,9 +24,9 @@ class SoftPanel extends StatelessWidget {
         color: surfaceTint ?? DawnTonalTokens.paper,
         borderRadius: BorderRadius.circular(cornerRadius),
         border: Border.all(color: strokeTone ?? DawnTonalTokens.faintLine),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: DawnTonalTokens.softShadow,
+            color: DawnTonalTokens.softShadow.withValues(alpha: 0.35),
             blurRadius: 24,
             offset: Offset(0, 10),
           ),

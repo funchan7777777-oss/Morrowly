@@ -13,68 +13,66 @@ class PresentGroundingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final rhythms = LocalMorrowlyDaybook.groundingRhythms;
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Now space',
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  MorrowlyCopy.nowTagline,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 22),
-                SoftPanel(
-                  surfaceTint: DawnTonalTokens.paper,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.spa,
-                        color: DawnTonalTokens.tide,
-                        size: 28,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 38, 20, 28),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Now space',
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                MorrowlyCopy.nowTagline,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 22),
+              SoftPanel(
+                surfaceTint: DawnTonalTokens.paper,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.spa,
+                      color: DawnTonalTokens.tide,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Before planning more, lower the room noise.',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Pick one tiny reset that ends clearly. Morrowly keeps this area separate from the tomorrow plan so it stays practical.',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Before planning more, lower the room noise.',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Pick one tiny reset that ends clearly. Morrowly keeps this area separate from the tomorrow plan so it stays practical.',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 26),
-                SectionTitleRow(
-                  heading: 'Grounding rhythms',
-                  leadingGlyph: Icons.waves,
-                  trailingNote: '${rhythms.length} available',
-                ),
-                const SizedBox(height: 12),
-                for (final rhythm in rhythms) ...[
-                  GroundingRhythmCard(rhythm: rhythm),
-                  if (rhythm != rhythms.last) const SizedBox(height: 12),
-                ],
+              ),
+              const SizedBox(height: 26),
+              SectionTitleRow(
+                heading: 'Grounding rhythms',
+                leadingGlyph: Icons.waves,
+                trailingNote: '${rhythms.length} available',
+              ),
+              const SizedBox(height: 12),
+              for (final rhythm in rhythms) ...[
+                GroundingRhythmCard(rhythm: rhythm),
+                if (rhythm != rhythms.last) const SizedBox(height: 12),
               ],
-            ),
+            ],
           ),
         ),
       ),
