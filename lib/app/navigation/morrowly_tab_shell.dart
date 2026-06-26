@@ -15,21 +15,21 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
 
   static const List<_MorrowlyHarbor> _harbors = [
     _MorrowlyHarbor(
-      label: 'Tomorrow',
-      icon: Icons.calendar_today_outlined,
-      selectedIcon: Icons.calendar_today,
+      voiceLabel: 'Tomorrow home',
+      restingAsset: 'assets/images/Letter.png',
+      litAsset: 'assets/images/Nostalgia.png',
       screen: TomorrowCompassScreen(),
     ),
     _MorrowlyHarbor(
-      label: 'Now',
-      icon: Icons.spa_outlined,
-      selectedIcon: Icons.spa,
+      voiceLabel: 'Now signal',
+      restingAsset: 'assets/images/Journey.png',
+      litAsset: 'assets/images/Sealed.png',
       screen: PresentGroundingScreen(),
     ),
     _MorrowlyHarbor(
-      label: 'Ribbon',
-      icon: Icons.bookmark_border,
-      selectedIcon: Icons.bookmark,
+      voiceLabel: 'Memory notes',
+      restingAsset: 'assets/images/Milestone.png',
+      litAsset: 'assets/images/Anniversary.png',
       screen: MemoryRibbonScreen(),
     ),
   ];
@@ -37,22 +37,28 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedHarborIndex,
-        children: [for (final harbor in _harbors) harbor.screen],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedHarborIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedHarborIndex = index);
-        },
-        destinations: [
-          for (final harbor in _harbors)
-            NavigationDestination(
-              icon: Icon(harbor.icon),
-              selectedIcon: Icon(harbor.selectedIcon),
-              label: harbor.label,
+      extendBody: true,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          IndexedStack(
+            index: _selectedHarborIndex,
+            children: [for (final harbor in _harbors) harbor.screen],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: _MorrowlyFloatingDock.bottomOffset,
+            child: Center(
+              child: _MorrowlyFloatingDock(
+                harbors: _harbors,
+                selectedIndex: _selectedHarborIndex,
+                onSelected: (index) {
+                  setState(() => _selectedHarborIndex = index);
+                },
+              ),
             ),
+          ),
         ],
       ),
     );
@@ -61,14 +67,103 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
 
 class _MorrowlyHarbor {
   const _MorrowlyHarbor({
-    required this.label,
-    required this.icon,
-    required this.selectedIcon,
+    required this.voiceLabel,
+    required this.restingAsset,
+    required this.litAsset,
     required this.screen,
   });
 
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
+  final String voiceLabel;
+  final String restingAsset;
+  final String litAsset;
   final Widget screen;
+}
+
+class _MorrowlyFloatingDock extends StatelessWidget {
+  const _MorrowlyFloatingDock({
+    required this.harbors,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  static const double width = 330;
+  static const double height = 73;
+  static const double bottomOffset = 34;
+  static const double buttonExtent = 50;
+
+  final List<_MorrowlyHarbor> harbors;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF3D3141),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF241726).withValues(alpha: 0.24),
+              blurRadius: 28,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 34),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              for (var index = 0; index < harbors.length; index++)
+                _MorrowlyDockButton(
+                  harbor: harbors[index],
+                  selected: selectedIndex == index,
+                  onPressed: () => onSelected(index),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MorrowlyDockButton extends StatelessWidget {
+  const _MorrowlyDockButton({
+    required this.harbor,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final _MorrowlyHarbor harbor;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: harbor.voiceLabel,
+      button: true,
+      selected: selected,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onPressed,
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          scale: selected ? 1 : 0.96,
+          child: Image.asset(
+            selected ? harbor.litAsset : harbor.restingAsset,
+            width: _MorrowlyFloatingDock.buttonExtent,
+            height: _MorrowlyFloatingDock.buttonExtent,
+            fit: BoxFit.fill,
+            filterQuality: FilterQuality.high,
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -25,7 +25,11 @@ class MemoryRibbonScreen extends StatelessWidget {
             sideGutter,
             MorrowlyFrameGuard.topClearance(context, minimum: 64, extra: 14),
             sideGutter,
-            MorrowlyFrameGuard.bottomClearance(context, minimum: 28, extra: 10),
+            MorrowlyFrameGuard.bottomClearance(
+              context,
+              minimum: 132,
+              extra: 98,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
