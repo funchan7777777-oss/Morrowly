@@ -79,7 +79,10 @@ class LocalGateStore {
     }
 
     await _preferences.setString(_profileNameKey, profile.displayName.trim());
-    await _preferences.setString(_profileHandleKey, profile.chosenHandle.trim());
+    await _preferences.setString(
+      _profileHandleKey,
+      profile.chosenHandle.trim(),
+    );
     await _preferences.setString(
       _profileSignatureKey,
       profile.signatureLine.trim(),
@@ -97,8 +100,4 @@ class LocalGateStore {
   }
 }
 
-enum LocalCredentialCheck {
-  accepted,
-  noLocalAccount,
-  mismatch,
-}
+enum LocalCredentialCheck { accepted, noLocalAccount, mismatch }

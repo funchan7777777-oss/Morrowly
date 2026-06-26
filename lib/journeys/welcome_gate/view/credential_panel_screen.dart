@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/welcome_gate/models/account_access_draft.dart';
-import 'package:morrowly/journeys/welcome_gate/widgets/artwork_tap_target.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/auth_consent_trail.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/credential_mode_tabs.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/full_bleed_stage.dart';
@@ -101,18 +100,11 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
                         textInputAction: TextInputAction.done,
                       ),
                       const SizedBox(height: 34),
-                      widget.isSignupMode
-                          ? LitActionPill(
-                              label: 'Sign up',
-                              width: panelWidth * 0.94,
-                              onPressed: _submitCredentials,
-                            )
-                          : ArtworkTapTarget(
-                              assetName: WelcomeArtwork.loginButton,
-                              width: panelWidth * 0.94,
-                              semanticLabel: 'Log in',
-                              onPressed: _submitCredentials,
-                            ),
+                      LitActionPill(
+                        label: widget.isSignupMode ? 'Sign up' : 'Start',
+                        width: panelWidth * 0.94,
+                        onPressed: _submitCredentials,
+                      ),
                       const SizedBox(height: 28),
                       AuthConsentTrail(
                         accepted: widget.agreementAccepted,
@@ -147,7 +139,8 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
       return;
     }
 
-    if (!draft.emailAddress.contains('@') || !draft.emailAddress.contains('.')) {
+    if (!draft.emailAddress.contains('@') ||
+        !draft.emailAddress.contains('.')) {
       _showEmailNotice();
       return;
     }
@@ -170,7 +163,8 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
       barrierColor: Colors.black.withValues(alpha: 0.48),
       builder: (_) => const GateNoticeDialog(
         title: 'A little more detail',
-        message: 'Please enter both your email address and password to continue.',
+        message:
+            'Please enter both your email address and password to continue.',
       ),
     );
   }
@@ -181,7 +175,8 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
       barrierColor: Colors.black.withValues(alpha: 0.48),
       builder: (_) => const GateNoticeDialog(
         title: 'Check the email',
-        message: 'Use a complete email address so Morrowly can find your local account.',
+        message:
+            'Use a complete email address so Morrowly can find your local account.',
       ),
     );
   }

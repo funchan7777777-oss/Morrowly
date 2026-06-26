@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/artwork_tap_target.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/auth_consent_trail.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/full_bleed_stage.dart';
+import 'package:morrowly/journeys/welcome_gate/widgets/lit_action_pill.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
 
 class InvitationChoiceScreen extends StatelessWidget {
@@ -51,10 +52,9 @@ class InvitationChoiceScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 18),
-                ArtworkTapTarget(
-                  assetName: WelcomeArtwork.accessButton,
+                LitActionPill(
+                  label: 'Log in',
                   width: buttonWidth,
-                  semanticLabel: 'Sign up or log in',
                   onPressed: onCredentialPath,
                 ),
                 const SizedBox(height: 34),

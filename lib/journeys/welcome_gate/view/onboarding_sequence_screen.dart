@@ -3,10 +3,7 @@ import 'package:morrowly/journeys/welcome_gate/widgets/artwork_tap_target.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
 
 class OnboardingSequenceScreen extends StatefulWidget {
-  const OnboardingSequenceScreen({
-    super.key,
-    required this.onFinished,
-  });
+  const OnboardingSequenceScreen({super.key, required this.onFinished});
 
   final VoidCallback onFinished;
 
@@ -23,19 +20,22 @@ class _OnboardingSequenceScreenState extends State<OnboardingSequenceScreen> {
     _OnboardingPageSpec(
       background: WelcomeArtwork.credential,
       title: 'Start softer',
-      body: 'Let tomorrow begin with one clear thread instead of a crowded list.',
+      body:
+          'Let tomorrow begin with one clear thread instead of a crowded list.',
       accent: Color(0xFFFF48D9),
     ),
     _OnboardingPageSpec(
       background: WelcomeArtwork.profile,
       title: 'Keep the signal',
-      body: 'Save the detail, promise, or pause that still knows where it belongs.',
+      body:
+          'Save the detail, promise, or pause that still knows where it belongs.',
       accent: Color(0xFFB66CFF),
     ),
     _OnboardingPageSpec(
       background: WelcomeArtwork.invitation,
       title: 'Return ready',
-      body: 'Your profile keeps the small context that makes each handoff feel personal.',
+      body:
+          'Your profile keeps the small context that makes each handoff feel personal.',
       accent: Color(0xFF78F596),
     ),
   ];

@@ -25,11 +25,7 @@ class GateNoticeDialog extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF8D4AB8),
-              Color(0xFF513060),
-              Color(0xFF2A2225),
-            ],
+            colors: [Color(0xFF8D4AB8), Color(0xFF513060), Color(0xFF2A2225)],
           ),
           boxShadow: [
             BoxShadow(
