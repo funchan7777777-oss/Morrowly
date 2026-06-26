@@ -18,6 +18,7 @@ class LocalGateStore {
   static const _profileRegionKey = 'morrowly.profile.region';
   static const _appleUserKey = 'morrowly.apple.userIdentifier';
   static const _lastProviderKey = 'morrowly.session.provider';
+  static const _legalAgreementKey = 'morrowly.legal.agreementAccepted';
 
   static Future<LocalGateStore> open() async {
     return LocalGateStore(await SharedPreferences.getInstance());
@@ -25,6 +26,10 @@ class LocalGateStore {
 
   bool get hasActiveSession {
     return _preferences.getBool(_sessionActiveKey) ?? false;
+  }
+
+  bool get hasAcceptedLegalAgreement {
+    return _preferences.getBool(_legalAgreementKey) ?? false;
   }
 
   bool get hasLocalAccount {
@@ -37,26 +42,18 @@ class LocalGateStore {
     return _preferences.getString(_profileNameKey) ?? '';
   }
 
-  Future<LocalCredentialCheck> verifyLocalCredential({
+  Future<void> setLegalAgreementAccepted(bool accepted) async {
+    await _preferences.setBool(_legalAgreementKey, accepted);
+  }
+
+  Future<void> acceptLocalLogin({
     required String emailAddress,
     required String passwordText,
   }) async {
-    final storedEmail = _preferences.getString(_registeredEmailKey) ?? '';
-    final storedPassword = _preferences.getString(_registeredPasswordKey) ?? '';
-
-    if (storedEmail.isEmpty || storedPassword.isEmpty) {
-      return LocalCredentialCheck.noLocalAccount;
-    }
-
-    final normalizedInput = emailAddress.trim().toLowerCase();
-    if (storedEmail.toLowerCase() != normalizedInput ||
-        storedPassword != passwordText) {
-      return LocalCredentialCheck.mismatch;
-    }
-
+    await _preferences.setString(_registeredEmailKey, emailAddress.trim());
+    await _preferences.setString(_registeredPasswordKey, passwordText);
     await _preferences.setBool(_sessionActiveKey, true);
     await _preferences.setString(_lastProviderKey, 'local');
-    return LocalCredentialCheck.accepted;
   }
 
   Future<void> completeProfile({
@@ -99,5 +96,3 @@ class LocalGateStore {
     await _preferences.setBool(_sessionActiveKey, true);
   }
 }
-
-enum LocalCredentialCheck { accepted, noLocalAccount, mismatch }

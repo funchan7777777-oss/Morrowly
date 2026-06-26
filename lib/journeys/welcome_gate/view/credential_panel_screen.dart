@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/welcome_gate/models/account_access_draft.dart';
-import 'package:morrowly/journeys/welcome_gate/widgets/auth_consent_trail.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/credential_mode_tabs.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/full_bleed_stage.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/gate_back_button.dart';
@@ -8,15 +7,13 @@ import 'package:morrowly/journeys/welcome_gate/widgets/gate_notice_dialog.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/lit_action_pill.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/soft_entry_field.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
+import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
 class CredentialPanelScreen extends StatefulWidget {
   const CredentialPanelScreen({
     super.key,
     required this.isSignupMode,
     required this.agreementAccepted,
-    required this.onAgreementChanged,
-    required this.onUserAgreement,
-    required this.onPrivacyPolicy,
     required this.onAgreementMissing,
     required this.onBack,
     required this.onLoginMode,
@@ -27,9 +24,6 @@ class CredentialPanelScreen extends StatefulWidget {
 
   final bool isSignupMode;
   final bool agreementAccepted;
-  final ValueChanged<bool> onAgreementChanged;
-  final VoidCallback onUserAgreement;
-  final VoidCallback onPrivacyPolicy;
   final VoidCallback onAgreementMissing;
   final VoidCallback onBack;
   final VoidCallback onLoginMode;
@@ -59,20 +53,33 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
       resizeForKeyboard: true,
       child: Stack(
         children: [
-          GateBackButton(onBack: widget.onBack),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
-              final panelWidth = width.clamp(300.0, 420.0).toDouble() * 0.82;
+              final panelWidth = MorrowlyFrameGuard.contentWidth(
+                width,
+                maxWidth: 350,
+                phoneGutter: 28,
+              );
+              final topGuard = MorrowlyFrameGuard.topClearance(
+                context,
+                minimum: 110,
+                extra: 20,
+              );
+              final bottomGuard = MorrowlyFrameGuard.bottomClearance(
+                context,
+                minimum: 42,
+                extra: 12,
+              );
 
               return Align(
                 alignment: Alignment.bottomCenter,
                 child: SingleChildScrollView(
                   padding: EdgeInsets.fromLTRB(
                     (width - panelWidth) / 2,
-                    330,
+                    topGuard,
                     (width - panelWidth) / 2,
-                    42,
+                    bottomGuard,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -105,19 +112,13 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
                         width: panelWidth * 0.94,
                         onPressed: _submitCredentials,
                       ),
-                      const SizedBox(height: 28),
-                      AuthConsentTrail(
-                        accepted: widget.agreementAccepted,
-                        onChanged: widget.onAgreementChanged,
-                        onUserAgreement: widget.onUserAgreement,
-                        onPrivacyPolicy: widget.onPrivacyPolicy,
-                      ),
                     ],
                   ),
                 ),
               );
             },
           ),
+          GateBackButton(onBack: widget.onBack),
         ],
       ),
     );

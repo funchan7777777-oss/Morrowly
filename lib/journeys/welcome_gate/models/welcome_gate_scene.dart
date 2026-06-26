@@ -1,6 +1,5 @@
 enum WelcomeGateScene {
   launchMoment,
-  orientationPages,
   invitationDeck,
   signInLedger,
   newAccountLedger,

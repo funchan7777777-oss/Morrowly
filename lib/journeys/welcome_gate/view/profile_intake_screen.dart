@@ -11,6 +11,7 @@ import 'package:morrowly/journeys/welcome_gate/widgets/gender_signal_pill.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/lit_action_pill.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/soft_entry_field.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
+import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProfileIntakeScreen extends StatefulWidget {
@@ -65,18 +66,31 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
       resizeForKeyboard: true,
       child: Stack(
         children: [
-          GateBackButton(onBack: widget.onBack),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
-              final contentWidth = width.clamp(320.0, 430.0).toDouble() * 0.82;
+              final contentWidth = MorrowlyFrameGuard.contentWidth(
+                width,
+                maxWidth: 360,
+                phoneGutter: 26,
+              );
+              final topPadding = MorrowlyFrameGuard.topClearance(
+                context,
+                minimum: 132,
+                extra: 54,
+              );
+              final bottomPadding = MorrowlyFrameGuard.bottomClearance(
+                context,
+                minimum: 28,
+                extra: 14,
+              );
 
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   (width - contentWidth) / 2,
-                  96,
+                  topPadding,
                   (width - contentWidth) / 2,
-                  28,
+                  bottomPadding,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,6 +204,7 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
               );
             },
           ),
+          GateBackButton(onBack: widget.onBack, minimumTop: 62, extraTop: 6),
         ],
       ),
     );
@@ -207,8 +222,13 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.46),
       builder: (context) {
+        final bottomPadding = MorrowlyFrameGuard.bottomClearance(
+          context,
+          minimum: 18,
+          extra: 10,
+        );
         return Padding(
-          padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+          padding: EdgeInsets.fromLTRB(18, 0, 18, bottomPadding),
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: const Color(0xFF3A273F),

@@ -9,10 +9,6 @@ abstract final class WelcomeArtwork {
   static const loginButton = 'assets/images/Aura.png';
   static const nextButton = 'assets/images/Souvenir.png';
   static const startButton = 'assets/images/Tomorrow.png';
-  static const inactiveLogin = 'assets/images/Linkup.png';
-  static const inactiveSignup = 'assets/images/Companion.png';
-  static const activeUnderline = 'assets/images/Thread.png';
-  static const activeSignupWord = 'assets/images/Horizon.png';
   static const fieldClear = 'assets/images/Moment.png';
   static const eyeOpen = 'assets/images/Echo.png';
   static const eyeQuiet = 'assets/images/Keepsake.png';

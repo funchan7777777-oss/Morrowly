@@ -12,7 +12,6 @@ import 'package:morrowly/journeys/welcome_gate/view/credential_handoff_loading_s
 import 'package:morrowly/journeys/welcome_gate/view/credential_panel_screen.dart';
 import 'package:morrowly/journeys/welcome_gate/view/invitation_choice_screen.dart';
 import 'package:morrowly/journeys/welcome_gate/view/legal_document_viewer.dart';
-import 'package:morrowly/journeys/welcome_gate/view/onboarding_sequence_screen.dart';
 import 'package:morrowly/journeys/welcome_gate/view/profile_intake_screen.dart';
 import 'package:morrowly/journeys/welcome_gate/view/startup_loading_screen.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/agreement_needed_dialog.dart';
@@ -53,9 +52,6 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
   Widget _buildScene() {
     return switch (_scene) {
       WelcomeGateScene.launchMoment => const StartupLoadingScreen(),
-      WelcomeGateScene.orientationPages => OnboardingSequenceScreen(
-        onFinished: _openInvitation,
-      ),
       WelcomeGateScene.invitationDeck => InvitationChoiceScreen(
         agreementAccepted: _agreementAccepted,
         onAgreementChanged: _setAgreementAccepted,
@@ -70,11 +66,6 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
       WelcomeGateScene.signInLedger => CredentialPanelScreen(
         isSignupMode: false,
         agreementAccepted: _agreementAccepted,
-        onAgreementChanged: _setAgreementAccepted,
-        onUserAgreement: () =>
-            _openLegalDocument(LegalDocumentMarker.userAgreement),
-        onPrivacyPolicy: () =>
-            _openLegalDocument(LegalDocumentMarker.privacyPolicy),
         onAgreementMissing: _showAgreementPrompt,
         onBack: _openInvitation,
         onLoginMode: _openLogin,
@@ -85,11 +76,6 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
       WelcomeGateScene.newAccountLedger => CredentialPanelScreen(
         isSignupMode: true,
         agreementAccepted: _agreementAccepted,
-        onAgreementChanged: _setAgreementAccepted,
-        onUserAgreement: () =>
-            _openLegalDocument(LegalDocumentMarker.userAgreement),
-        onPrivacyPolicy: () =>
-            _openLegalDocument(LegalDocumentMarker.privacyPolicy),
         onAgreementMissing: _showAgreementPrompt,
         onBack: _openInvitation,
         onLoginMode: _openLogin,
@@ -119,9 +105,10 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
 
     _gateStore = store;
     setState(() {
+      _agreementAccepted = store.hasAcceptedLegalAgreement;
       _scene = store.hasActiveSession
           ? WelcomeGateScene.daybookHome
-          : WelcomeGateScene.orientationPages;
+          : WelcomeGateScene.invitationDeck;
     });
   }
 
@@ -196,7 +183,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
 
   Future<void> _handleLocalLogin(AccountAccessDraft draft) async {
     final store = await _ensureStore();
-    final result = await store.verifyLocalCredential(
+    await store.acceptLocalLogin(
       emailAddress: draft.emailAddress,
       passwordText: draft.passwordText,
     );
@@ -205,24 +192,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
       return;
     }
 
-    switch (result) {
-      case LocalCredentialCheck.accepted:
-        _showCredentialHandoffThenHome();
-      case LocalCredentialCheck.noLocalAccount:
-        _showNotice(
-          title: 'No saved account yet',
-          message:
-              'This device does not have a local Morrowly account. Please sign up first.',
-          icon: Icons.person_add_alt_1_outlined,
-        );
-      case LocalCredentialCheck.mismatch:
-        _showNotice(
-          title: 'Details do not match',
-          message:
-              'The email or password does not match the account saved on this device.',
-          icon: Icons.lock_outline,
-        );
-    }
+    _showCredentialHandoffThenHome();
   }
 
   void _beginLocalRegistration(AccountAccessDraft draft) {
@@ -290,6 +260,12 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
 
   void _setAgreementAccepted(bool accepted) {
     setState(() => _agreementAccepted = accepted);
+    unawaited(_persistAgreementAccepted(accepted));
+  }
+
+  Future<void> _persistAgreementAccepted(bool accepted) async {
+    final store = await _ensureStore();
+    await store.setLegalAgreementAccepted(accepted);
   }
 
   void _openLegalDocument(LegalDocumentMarker document) {

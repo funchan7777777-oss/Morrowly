@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:morrowly/journeys/welcome_gate/models/legal_document_marker.dart';
+import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LegalDocumentViewer extends StatefulWidget {
@@ -92,7 +93,12 @@ class _LegalViewerChrome extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 48, 16, 12),
+        padding: EdgeInsets.fromLTRB(
+          10,
+          MorrowlyFrameGuard.topClearance(context, minimum: 48, extra: 8),
+          16,
+          12,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

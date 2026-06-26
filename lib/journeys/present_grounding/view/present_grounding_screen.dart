@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:morrowly/app/theme/dawn_tonal_tokens.dart';
 import 'package:morrowly/fieldnotes/daybook_seed/local_morrowly_daybook.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/grounding_rhythm_card.dart';
+import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:morrowly/shared/microcopy/morrowly_copy.dart';
 import 'package:morrowly/shared/widgets/section_title_row.dart';
 import 'package:morrowly/shared/widgets/soft_panel.dart';
@@ -13,11 +14,19 @@ class PresentGroundingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final rhythms = LocalMorrowlyDaybook.groundingRhythms;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 38, 20, 28),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sideGutter = MorrowlyFrameGuard.sideGutter(
+          constraints.maxWidth,
+          maxWidth: 680,
+        );
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            sideGutter,
+            MorrowlyFrameGuard.topClearance(context, minimum: 64, extra: 14),
+            sideGutter,
+            MorrowlyFrameGuard.bottomClearance(context, minimum: 28, extra: 10),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -74,8 +83,8 @@ class PresentGroundingScreen extends StatelessWidget {
               ],
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

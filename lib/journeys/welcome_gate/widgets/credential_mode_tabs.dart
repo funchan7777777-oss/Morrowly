@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:morrowly/journeys/welcome_gate/widgets/artwork_tap_target.dart';
-import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
 
 class CredentialModeTabs extends StatelessWidget {
   const CredentialModeTabs({
@@ -21,7 +19,6 @@ class CredentialModeTabs extends StatelessWidget {
         Expanded(
           child: _ModeTab(
             label: 'Log in',
-            inactiveAsset: WelcomeArtwork.inactiveLogin,
             active: !isSignupMode,
             onPressed: onLoginSelected,
           ),
@@ -29,7 +26,6 @@ class CredentialModeTabs extends StatelessWidget {
         Expanded(
           child: _ModeTab(
             label: 'Sign up',
-            inactiveAsset: WelcomeArtwork.inactiveSignup,
             active: isSignupMode,
             onPressed: onSignupSelected,
           ),
@@ -42,54 +38,54 @@ class CredentialModeTabs extends StatelessWidget {
 class _ModeTab extends StatelessWidget {
   const _ModeTab({
     required this.label,
-    required this.inactiveAsset,
     required this.active,
     required this.onPressed,
   });
 
   final String label;
-  final String inactiveAsset;
   final bool active;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    if (!active) {
-      return Center(
-        child: ArtworkTapTarget(
-          assetName: inactiveAsset,
-          width: 102,
-          height: 42,
-          semanticLabel: label,
-          onPressed: onPressed,
-        ),
-      );
-    }
-
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onPressed,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              height: 1,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 160),
+        opacity: active ? 1 : 0.46,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: active ? 24 : 18,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
             ),
-          ),
-          const SizedBox(height: 3),
-          Image.asset(
-            WelcomeArtwork.activeUnderline,
-            width: 88,
-            height: 22,
-            fit: BoxFit.fill,
-            filterQuality: FilterQuality.high,
-          ),
-        ],
+            const SizedBox(height: 8),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: active ? 78 : 22,
+              height: 4,
+              decoration: BoxDecoration(
+                color: active ? const Color(0xFFFF49D8) : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFFFF49D8).withValues(alpha: 0.5),
+                          blurRadius: 10,
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

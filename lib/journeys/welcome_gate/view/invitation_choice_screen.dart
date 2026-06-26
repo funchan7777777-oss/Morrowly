@@ -4,6 +4,7 @@ import 'package:morrowly/journeys/welcome_gate/widgets/auth_consent_trail.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/full_bleed_stage.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/lit_action_pill.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
+import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
 class InvitationChoiceScreen extends StatelessWidget {
   const InvitationChoiceScreen({
@@ -32,39 +33,63 @@ class InvitationChoiceScreen extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          final buttonWidth = width.clamp(300.0, 390.0).toDouble() * 0.78;
+          final contentWidth = MorrowlyFrameGuard.contentWidth(
+            width,
+            maxWidth: 360,
+            phoneGutter: 28,
+          );
+          final buttonWidth = contentWidth * 0.86;
+          final bottomPadding = MorrowlyFrameGuard.bottomClearance(
+            context,
+            minimum: 44,
+            extra: 14,
+          );
 
-          return Padding(
-            padding: EdgeInsets.fromLTRB(width * 0.08, 0, width * 0.08, 44),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ArtworkTapTarget(
-                  assetName: WelcomeArtwork.appleButton,
-                  width: buttonWidth,
-                  semanticLabel: 'Sign in with Apple',
-                  onPressed: () {
-                    if (agreementAccepted) {
-                      onApplePath();
-                    } else {
-                      onAgreementMissing();
-                    }
-                  },
+          return Align(
+            alignment: Alignment.bottomCenter,
+            child: SizedBox(
+              width: contentWidth,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: bottomPadding),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ArtworkTapTarget(
+                      assetName: WelcomeArtwork.appleButton,
+                      width: buttonWidth,
+                      semanticLabel: 'Sign in with Apple',
+                      onPressed: () {
+                        if (agreementAccepted) {
+                          onApplePath();
+                        } else {
+                          onAgreementMissing();
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    LitActionPill(
+                      label: 'Log in',
+                      width: buttonWidth,
+                      onPressed: () {
+                        if (agreementAccepted) {
+                          onCredentialPath();
+                        } else {
+                          onAgreementMissing();
+                        }
+                      },
+                    ),
+                    if (!agreementAccepted) ...[
+                      const SizedBox(height: 30),
+                      AuthConsentTrail(
+                        accepted: agreementAccepted,
+                        onChanged: onAgreementChanged,
+                        onUserAgreement: onUserAgreement,
+                        onPrivacyPolicy: onPrivacyPolicy,
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 18),
-                LitActionPill(
-                  label: 'Log in',
-                  width: buttonWidth,
-                  onPressed: onCredentialPath,
-                ),
-                const SizedBox(height: 34),
-                AuthConsentTrail(
-                  accepted: agreementAccepted,
-                  onChanged: onAgreementChanged,
-                  onUserAgreement: onUserAgreement,
-                  onPrivacyPolicy: onPrivacyPolicy,
-                ),
-              ],
+              ),
             ),
           );
         },

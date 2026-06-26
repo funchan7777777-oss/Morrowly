@@ -61,7 +61,7 @@ class AuthConsentTrail extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _ConsentCopy(
-                text: 'I have read and agree to the ',
+                text: 'I agree to the ',
                 muted: true,
                 onTap: () => onChanged(!accepted),
               ),

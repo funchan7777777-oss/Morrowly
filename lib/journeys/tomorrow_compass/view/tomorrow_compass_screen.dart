@@ -6,6 +6,7 @@ import 'package:morrowly/journeys/tomorrow_compass/widgets/intention_lane_card.d
 import 'package:morrowly/journeys/tomorrow_compass/widgets/quiet_window_strip.dart';
 import 'package:morrowly/journeys/tomorrow_compass/widgets/reflection_prompt_tile.dart';
 import 'package:morrowly/shared/microcopy/morrowly_copy.dart';
+import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:morrowly/shared/widgets/metric_pill.dart';
 import 'package:morrowly/shared/widgets/section_title_row.dart';
 
@@ -16,11 +17,19 @@ class TomorrowCompassScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const brief = LocalMorrowlyDaybook.activeBrief;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 38, 20, 28),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sideGutter = MorrowlyFrameGuard.sideGutter(
+          constraints.maxWidth,
+          maxWidth: 680,
+        );
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            sideGutter,
+            MorrowlyFrameGuard.topClearance(context, minimum: 64, extra: 14),
+            sideGutter,
+            MorrowlyFrameGuard.bottomClearance(context, minimum: 28, extra: 10),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -85,8 +94,8 @@ class TomorrowCompassScreen extends StatelessWidget {
               ],
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
