@@ -6,16 +6,24 @@ class SoftEntryField extends StatelessWidget {
     super.key,
     required this.label,
     required this.placeholder,
+    this.controller,
+    this.onChanged,
     this.trailingKind = FieldTrailingKind.none,
     this.keyboardType,
+    this.textInputAction,
+    this.textCapitalization = TextCapitalization.none,
     this.maxLines = 1,
     this.height,
   });
 
   final String label;
   final String placeholder;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
   final FieldTrailingKind trailingKind;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final TextCapitalization textCapitalization;
   final int maxLines;
   final double? height;
 
@@ -49,8 +57,12 @@ class SoftEntryField extends StatelessWidget {
             ],
           ),
           child: TextField(
+            controller: controller,
+            onChanged: onChanged,
             maxLines: maxLines,
             keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            textCapitalization: textCapitalization,
             obscureText: trailingKind == FieldTrailingKind.eye,
             style: const TextStyle(
               color: Color(0xFF4D3F55),

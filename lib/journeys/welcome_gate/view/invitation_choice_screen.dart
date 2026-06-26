@@ -7,10 +7,20 @@ import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
 class InvitationChoiceScreen extends StatelessWidget {
   const InvitationChoiceScreen({
     super.key,
+    required this.agreementAccepted,
+    required this.onAgreementChanged,
+    required this.onUserAgreement,
+    required this.onPrivacyPolicy,
+    required this.onAgreementMissing,
     required this.onApplePath,
     required this.onCredentialPath,
   });
 
+  final bool agreementAccepted;
+  final ValueChanged<bool> onAgreementChanged;
+  final VoidCallback onUserAgreement;
+  final VoidCallback onPrivacyPolicy;
+  final VoidCallback onAgreementMissing;
   final VoidCallback onApplePath;
   final VoidCallback onCredentialPath;
 
@@ -32,7 +42,13 @@ class InvitationChoiceScreen extends StatelessWidget {
                   assetName: WelcomeArtwork.appleButton,
                   width: buttonWidth,
                   semanticLabel: 'Sign in with Apple',
-                  onPressed: onApplePath,
+                  onPressed: () {
+                    if (agreementAccepted) {
+                      onApplePath();
+                    } else {
+                      onAgreementMissing();
+                    }
+                  },
                 ),
                 const SizedBox(height: 18),
                 ArtworkTapTarget(
@@ -42,7 +58,12 @@ class InvitationChoiceScreen extends StatelessWidget {
                   onPressed: onCredentialPath,
                 ),
                 const SizedBox(height: 34),
-                const AuthConsentTrail(),
+                AuthConsentTrail(
+                  accepted: agreementAccepted,
+                  onChanged: onAgreementChanged,
+                  onUserAgreement: onUserAgreement,
+                  onPrivacyPolicy: onPrivacyPolicy,
+                ),
               ],
             ),
           );
