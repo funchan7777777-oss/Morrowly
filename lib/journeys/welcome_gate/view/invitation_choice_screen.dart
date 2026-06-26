@@ -78,15 +78,13 @@ class InvitationChoiceScreen extends StatelessWidget {
                         }
                       },
                     ),
-                    if (!agreementAccepted) ...[
-                      const SizedBox(height: 30),
-                      AuthConsentTrail(
-                        accepted: agreementAccepted,
-                        onChanged: onAgreementChanged,
-                        onUserAgreement: onUserAgreement,
-                        onPrivacyPolicy: onPrivacyPolicy,
-                      ),
-                    ],
+                    const SizedBox(height: 30),
+                    AuthConsentTrail(
+                      accepted: agreementAccepted,
+                      onChanged: onAgreementChanged,
+                      onUserAgreement: onUserAgreement,
+                      onPrivacyPolicy: onPrivacyPolicy,
+                    ),
                   ],
                 ),
               ),
