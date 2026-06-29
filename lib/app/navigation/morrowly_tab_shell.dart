@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/memory_ribbon/view/memory_ribbon_screen.dart';
 import 'package:morrowly/journeys/present_grounding/view/present_grounding_screen.dart';
-import 'package:morrowly/journeys/tomorrow_compass/view/tomorrow_compass_screen.dart';
+import 'package:morrowly/journeys/time_capsule/view/capsule_home_screen.dart';
 
 class MorrowlyTabShell extends StatefulWidget {
   const MorrowlyTabShell({super.key});
@@ -18,7 +18,7 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
       voiceLabel: 'Tomorrow home',
       restingAsset: 'assets/images/Letter.png',
       litAsset: 'assets/images/Nostalgia.png',
-      screen: TomorrowCompassScreen(),
+      screen: CapsuleHomeScreen(),
     ),
     _MorrowlyHarbor(
       voiceLabel: 'Now signal',
