@@ -343,6 +343,7 @@ class LifeSnippetStore extends ChangeNotifier {
       _outgoingFollowRequests.add(userKey);
       await _saveStringSet(_outgoingFollowRequestsKey, _outgoingFollowRequests);
     }
+    _refreshCurrentUserCounts();
     notifyListeners();
   }
 
@@ -356,6 +357,7 @@ class LifeSnippetStore extends ChangeNotifier {
     _followingUserKeys.add(userKey);
     await _saveStringSet(_outgoingFollowRequestsKey, _outgoingFollowRequests);
     await _saveStringSet(_followingUserKeysKey, _followingUserKeys);
+    _refreshCurrentUserCounts();
     notifyListeners();
   }
 
@@ -427,6 +429,7 @@ class LifeSnippetStore extends ChangeNotifier {
       _pendingPostsKey,
       jsonEncode(_pendingReviewPosts.map((post) => post.toJson()).toList()),
     );
+    _refreshCurrentUserCounts();
     notifyListeners();
   }
 
@@ -472,6 +475,7 @@ class LifeSnippetStore extends ChangeNotifier {
     await _saveStringSet(_outgoingFollowRequestsKey, _outgoingFollowRequests);
     await _saveStringSet(_followingUserKeysKey, _followingUserKeys);
     await _saveStringSet(_followerUserKeysKey, _followerUserKeys);
+    _refreshCurrentUserCounts();
     notifyListeners();
   }
 
