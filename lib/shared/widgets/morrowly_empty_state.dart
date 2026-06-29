@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MorrowlyEmptyState extends StatelessWidget {
-  const MorrowlyEmptyState({
-    super.key,
-    this.width = 188,
-    this.height = 214,
-  });
+  const MorrowlyEmptyState({super.key, this.width = 188, this.height = 214});
 
   final double width;
   final double height;
