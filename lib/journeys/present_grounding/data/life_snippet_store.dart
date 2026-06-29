@@ -612,6 +612,23 @@ class LifeSnippetStore extends ChangeNotifier {
     await _preferences!.setBool(_autoFollowerSeededKey, true);
   }
 
+  void _refreshCurrentUserCounts() {
+    _currentUser = LifeSnippetUser(
+      userKey: _currentUser.userKey,
+      displayName: _currentUser.displayName,
+      ageLine: _currentUser.ageLine,
+      placeLine: _currentUser.placeLine,
+      avatarAsset: _currentUser.avatarAsset,
+      avatarLocalPath: _currentUser.avatarLocalPath,
+      signatureLine: _currentUser.signatureLine,
+      isCurrentUser: true,
+      followCount: _followingUserKeys.length,
+      fansCount: _followerUserKeys.length,
+      likeCount: _currentUser.likeCount,
+      capsuleCount: _pendingReviewPosts.length,
+    );
+  }
+
   LifeSnippetUser _currentUserFromGate(LocalGateStore gateStore) {
     return LifeSnippetUser(
       userKey: currentUserKey,
