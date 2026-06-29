@@ -166,17 +166,14 @@ class LifeSnippetPost {
       postKey: json['postKey'] as String? ?? '',
       authorKey: json['authorKey'] as String? ?? '',
       body: json['body'] as String? ?? '',
-      media: media
-          .whereType<Map<String, Object?>>()
-          .map(LifeSnippetMedia.fromJson)
-          .toList(),
+      media: media.map(castJsonObject).map(LifeSnippetMedia.fromJson).toList(),
       createdAt:
           DateTime.tryParse(json['createdAt'] as String? ?? '') ??
           DateTime.now(),
       likeCount: json['likeCount'] as int? ?? 0,
       commentCount: json['commentCount'] as int? ?? 0,
       seedComments: comments
-          .whereType<Map<String, Object?>>()
+          .map(castJsonObject)
           .map(LifeSnippetComment.fromJson)
           .toList(),
       isPendingReview: json['isPendingReview'] as bool? ?? false,
@@ -223,5 +220,12 @@ List<Map<String, Object?>> decodeJsonObjectList(String source) {
   if (decoded is! List<Object?>) {
     return const [];
   }
-  return decoded.whereType<Map<String, Object?>>().toList();
+  return decoded.map(castJsonObject).toList();
+}
+
+Map<String, Object?> castJsonObject(Object? value) {
+  if (value is Map) {
+    return value.map((key, value) => MapEntry('$key', value));
+  }
+  return const {};
 }
