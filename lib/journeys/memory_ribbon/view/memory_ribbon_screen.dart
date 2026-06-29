@@ -10,9 +10,10 @@ import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets
 import 'package:morrowly/journeys/welcome_gate/data/local_gate_store.dart';
 import 'package:morrowly/journeys/welcome_gate/models/legal_document_marker.dart';
 import 'package:morrowly/journeys/welcome_gate/view/legal_document_viewer.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 abstract final class ProfileCenterAssets {
   static const backgroundWash = 'assets/images/Shareable.png';
@@ -401,6 +402,7 @@ class ProfileSettingsScreen extends StatelessWidget {
     final gateStore = await LocalGateStore.open();
     if (deleteAccount) {
       await LifeSnippetStore.instance.clearLocalAccountData();
+      await MorrowlyWalletStore.instance.clearLocalWallet();
       await gateStore.deleteLocalAccount();
     } else {
       await gateStore.signOut();
@@ -704,158 +706,11 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
   }
 }
 
-class ProfileWalletScreen extends StatefulWidget {
+class ProfileWalletScreen extends StatelessWidget {
   const ProfileWalletScreen({super.key});
 
   @override
-  State<ProfileWalletScreen> createState() => _ProfileWalletScreenState();
-}
-
-class _ProfileWalletScreenState extends State<ProfileWalletScreen> {
-  static const _walletBalanceKey = 'morrowly.profile.walletBalance';
-
-  double _balance = 258.5;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBalance();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LifeSnippetStage(
-      child: Stack(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final contentWidth = MorrowlyFrameGuard.contentWidth(
-                constraints.maxWidth,
-                maxWidth: 430,
-                phoneGutter: 20,
-              );
-              final side = (constraints.maxWidth - contentWidth) / 2;
-              return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 118,
-                    extra: 44,
-                  ),
-                  side,
-                  34,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'My wallet',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(height: 26),
-                              Text(
-                                _formatBalance(_balance),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              Text(
-                                'balance',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.58),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Image.asset(
-                          ProfileCenterAssets.coin,
-                          width: 96,
-                          height: 96,
-                          filterQuality: FilterQuality.high,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 36),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 14,
-                            childAspectRatio: 0.68,
-                          ),
-                      itemCount: 9,
-                      itemBuilder: (context, index) {
-                        return _CoinPack(
-                          amount: 999.9,
-                          onBuy: () => _buyPack(999.9),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          LifeTopBar(
-            title: 'Wallet',
-            onBack: () => Navigator.of(context).pop(),
-            trailing: IconButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Wallet purchases are stored locally here.'),
-                  ),
-                );
-              },
-              icon: const Icon(
-                Icons.help_outline_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _loadBalance() async {
-    final preferences = await SharedPreferences.getInstance();
-    final value = preferences.getDouble(_walletBalanceKey);
-    if (mounted && value != null) {
-      setState(() => _balance = value);
-    }
-  }
-
-  Future<void> _buyPack(double amount) async {
-    final preferences = await SharedPreferences.getInstance();
-    final next = _balance + amount;
-    await preferences.setDouble(_walletBalanceKey, next);
-    if (!mounted) {
-      return;
-    }
-    setState(() => _balance = next);
-  }
+  Widget build(BuildContext context) => const MorrowlyWalletScreen();
 }
 
 class ProfileEditScreen extends StatefulWidget {
@@ -1409,35 +1264,11 @@ class _ProfileCoinPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return const MorrowlyCoinBalancePill(
       height: 27,
-      padding: const EdgeInsets.fromLTRB(7, 3, 10, 3),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            ProfileCenterAssets.coin,
-            width: 17,
-            height: 17,
-            filterQuality: FilterQuality.high,
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            '123,45',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              height: 1,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0,
-            ),
-          ),
-        ],
-      ),
+      iconSize: 17,
+      fontSize: 12,
+      horizontalPadding: 8,
     );
   }
 }
@@ -2516,64 +2347,6 @@ class _SmallCapsuleButton extends StatelessWidget {
   }
 }
 
-class _CoinPack extends StatelessWidget {
-  const _CoinPack({required this.amount, required this.onBuy});
-
-  final double amount;
-  final VoidCallback onBuy;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
-      decoration: BoxDecoration(
-        color: lifePanel.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Image.asset(
-            ProfileCenterAssets.coin,
-            width: 45,
-            height: 45,
-            filterQuality: FilterQuality.high,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _formatBalance(amount),
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.44),
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const Spacer(),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onBuy,
-            child: Container(
-              height: 31,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: lifePurple,
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: const Text(
-                r'$ 9.99',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _EditLabel extends StatelessWidget {
   const _EditLabel(this.label);
 
@@ -2909,8 +2682,4 @@ class _ProfileSessionProgressDialog extends StatelessWidget {
       ),
     );
   }
-}
-
-String _formatBalance(double value) {
-  return value.toStringAsFixed(1).replaceAll('.', ',');
 }
