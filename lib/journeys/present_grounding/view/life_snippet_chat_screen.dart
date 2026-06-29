@@ -72,8 +72,8 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
                           side,
                           MorrowlyFrameGuard.topClearance(
                             context,
-                            minimum: 92,
-                            extra: 30,
+                            minimum: 132,
+                            extra: 72,
                           ),
                           side,
                           MorrowlyFrameGuard.bottomClearance(
@@ -91,7 +91,6 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
                           const SizedBox(height: 26),
                           if (messages.isEmpty)
                             _EmptyChatPanel(
-                              user: user,
                               onProfile: () => _openProfile(user.userKey),
                             )
                           else
@@ -125,6 +124,8 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
                   LifeTopBar(
                     title: user.displayName,
                     onBack: () => Navigator.of(context).pop(),
+                    topMinimum: 58,
+                    topExtra: 10,
                     trailing: IconButton(
                       onPressed: () => _openProfile(user.userKey),
                       icon: const Icon(
@@ -309,45 +310,56 @@ class _HiddenChatPanel extends StatelessWidget {
 }
 
 class _EmptyChatPanel extends StatelessWidget {
-  const _EmptyChatPanel({required this.user, required this.onProfile});
+  const _EmptyChatPanel({required this.onProfile});
 
-  final LifeSnippetUser user;
   final VoidCallback onProfile;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 34),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
-      decoration: BoxDecoration(
-        color: lifePanel.withValues(alpha: 0.84),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        children: [
-          LifeAvatar(user: user, radius: 34, onTap: onProfile),
-          const SizedBox(height: 14),
-          const Text(
-            'No messages yet',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-            ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 44),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 310),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onProfile,
+                child: Image.asset(
+                  LifeSnippetAssets.empty,
+                  width: 138,
+                  height: 156,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                'No messages yet',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'After both of you approve the follow request, messages will appear here.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.54),
+                  fontSize: 12.5,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Messages are stored locally after they are sent. Sending is available only after mutual follow approval.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.58),
-              fontSize: 12,
-              height: 1.34,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

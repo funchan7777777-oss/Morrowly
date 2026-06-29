@@ -734,8 +734,8 @@ class _MailDetailScaffold extends StatelessWidget {
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 96,
-                    extra: 30,
+                    minimum: 128,
+                    extra: 64,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -748,7 +748,12 @@ class _MailDetailScaffold extends StatelessWidget {
               );
             },
           ),
-          LifeTopBar(title: title, onBack: () => Navigator.of(context).pop()),
+          LifeTopBar(
+            title: title,
+            onBack: () => Navigator.of(context).pop(),
+            topMinimum: 58,
+            topExtra: 10,
+          ),
         ],
       ),
     );

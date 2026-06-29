@@ -677,22 +677,10 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
                                 setState(() => _selectedIndex = index);
                               },
                             ),
-                            const SizedBox(height: 12),
-                            Image.asset(
-                              _selectedIndex == 1
-                                  ? ProfileCenterAssets.countdown
-                                  : ProfileCenterAssets.capsuleBanner,
-                              width: contentWidth,
-                              height:
-                                  contentWidth *
-                                  (_selectedIndex == 1 ? 166 / 700 : 236 / 700),
-                              fit: BoxFit.fill,
-                              filterQuality: FilterQuality.high,
-                            ),
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 34),
                             if (filtered.isEmpty)
                               const Padding(
-                                padding: EdgeInsets.only(top: 48),
+                                padding: EdgeInsets.only(top: 40),
                                 child: _EmptyCenterPanel(),
                               )
                             else

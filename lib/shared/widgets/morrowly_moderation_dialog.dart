@@ -321,8 +321,8 @@ class _ModerationChoiceTile extends StatelessWidget {
               Image.asset(
                 assetPath,
                 width: double.infinity,
-                height: 68,
-                fit: BoxFit.fill,
+                height: 58,
+                fit: BoxFit.contain,
                 filterQuality: FilterQuality.high,
               ),
               AnimatedOpacity(

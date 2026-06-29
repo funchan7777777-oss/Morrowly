@@ -100,7 +100,7 @@ class LifeSnippetStore extends ChangeNotifier {
 
   List<LifeCommentNotice> get commentNotices {
     final notices = <LifeCommentNotice>[];
-    for (final post in visiblePosts(LifeSnippetFeedFilter.popular)) {
+    for (final post in postsForUser(_currentUser.userKey)) {
       for (final comment in commentsForPost(post.postKey)) {
         if (comment.authorKey == _currentUser.userKey) {
           continue;
@@ -774,10 +774,10 @@ const _seedUsers = [
     placeLine: 'Australia',
     avatarAsset: 'assets/images/head/bloom_arch_window.jpg',
     signatureLine: 'Preserve wishes for future you',
-    followCount: 246,
-    fansCount: 28,
-    likeCount: 1214,
-    capsuleCount: 784,
+    followCount: 8,
+    fansCount: 3,
+    likeCount: 24,
+    capsuleCount: 2,
   ),
   LifeSnippetUser(
     userKey: 'evan-perkins',
@@ -786,10 +786,10 @@ const _seedUsers = [
     placeLine: 'Canada',
     avatarAsset: 'assets/images/head/muse_cafe_shadow.jpg',
     signatureLine: 'Save small weather from ordinary days',
-    followCount: 180,
-    fansCount: 42,
-    likeCount: 936,
-    capsuleCount: 318,
+    followCount: 6,
+    fansCount: 2,
+    likeCount: 18,
+    capsuleCount: 2,
   ),
   LifeSnippetUser(
     userKey: 'talia-arden',
@@ -798,10 +798,10 @@ const _seedUsers = [
     placeLine: 'Switzerland',
     avatarAsset: 'assets/images/head/bloom_lake_glow.jpg',
     signatureLine: 'Let a softer future find the proof',
-    followCount: 319,
-    fansCount: 64,
-    likeCount: 1430,
-    capsuleCount: 529,
+    followCount: 10,
+    fansCount: 4,
+    likeCount: 31,
+    capsuleCount: 1,
   ),
 ];
 
@@ -819,7 +819,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 25, 8, 45),
-    likeCount: 123,
+    likeCount: 14,
     commentCount: 2,
     seedComments: [
       LifeSnippetComment(
@@ -850,7 +850,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 24, 19, 18),
-    likeCount: 116,
+    likeCount: 12,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -866,7 +866,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 21, 18, 30),
-    likeCount: 89,
+    likeCount: 9,
     commentCount: 1,
     seedComments: [
       LifeSnippetComment(
@@ -890,7 +890,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 20, 10, 12),
-    likeCount: 102,
+    likeCount: 11,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -906,7 +906,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 18, 16, 12),
-    likeCount: 76,
+    likeCount: 7,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -922,7 +922,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 17, 15, 4),
-    likeCount: 84,
+    likeCount: 8,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -937,7 +937,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 16, 20, 22),
-    likeCount: 91,
+    likeCount: 10,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -953,7 +953,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 15, 14, 9),
-    likeCount: 70,
+    likeCount: 6,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -968,7 +968,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 14, 11, 42),
-    likeCount: 118,
+    likeCount: 13,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -983,7 +983,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 13, 17, 28),
-    likeCount: 63,
+    likeCount: 5,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -999,7 +999,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 12, 9, 36),
-    likeCount: 95,
+    likeCount: 9,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1015,7 +1015,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 11, 13, 18),
-    likeCount: 132,
+    likeCount: 16,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1030,7 +1030,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 10, 16, 44),
-    likeCount: 73,
+    likeCount: 7,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1045,7 +1045,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 9, 15, 20),
-    likeCount: 58,
+    likeCount: 4,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1060,7 +1060,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 8, 12, 16),
-    likeCount: 82,
+    likeCount: 8,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1075,7 +1075,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 7, 18, 2),
-    likeCount: 104,
+    likeCount: 11,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1090,7 +1090,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 6, 10, 50),
-    likeCount: 77,
+    likeCount: 6,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1105,7 +1105,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 5, 14, 37),
-    likeCount: 125,
+    likeCount: 15,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1120,7 +1120,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 4, 9, 24),
-    likeCount: 66,
+    likeCount: 5,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1135,7 +1135,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 3, 16, 8),
-    likeCount: 88,
+    likeCount: 8,
     commentCount: 0,
   ),
   LifeSnippetPost(
@@ -1150,7 +1150,7 @@ final _seedPosts = [
       ),
     ],
     createdAt: DateTime(2025, 11, 2, 18, 55),
-    likeCount: 99,
+    likeCount: 10,
     commentCount: 0,
   ),
 ];

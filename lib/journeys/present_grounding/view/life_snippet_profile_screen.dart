@@ -75,9 +75,7 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
                             followCount: _store.profileFollowCountFor(
                               user.userKey,
                             ),
-                            fansCount: _store.profileFansCountFor(
-                              user.userKey,
-                            ),
+                            fansCount: _store.profileFansCountFor(user.userKey),
                             likeCount: _store.profileLikeCountFor(user.userKey),
                             capsuleCount: _store.profileCapsuleCountFor(
                               user.userKey,
@@ -281,8 +279,8 @@ class _ProfileHeader extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            LifeAvatar(user: user, radius: 36),
-            const SizedBox(width: 18),
+            LifeAvatar(user: user, radius: 38),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,7 +294,7 @@ class _ProfileHeader extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 17,
+                            fontSize: 18,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -405,7 +403,7 @@ class _ProfileStat extends StatelessWidget {
           '$value',
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -414,7 +412,7 @@ class _ProfileStat extends StatelessWidget {
           label,
           style: TextStyle(
             color: Colors.white.withValues(alpha: 0.28),
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -454,10 +452,10 @@ class _ProfilePostCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onOpen,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
+        padding: const EdgeInsets.fromLTRB(13, 12, 13, 11),
         decoration: BoxDecoration(
-          color: lifePanel.withValues(alpha: 0.94),
-          borderRadius: BorderRadius.circular(20),
+          color: lifePanel.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,7 +509,7 @@ class _ProfilePostCard extends StatelessWidget {
             if (post.media.isNotEmpty) ...[
               const SizedBox(height: 12),
               AspectRatio(
-                aspectRatio: 1.28,
+                aspectRatio: 1.44,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: LifeMediaImage(media: post.media.first),

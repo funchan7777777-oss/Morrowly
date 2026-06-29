@@ -72,18 +72,26 @@ class LifeTopBar extends StatelessWidget {
     required this.title,
     this.onBack,
     this.trailing,
+    this.topMinimum = 48,
+    this.topExtra = 0,
   });
 
   final String title;
   final VoidCallback? onBack;
   final Widget? trailing;
+  final double topMinimum;
+  final double topExtra;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         18,
-        MorrowlyFrameGuard.topClearance(context, minimum: 48),
+        MorrowlyFrameGuard.topClearance(
+          context,
+          minimum: topMinimum,
+          extra: topExtra,
+        ),
         18,
         0,
       ),
