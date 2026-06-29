@@ -85,11 +85,15 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
                         children: [
                           _ChatContactCard(
                             user: user,
+                            onProfile: () => _openProfile(user.userKey),
                             onVideoCall: _openVideoCall,
                           ),
                           const SizedBox(height: 26),
                           if (messages.isEmpty)
-                            _EmptyChatPanel(user: user)
+                            _EmptyChatPanel(
+                              user: user,
+                              onProfile: () => _openProfile(user.userKey),
+                            )
                           else
                             for (final message in messages) ...[
                               _MessageBubble(
@@ -179,9 +183,14 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
 }
 
 class _ChatContactCard extends StatelessWidget {
-  const _ChatContactCard({required this.user, required this.onVideoCall});
+  const _ChatContactCard({
+    required this.user,
+    required this.onProfile,
+    required this.onVideoCall,
+  });
 
   final LifeSnippetUser user;
+  final VoidCallback onProfile;
   final VoidCallback onVideoCall;
 
   @override
@@ -206,7 +215,7 @@ class _ChatContactCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          LifeAvatar(user: user, radius: 29),
+          LifeAvatar(user: user, radius: 29, onTap: onProfile),
           const SizedBox(width: 13),
           Expanded(
             child: Column(
@@ -300,9 +309,10 @@ class _HiddenChatPanel extends StatelessWidget {
 }
 
 class _EmptyChatPanel extends StatelessWidget {
-  const _EmptyChatPanel({required this.user});
+  const _EmptyChatPanel({required this.user, required this.onProfile});
 
   final LifeSnippetUser user;
+  final VoidCallback onProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +326,7 @@ class _EmptyChatPanel extends StatelessWidget {
       ),
       child: Column(
         children: [
-          LifeAvatar(user: user, radius: 34),
+          LifeAvatar(user: user, radius: 34, onTap: onProfile),
           const SizedBox(height: 14),
           const Text(
             'No messages yet',

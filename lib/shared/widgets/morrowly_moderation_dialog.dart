@@ -108,7 +108,6 @@ class _ModerationActionDialogState extends State<_ModerationActionDialog> {
           _ModerationChoiceTile(
             assetPath: _reportAsset,
             fallbackLabel: 'Report',
-            icon: Icons.info_rounded,
             selected: _selectedAction == _MorrowlyModerationAction.report,
             onTap: () {
               setState(
@@ -120,7 +119,6 @@ class _ModerationActionDialogState extends State<_ModerationActionDialog> {
           _ModerationChoiceTile(
             assetPath: _blockAsset,
             fallbackLabel: 'Block',
-            icon: Icons.priority_high_rounded,
             selected: _selectedAction == _MorrowlyModerationAction.block,
             onTap: () {
               setState(() => _selectedAction = _MorrowlyModerationAction.block);
@@ -295,14 +293,12 @@ class _ModerationChoiceTile extends StatelessWidget {
   const _ModerationChoiceTile({
     required this.assetPath,
     required this.fallbackLabel,
-    required this.icon,
     required this.selected,
     required this.onTap,
   });
 
   final String assetPath;
   final String fallbackLabel;
-  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
@@ -315,43 +311,28 @@ class _ModerationChoiceTile extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: AnimatedContainer(
+        child: AnimatedScale(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOutCubic,
-          height: 58,
-          padding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF614665) : const Color(0xFF58425E),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFFD853D6).withValues(alpha: 0.52)
-                  : Colors.white.withValues(alpha: 0.05),
-            ),
-          ),
-          child: Row(
+          scale: selected ? 1 : 0.985,
+          child: Stack(
+            alignment: Alignment.centerRight,
             children: [
-              Container(
-                width: 35,
-                height: 35,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: const Color(0xFF4B3653), size: 22),
+              Image.asset(
+                assetPath,
+                width: double.infinity,
+                height: 68,
+                fit: BoxFit.fill,
+                filterQuality: FilterQuality.high,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Image.asset(
-                  assetPath,
-                  height: 32,
-                  fit: BoxFit.contain,
-                  alignment: Alignment.centerLeft,
-                  filterQuality: FilterQuality.high,
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 160),
+                opacity: selected ? 1 : 0,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _SelectionMark(selected: selected),
                 ),
               ),
-              const SizedBox(width: 12),
-              _SelectionMark(selected: selected),
             ],
           ),
         ),

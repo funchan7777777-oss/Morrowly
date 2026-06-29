@@ -124,6 +124,8 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
                                 _MailThreadTile(
                                   thread: thread,
                                   onTap: () => _openChat(thread.user.userKey),
+                                  onProfile: () =>
+                                      _openProfile(thread.user.userKey),
                                 ),
                                 if (thread != threads.last)
                                   const _MailThreadDivider(),
@@ -437,10 +439,15 @@ class _CapsuleReminderCard extends StatelessWidget {
 }
 
 class _MailThreadTile extends StatelessWidget {
-  const _MailThreadTile({required this.thread, required this.onTap});
+  const _MailThreadTile({
+    required this.thread,
+    required this.onTap,
+    required this.onProfile,
+  });
 
   final _MailThread thread;
   final VoidCallback onTap;
+  final VoidCallback onProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -451,10 +458,14 @@ class _MailThreadTile extends StatelessWidget {
         height: 66,
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: Colors.white.withValues(alpha: 0.18),
-              backgroundImage: lifeAvatarProvider(thread.user),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onProfile,
+              child: CircleAvatar(
+                radius: 26,
+                backgroundColor: Colors.white.withValues(alpha: 0.18),
+                backgroundImage: lifeAvatarProvider(thread.user),
+              ),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -979,7 +990,7 @@ class _MailUserTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LifeAvatar(user: user, radius: 28),
+          LifeAvatar(user: user, radius: 28, onTap: onProfile),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

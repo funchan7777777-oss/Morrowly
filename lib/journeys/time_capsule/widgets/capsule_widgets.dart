@@ -22,7 +22,9 @@ ImageProvider<Object> capsuleKeeperAvatarProvider(CapsuleKeeper keeper) {
     return FileImage(File(keeper.avatarLocalPath));
   }
   return AssetImage(
-    keeper.avatarAsset.isEmpty ? 'assets/images/Memoir.png' : keeper.avatarAsset,
+    keeper.avatarAsset.isEmpty
+        ? 'assets/images/Memoir.png'
+        : keeper.avatarAsset,
   );
 }
 

@@ -127,7 +127,9 @@ ImageProvider<Object> lifeAvatarProvider(LifeSnippetUser user) {
     return FileImage(File(user.avatarLocalPath));
   }
   return AssetImage(
-    user.avatarAsset.isEmpty ? LifeSnippetAssets.placeholderAvatar : user.avatarAsset,
+    user.avatarAsset.isEmpty
+        ? LifeSnippetAssets.placeholderAvatar
+        : user.avatarAsset,
   );
 }
 

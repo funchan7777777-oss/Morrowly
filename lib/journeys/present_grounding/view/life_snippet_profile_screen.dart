@@ -71,6 +71,18 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
                       children: [
                         _ProfileHeader(
                           user: user,
+                          stats: _ProfileStatsData(
+                            followCount: _store.profileFollowCountFor(
+                              user.userKey,
+                            ),
+                            fansCount: _store.profileFansCountFor(
+                              user.userKey,
+                            ),
+                            likeCount: _store.profileLikeCountFor(user.userKey),
+                            capsuleCount: _store.profileCapsuleCountFor(
+                              user.userKey,
+                            ),
+                          ),
                           followStatus: _store.followStatusFor(user.userKey),
                           onFollow: () => _requestFollow(user.userKey),
                           onChat:
@@ -104,6 +116,7 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
                                 user.userKey,
                               ),
                               onOpen: () => _openPost(post.postKey),
+                              onAuthor: () => _openProfile(user.userKey),
                               onFollow: () => _requestFollow(user.userKey),
                               onLike: () => _store.toggleLike(post.postKey),
                             ),
@@ -169,6 +182,17 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
     );
   }
 
+  Future<void> _openProfile(String userKey) {
+    if (userKey == widget.userKey) {
+      return Future.value();
+    }
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LifeSnippetProfileScreen(userKey: userKey),
+      ),
+    );
+  }
+
   Future<void> _showUserModeration(String userKey) async {
     final result = await showMorrowlyModerationFlow(
       context: context,
@@ -220,15 +244,31 @@ class _HiddenProfilePanel extends StatelessWidget {
   }
 }
 
+class _ProfileStatsData {
+  const _ProfileStatsData({
+    required this.followCount,
+    required this.fansCount,
+    required this.likeCount,
+    required this.capsuleCount,
+  });
+
+  final int followCount;
+  final int fansCount;
+  final int likeCount;
+  final int capsuleCount;
+}
+
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({
     required this.user,
+    required this.stats,
     required this.followStatus,
     required this.onFollow,
     required this.onChat,
   });
 
   final LifeSnippetUser user;
+  final _ProfileStatsData stats;
   final LifeFollowStatus followStatus;
   final VoidCallback onFollow;
   final VoidCallback? onChat;
@@ -242,7 +282,7 @@ class _ProfileHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             LifeAvatar(user: user, radius: 36),
-            const SizedBox(width: 13),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,13 +309,27 @@ class _ProfileHeader extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    user.regionLine,
-                    style: const TextStyle(
-                      color: Color(0xFFBD78FF),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.female_rounded,
+                        color: Color(0xFFFF78C8),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          user.regionLine,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFFBD78FF),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -296,10 +350,10 @@ class _ProfileHeader extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _ProfileStat(value: user.followCount, label: 'Follow'),
-            _ProfileStat(value: user.fansCount, label: 'Fans'),
-            _ProfileStat(value: user.likeCount, label: 'Get likes'),
-            _ProfileStat(value: user.capsuleCount, label: 'Capsule'),
+            _ProfileStat(value: stats.followCount, label: 'Follow'),
+            _ProfileStat(value: stats.fansCount, label: 'Fans'),
+            _ProfileStat(value: stats.likeCount, label: 'Get likes'),
+            _ProfileStat(value: stats.capsuleCount, label: 'Capsule'),
           ],
         ),
         if (onChat != null) ...[
@@ -378,6 +432,7 @@ class _ProfilePostCard extends StatelessWidget {
     required this.liked,
     required this.followStatus,
     required this.onOpen,
+    required this.onAuthor,
     required this.onFollow,
     required this.onLike,
   });
@@ -389,6 +444,7 @@ class _ProfilePostCard extends StatelessWidget {
   final bool liked;
   final LifeFollowStatus followStatus;
   final VoidCallback onOpen;
+  final VoidCallback onAuthor;
   final VoidCallback onFollow;
   final VoidCallback onLike;
 
@@ -408,7 +464,7 @@ class _ProfilePostCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                LifeAvatar(user: author, radius: 22),
+                LifeAvatar(user: author, radius: 22, onTap: onAuthor),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(

@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
 import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_compose_screen.dart';
+import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
 import 'package:morrowly/journeys/time_capsule/data/local_capsule_store.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
@@ -1997,7 +1998,19 @@ class _RelationshipRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LifeAvatar(user: user, radius: 28),
+          LifeAvatar(
+            user: user,
+            radius: 28,
+            onTap: () {
+              Navigator.of(context).push<void>(
+                MaterialPageRoute(
+                  builder: (_) => LifeSnippetProfileScreen(
+                    userKey: user.userKey,
+                  ),
+                ),
+              );
+            },
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

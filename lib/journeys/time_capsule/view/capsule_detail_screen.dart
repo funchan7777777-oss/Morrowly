@@ -625,6 +625,7 @@ class _CommentComposer extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     required this.draft,
+    required this.currentKeeper,
     required this.onChanged,
     required this.onSend,
   });
@@ -632,6 +633,7 @@ class _CommentComposer extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String draft;
+  final CapsuleKeeper currentKeeper;
   final ValueChanged<String> onChanged;
   final VoidCallback onSend;
 
@@ -652,9 +654,7 @@ class _CommentComposer extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: CircleAvatar(
               radius: 17,
-              backgroundImage: capsuleKeeperAvatarProvider(
-                CapsuleSquareSeed.currentKeeper,
-              ),
+              backgroundImage: capsuleKeeperAvatarProvider(currentKeeper),
               backgroundColor: Colors.white.withValues(alpha: 0.14),
             ),
           ),

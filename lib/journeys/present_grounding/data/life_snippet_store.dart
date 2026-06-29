@@ -286,6 +286,37 @@ class LifeSnippetStore extends ChangeNotifier {
     return post.likeCount + (_likedPostKeys.contains(post.postKey) ? 1 : 0);
   }
 
+  int profileFollowCountFor(String userKey) {
+    if (userKey == currentUserKey) {
+      return _followingUserKeys.length;
+    }
+    final user = userByKey(userKey);
+    return min(user.followCount, 12);
+  }
+
+  int profileFansCountFor(String userKey) {
+    if (userKey == currentUserKey) {
+      return _followerUserKeys.length;
+    }
+    final user = userByKey(userKey);
+    return min(user.fansCount, 9);
+  }
+
+  int profileLikeCountFor(String userKey) {
+    final userPosts = postsForUser(userKey);
+    return userPosts.fold<int>(
+      0,
+      (total, post) => total + visibleLikeCount(post),
+    );
+  }
+
+  int profileCapsuleCountFor(String userKey) {
+    if (userKey == currentUserKey) {
+      return _pendingReviewPosts.length;
+    }
+    return postsForUser(userKey).length;
+  }
+
   bool isPostLiked(String postKey) {
     return _likedPostKeys.contains(postKey);
   }
