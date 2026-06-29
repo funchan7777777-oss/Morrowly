@@ -136,6 +136,7 @@ class MorrowlyWalletStore extends ChangeNotifier {
   static const _balanceKey = 'morrowly.wallet.coinBalance';
   static const _welcomeGiftClaimedKey = 'morrowly.wallet.welcomeGiftClaimed';
   static const _creditedPurchasesKey = 'morrowly.wallet.creditedPurchases';
+  static const _legacyProfileBalanceKey = 'morrowly.profile.walletBalance';
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
@@ -210,6 +211,7 @@ class MorrowlyWalletStore extends ChangeNotifier {
     await _preferences!.remove(_balanceKey);
     await _preferences!.remove(_welcomeGiftClaimedKey);
     await _preferences!.remove(_creditedPurchasesKey);
+    await _preferences!.remove(_legacyProfileBalanceKey);
     notifyListeners();
   }
 

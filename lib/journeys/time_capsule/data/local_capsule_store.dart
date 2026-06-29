@@ -149,6 +149,7 @@ class LocalCapsuleStore extends ChangeNotifier {
       orElse: () => CapsuleVisibility.publicSquare,
     );
 
+    final leftMessageCount = json['leftMessageCount'];
     return CapsuleSquareNote(
       noteKey: noteKey,
       keeper: CapsuleSquareSeed.currentKeeper,
@@ -164,9 +165,7 @@ class LocalCapsuleStore extends ChangeNotifier {
       openingAt: openingAt,
       visibility: visibility,
       visitorTrail: CapsuleSquareSeed.allKeepers,
-      leftMessageCount: json['leftMessageCount'] is int
-          ? json['leftMessageCount']! as int
-          : 0,
+      leftMessageCount: leftMessageCount is int ? leftMessageCount : 0,
       isLocalDraft: json['isLocalDraft'] == true,
     );
   }

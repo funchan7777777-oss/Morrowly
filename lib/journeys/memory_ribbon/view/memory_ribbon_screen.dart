@@ -710,9 +710,13 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
                                   final capsule = filtered[index];
                                   return _CapsuleTile(
                                     capsule: capsule,
-                                    onDelete: () => _store.remove(
-                                      capsule.sourceNote.noteKey,
-                                    ),
+                                    onDelete: () {
+                                      unawaited(
+                                        _store.remove(
+                                          capsule.sourceNote.noteKey,
+                                        ),
+                                      );
+                                    },
                                     onCheck: () => _showCapsuleReady(capsule),
                                   );
                                 },
@@ -748,7 +752,9 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
         ? _CapsuleProfileStatus.unlocked
         : _CapsuleProfileStatus.opening;
     return _ProfileCapsule(
-      title: note.canOpenNow ? 'Can be opened' : 'Open in 1 year',
+      title: note.canOpenNow
+          ? 'Can be opened'
+          : 'Opens ${capsuleDateStamp(note.openingAt)}',
       status: status,
       visibility: note.visibility == CapsuleVisibility.publicSquare
           ? 'Public'
