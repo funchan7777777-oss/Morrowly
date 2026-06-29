@@ -16,6 +16,7 @@ class LocalGateStore {
   static const _profileAvatarPathKey = 'morrowly.profile.avatarPath';
   static const _profileGenderKey = 'morrowly.profile.gender';
   static const _profileRegionKey = 'morrowly.profile.region';
+  static const _profileBirthDateKey = 'morrowly.profile.birthDate';
   static const _appleUserKey = 'morrowly.apple.userIdentifier';
   static const _lastProviderKey = 'morrowly.session.provider';
   static const _legalAgreementKey = 'morrowly.legal.agreementAccepted';
@@ -60,6 +61,10 @@ class LocalGateStore {
 
   String get savedRegion {
     return _preferences.getString(_profileRegionKey) ?? 'United States';
+  }
+
+  String get savedBirthDate {
+    return _preferences.getString(_profileBirthDateKey) ?? '';
   }
 
   Future<void> setLegalAgreementAccepted(bool accepted) async {
@@ -114,5 +119,28 @@ class LocalGateStore {
     );
     await _preferences.setString(_profileRegionKey, profile.regionLedgerLabel);
     await _preferences.setBool(_sessionActiveKey, true);
+  }
+
+  Future<void> updateProfile({
+    required String displayName,
+    required String signatureLine,
+    required String avatarLocalPath,
+    required String gender,
+    required String region,
+    required String birthDate,
+  }) async {
+    await _preferences.setString(_profileNameKey, displayName.trim());
+    await _preferences.setString(
+      _profileSignatureKey,
+      signatureLine.trim(),
+    );
+    await _preferences.setString(_profileAvatarPathKey, avatarLocalPath);
+    await _preferences.setString(_profileGenderKey, gender);
+    await _preferences.setString(_profileRegionKey, region);
+    await _preferences.setString(_profileBirthDateKey, birthDate.trim());
+  }
+
+  Future<void> signOut() async {
+    await _preferences.setBool(_sessionActiveKey, false);
   }
 }

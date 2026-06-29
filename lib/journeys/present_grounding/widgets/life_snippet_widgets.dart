@@ -185,9 +185,8 @@ class LifeFollowButton extends StatelessWidget {
 
     final asset = switch (status) {
       LifeFollowStatus.following => LifeSnippetAssets.followed,
-      LifeFollowStatus.none => compact
-          ? LifeSnippetAssets.followIcon
-          : LifeSnippetAssets.followPlain,
+      LifeFollowStatus.none =>
+        compact ? LifeSnippetAssets.followIcon : LifeSnippetAssets.followPlain,
       LifeFollowStatus.requested => LifeSnippetAssets.followIcon,
     };
     final width = compact ? 88.0 : 132.0;
@@ -277,10 +276,8 @@ Future<void> showLifeModerationSheet({
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: 0.6),
-    builder: (context) => _ModerationSheet(
-      onReport: onReport,
-      onBlock: onBlock,
-    ),
+    builder: (context) =>
+        _ModerationSheet(onReport: onReport, onBlock: onBlock),
   );
 }
 
@@ -396,10 +393,7 @@ class _RelationshipGateDialog extends StatelessWidget {
 }
 
 class _ModerationSheet extends StatefulWidget {
-  const _ModerationSheet({
-    required this.onReport,
-    required this.onBlock,
-  });
+  const _ModerationSheet({required this.onReport, required this.onBlock});
 
   final Future<void> Function() onReport;
   final Future<void> Function() onBlock;

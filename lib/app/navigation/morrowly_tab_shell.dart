@@ -4,7 +4,9 @@ import 'package:morrowly/journeys/present_grounding/view/present_grounding_scree
 import 'package:morrowly/journeys/time_capsule/view/capsule_home_screen.dart';
 
 class MorrowlyTabShell extends StatefulWidget {
-  const MorrowlyTabShell({super.key});
+  const MorrowlyTabShell({super.key, this.onSignedOut});
+
+  final VoidCallback? onSignedOut;
 
   @override
   State<MorrowlyTabShell> createState() => _MorrowlyTabShellState();
@@ -13,29 +15,29 @@ class MorrowlyTabShell extends StatefulWidget {
 class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
   int _selectedHarborIndex = 0;
 
-  static const List<_MorrowlyHarbor> _harbors = [
-    _MorrowlyHarbor(
-      voiceLabel: 'Tomorrow home',
-      restingAsset: 'assets/images/Letter.png',
-      litAsset: 'assets/images/Nostalgia.png',
-      screen: CapsuleHomeScreen(),
-    ),
-    _MorrowlyHarbor(
-      voiceLabel: 'Now signal',
-      restingAsset: 'assets/images/Journey.png',
-      litAsset: 'assets/images/Sealed.png',
-      screen: PresentGroundingScreen(),
-    ),
-    _MorrowlyHarbor(
-      voiceLabel: 'Memory notes',
-      restingAsset: 'assets/images/Milestone.png',
-      litAsset: 'assets/images/Anniversary.png',
-      screen: MemoryRibbonScreen(),
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final harbors = [
+      const _MorrowlyHarbor(
+        voiceLabel: 'Tomorrow home',
+        restingAsset: 'assets/images/Letter.png',
+        litAsset: 'assets/images/Nostalgia.png',
+        screen: CapsuleHomeScreen(),
+      ),
+      const _MorrowlyHarbor(
+        voiceLabel: 'Now signal',
+        restingAsset: 'assets/images/Journey.png',
+        litAsset: 'assets/images/Sealed.png',
+        screen: PresentGroundingScreen(),
+      ),
+      _MorrowlyHarbor(
+        voiceLabel: 'Profile center',
+        restingAsset: 'assets/images/Milestone.png',
+        litAsset: 'assets/images/Anniversary.png',
+        screen: MemoryRibbonScreen(onSignedOut: widget.onSignedOut),
+      ),
+    ];
+
     return Scaffold(
       extendBody: true,
       body: Stack(
@@ -43,7 +45,7 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
         children: [
           IndexedStack(
             index: _selectedHarborIndex,
-            children: [for (final harbor in _harbors) harbor.screen],
+            children: [for (final harbor in harbors) harbor.screen],
           ),
           Positioned(
             left: 0,
@@ -51,7 +53,7 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
             bottom: _MorrowlyFloatingDock.bottomOffset,
             child: Center(
               child: _MorrowlyFloatingDock(
-                harbors: _harbors,
+                harbors: harbors,
                 selectedIndex: _selectedHarborIndex,
                 onSelected: (index) {
                   setState(() => _selectedHarborIndex = index);

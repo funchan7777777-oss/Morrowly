@@ -35,7 +35,7 @@ class LifeSnippetUser {
   final int likeCount;
   final int capsuleCount;
 
-  String get regionLine => '$ageLine · $placeLine';
+  String get regionLine => '$ageLine - $placeLine';
 }
 
 class LifeSnippetMedia {
@@ -50,11 +50,7 @@ class LifeSnippetMedia {
   final LifeSnippetMediaKind kind;
 
   Map<String, Object?> toJson() {
-    return {
-      'mediaKey': mediaKey,
-      'path': path,
-      'kind': kind.name,
-    };
+    return {'mediaKey': mediaKey, 'path': path, 'kind': kind.name};
   }
 
   static LifeSnippetMedia fromJson(Map<String, Object?> json) {
@@ -160,8 +156,10 @@ class LifeSnippetPost {
   }
 
   static LifeSnippetPost fromJson(Map<String, Object?> json) {
-    final media = json['media'] as List<Object?>? ?? const [];
-    final comments = json['seedComments'] as List<Object?>? ?? const [];
+    final mediaValue = json['media'];
+    final commentsValue = json['seedComments'];
+    final media = mediaValue is List ? mediaValue : const [];
+    final comments = commentsValue is List ? commentsValue : const [];
     return LifeSnippetPost(
       postKey: json['postKey'] as String? ?? '',
       authorKey: json['authorKey'] as String? ?? '',

@@ -63,9 +63,7 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                           children: [
                             _LifeHeader(
                               currentUser: _store.currentUser,
-                              onProfile: () => _openProfile(
-                                _store.currentUser,
-                              ),
+                              onProfile: () => _openProfile(_store.currentUser),
                             ),
                             const SizedBox(height: 16),
                             _FeedFilterBar(
@@ -94,14 +92,11 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                                   onAuthor: () => _openProfile(
                                     _store.userByKey(post.authorKey),
                                   ),
-                                  onFollow: () => _requestFollow(
-                                    post.authorKey,
-                                  ),
+                                  onFollow: () =>
+                                      _requestFollow(post.authorKey),
                                   onLike: () => _store.toggleLike(post.postKey),
-                                  onComments: () => _openPost(
-                                    post,
-                                    focusComposer: true,
-                                  ),
+                                  onComments: () =>
+                                      _openPost(post, focusComposer: true),
                                   onMore: () => _showPostModeration(post),
                                 ),
                                 const SizedBox(height: 14),
@@ -408,10 +403,7 @@ class _LifePostCard extends StatelessWidget {
                   ),
                 ),
                 if (!author.isCurrentUser)
-                  LifeFollowButton(
-                    status: followStatus,
-                    onPressed: onFollow,
-                  ),
+                  LifeFollowButton(status: followStatus, onPressed: onFollow),
               ],
             ),
             const SizedBox(height: 14),

@@ -21,12 +21,12 @@ class LifeSnippetStore extends ChangeNotifier {
   static const _likedPostsKey = 'morrowly.lifeSnippets.likedPostKeys';
   static const _outgoingFollowRequestsKey =
       'morrowly.lifeSnippets.outgoingFollowRequests';
-  static const _followingUserKeysKey = 'morrowly.lifeSnippets.followingUserKeys';
+  static const _followingUserKeysKey =
+      'morrowly.lifeSnippets.followingUserKeys';
   static const _followerUserKeysKey = 'morrowly.lifeSnippets.followerUserKeys';
   static const _chatThreadsKey = 'morrowly.lifeSnippets.chatThreads';
 
-  final MorrowlyModerationStore _moderation =
-      MorrowlyModerationStore.instance;
+  final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   final Set<String> _likedPostKeys = {};
   final Set<String> _outgoingFollowRequests = {};
   final Set<String> _followingUserKeys = {};
@@ -47,6 +47,25 @@ class LifeSnippetStore extends ChangeNotifier {
 
   List<LifeSnippetUser> get people {
     return [_currentUser, ..._seedUsers];
+  }
+
+  List<LifeSnippetUser> get followListUsers {
+    final keys = {..._followingUserKeys, ..._outgoingFollowRequests};
+    return keys.map(userByKey).where((user) => !user.isCurrentUser).toList();
+  }
+
+  List<LifeSnippetUser> get fanListUsers {
+    return _followerUserKeys
+        .map(userByKey)
+        .where((user) => !user.isCurrentUser)
+        .toList();
+  }
+
+  List<LifeSnippetUser> get blockedUsers {
+    return _moderation.blockedAuthorKeys
+        .map(userByKey)
+        .where((user) => !user.isCurrentUser)
+        .toList();
   }
 
   Future<void> load() {
@@ -99,9 +118,9 @@ class LifeSnippetStore extends ChangeNotifier {
   }
 
   List<LifeSnippetPost> postsForUser(String userKey) {
-    return visiblePosts(LifeSnippetFeedFilter.popular)
-        .where((post) => post.authorKey == userKey)
-        .toList();
+    return visiblePosts(
+      LifeSnippetFeedFilter.popular,
+    ).where((post) => post.authorKey == userKey).toList();
   }
 
   List<LifeSnippetComment> commentsForPost(String postKey) {
@@ -109,15 +128,16 @@ class LifeSnippetStore extends ChangeNotifier {
       (post) => post.postKey == postKey,
       orElse: () => _emptyPost,
     );
-    final comments = [
-      ...post.seedComments,
-      ...(_commentsByPost[postKey] ?? const <LifeSnippetComment>[]),
-    ].where((comment) {
-      return !_moderation.shouldHide(
-        contentKey: comment.commentKey,
-        authorKey: comment.authorKey,
-      );
-    }).toList();
+    final comments =
+        [
+          ...post.seedComments,
+          ...(_commentsByPost[postKey] ?? const <LifeSnippetComment>[]),
+        ].where((comment) {
+          return !_moderation.shouldHide(
+            contentKey: comment.commentKey,
+            authorKey: comment.authorKey,
+          );
+        }).toList();
     comments.sort((left, right) => left.createdAt.compareTo(right.createdAt));
     return comments;
   }
@@ -252,6 +272,19 @@ class LifeSnippetStore extends ChangeNotifier {
     );
   }
 
+  Future<void> reportUser(String userKey) async {
+    final user = userByKey(userKey);
+    await _moderation.reportContent(
+      target: MorrowlyModerationTarget(
+        contentKey: 'profile-$userKey',
+        authorKey: user.userKey,
+        authorName: user.displayName,
+        kind: MorrowlyModerationKind.snippet,
+      ),
+      reason: MorrowlyReportReason.inappropriate,
+    );
+  }
+
   Future<void> blockUser(String userKey) async {
     final user = userByKey(userKey);
     await _moderation.blockAuthor(
@@ -268,6 +301,32 @@ class LifeSnippetStore extends ChangeNotifier {
     await _saveStringSet(_outgoingFollowRequestsKey, _outgoingFollowRequests);
     await _saveStringSet(_followingUserKeysKey, _followingUserKeys);
     await _saveStringSet(_followerUserKeysKey, _followerUserKeys);
+    notifyListeners();
+  }
+
+  Future<void> unblockUser(String userKey) async {
+    await _moderation.unblockAuthor(userKey);
+    notifyListeners();
+  }
+
+  Future<void> updateCurrentUserProfile({
+    required String displayName,
+    required String signatureLine,
+    required String avatarLocalPath,
+    required String gender,
+    required String region,
+    required String birthDate,
+  }) async {
+    final gateStore = await LocalGateStore.open();
+    await gateStore.updateProfile(
+      displayName: displayName,
+      signatureLine: signatureLine,
+      avatarLocalPath: avatarLocalPath,
+      gender: gender,
+      region: region,
+      birthDate: birthDate,
+    );
+    _currentUser = _currentUserFromGate(gateStore);
     notifyListeners();
   }
 
@@ -325,7 +384,12 @@ class LifeSnippetStore extends ChangeNotifier {
     _loadChatThreads();
 
     final gateStore = await LocalGateStore.open();
-    _currentUser = LifeSnippetUser(
+    _currentUser = _currentUserFromGate(gateStore);
+    notifyListeners();
+  }
+
+  LifeSnippetUser _currentUserFromGate(LocalGateStore gateStore) {
+    return LifeSnippetUser(
       userKey: currentUserKey,
       displayName: gateStore.savedDisplayName.isEmpty
           ? 'Morrowly friend'
@@ -343,7 +407,6 @@ class LifeSnippetStore extends ChangeNotifier {
       likeCount: 0,
       capsuleCount: _pendingReviewPosts.length,
     );
-    notifyListeners();
   }
 
   void _loadPendingPosts() {
@@ -377,7 +440,9 @@ class LifeSnippetStore extends ChangeNotifier {
 
   void _loadChatThreads() {
     _chatThreads.clear();
-    final decoded = jsonDecode(_preferences!.getString(_chatThreadsKey) ?? '{}');
+    final decoded = jsonDecode(
+      _preferences!.getString(_chatThreadsKey) ?? '{}',
+    );
     if (decoded is! Map) {
       return;
     }

@@ -175,7 +175,9 @@ class _LifeSnippetDetailScreenState extends State<LifeSnippetDetailScreen> {
 
   Future<void> _openProfile(String userKey) {
     return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => LifeSnippetProfileScreen(userKey: userKey)),
+      MaterialPageRoute(
+        builder: (_) => LifeSnippetProfileScreen(userKey: userKey),
+      ),
     );
   }
 
@@ -381,7 +383,10 @@ class _HeroSnippetCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
             child: Row(
               children: [
-                _CountInline(asset: LifeSnippetAssets.comment, count: commentCount),
+                _CountInline(
+                  asset: LifeSnippetAssets.comment,
+                  count: commentCount,
+                ),
                 const SizedBox(width: 24),
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,

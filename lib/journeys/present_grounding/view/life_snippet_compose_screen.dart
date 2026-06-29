@@ -143,7 +143,8 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
       await source.copy(target.path);
       saved.add(
         LifeSnippetMedia(
-          mediaKey: 'local-photo-${DateTime.now().microsecondsSinceEpoch}-$index',
+          mediaKey:
+              'local-photo-${DateTime.now().microsecondsSinceEpoch}-$index',
           path: target.path,
           kind: LifeSnippetMediaKind.localFile,
         ),

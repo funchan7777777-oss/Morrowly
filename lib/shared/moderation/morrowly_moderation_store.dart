@@ -111,6 +111,17 @@ class MorrowlyModerationStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> unblockAuthor(String authorKey) async {
+    await load();
+
+    _blockedAuthorKeys.remove(authorKey);
+    await _preferences!.setStringList(
+      _blockedAuthorKeysKey,
+      _blockedAuthorKeys.toList()..sort(),
+    );
+    notifyListeners();
+  }
+
   Future<void> _load() async {
     final preferences = await SharedPreferences.getInstance();
     _preferences = preferences;
