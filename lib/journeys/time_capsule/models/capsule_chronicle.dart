@@ -30,12 +30,14 @@ class CapsuleMediaSnap {
     required this.assetPath,
     required this.kind,
     required this.captionTrace,
+    this.isLocalFile = false,
   });
 
   final String snapKey;
   final String assetPath;
   final CapsuleMediaKind kind;
   final String captionTrace;
+  final bool isLocalFile;
 }
 
 class CapsuleOpeningPreset {

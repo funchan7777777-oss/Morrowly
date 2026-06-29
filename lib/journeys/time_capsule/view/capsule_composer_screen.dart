@@ -8,9 +8,18 @@ import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
 class CapsuleComposerScreen extends StatelessWidget {
-  const CapsuleComposerScreen({super.key, required this.coinBalance});
+  const CapsuleComposerScreen({
+    super.key,
+    required this.coinBalance,
+    required this.capsules,
+    this.onCoinBalanceChanged,
+    this.onCapsulesChanged,
+  });
 
   final int coinBalance;
+  final List<CapsuleSquareNote> capsules;
+  final ValueChanged<int>? onCoinBalanceChanged;
+  final ValueChanged<List<CapsuleSquareNote>>? onCapsulesChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -143,10 +152,10 @@ class CapsuleComposerScreen extends StatelessWidget {
                 Navigator.of(context).push<void>(
                   MaterialPageRoute(
                     builder: (_) => MyCapsulesScreen(
-                      capsules: CapsuleSquareSeed.squareNotes()
-                          .take(4)
-                          .toList(),
+                      capsules: capsules,
                       coinBalance: coinBalance,
+                      onCoinBalanceChanged: onCoinBalanceChanged,
+                      onCapsulesChanged: onCapsulesChanged,
                     ),
                   ),
                 );

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
@@ -194,11 +196,7 @@ class CapsuleMediaTile extends StatelessWidget {
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                snap.assetPath,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.high,
-              ),
+              child: _CapsuleMediaCover(snap: snap),
             ),
           ),
           if (snap.kind == CapsuleMediaKind.motion)
@@ -241,6 +239,45 @@ class CapsuleMediaTile extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _CapsuleMediaCover extends StatelessWidget {
+  const _CapsuleMediaCover({required this.snap});
+
+  final CapsuleMediaSnap snap;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!snap.isLocalFile) {
+      return Image.asset(
+        snap.assetPath,
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.high,
+      );
+    }
+
+    if (snap.kind == CapsuleMediaKind.motion) {
+      return const ColoredBox(color: Color(0xFF47334E));
+    }
+
+    return Image.file(
+      File(snap.assetPath),
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.high,
+      errorBuilder: (context, error, stackTrace) {
+        return const ColoredBox(
+          color: Color(0xFF47334E),
+          child: Center(
+            child: Icon(
+              Icons.image_not_supported_outlined,
+              color: Colors.white54,
+              size: 26,
+            ),
+          ),
+        );
+      },
     );
   }
 }

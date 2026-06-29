@@ -24,23 +24,7 @@ class CapsuleHomeScreen extends StatefulWidget {
 class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
   late final List<CapsuleSquareNote> _squareNotes =
       CapsuleSquareSeed.squareNotes();
-  late final List<CapsuleSquareNote> _myCapsules = _squareNotes
-      .take(4)
-      .map(
-        (note) => CapsuleSquareNote(
-          noteKey: 'mine-${note.noteKey}',
-          keeper: CapsuleSquareSeed.currentKeeper,
-          messageLine: note.messageLine,
-          mediaSnaps: note.mediaSnaps,
-          sealedAt: note.sealedAt,
-          openingAt: note.openingAt,
-          visibility: note.visibility,
-          visitorTrail: note.visitorTrail,
-          leftMessageCount: note.leftMessageCount,
-          isLocalDraft: true,
-        ),
-      )
-      .toList();
+  final List<CapsuleSquareNote> _myCapsules = [];
   int _coinBalance = 999;
 
   @override
@@ -151,7 +135,24 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
   Future<void> _openComposer() async {
     final sealed = await Navigator.of(context).push<CapsuleSquareNote>(
       MaterialPageRoute(
-        builder: (_) => CapsuleComposerScreen(coinBalance: _coinBalance),
+        builder: (_) => CapsuleComposerScreen(
+          coinBalance: _coinBalance,
+          capsules: _myCapsules,
+          onCoinBalanceChanged: (value) {
+            if (mounted) {
+              setState(() => _coinBalance = value);
+            }
+          },
+          onCapsulesChanged: (value) {
+            if (mounted) {
+              setState(() {
+                _myCapsules
+                  ..clear()
+                  ..addAll(value);
+              });
+            }
+          },
+        ),
       ),
     );
     if (sealed == null || !mounted) {

@@ -4,6 +4,7 @@ import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/widgets/morrowly_empty_state.dart';
 
 class MyCapsulesScreen extends StatefulWidget {
   const MyCapsulesScreen({
@@ -42,21 +43,28 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
                 phoneGutter: 24,
               );
               final side = (width - contentWidth) / 2;
-              return GridView.builder(
-                padding: EdgeInsets.fromLTRB(
-                  side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 104,
-                    extra: 38,
-                  ),
-                  side,
-                  MorrowlyFrameGuard.bottomClearance(
-                    context,
-                    minimum: 34,
-                    extra: 18,
-                  ),
+              final contentPadding = EdgeInsets.fromLTRB(
+                side,
+                MorrowlyFrameGuard.topClearance(
+                  context,
+                  minimum: 104,
+                  extra: 38,
                 ),
+                side,
+                MorrowlyFrameGuard.bottomClearance(
+                  context,
+                  minimum: 34,
+                  extra: 18,
+                ),
+              );
+              if (_capsules.isEmpty) {
+                return Padding(
+                  padding: contentPadding,
+                  child: const MorrowlyEmptyState(),
+                );
+              }
+              return GridView.builder(
+                padding: contentPadding,
                 itemCount: _capsules.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,

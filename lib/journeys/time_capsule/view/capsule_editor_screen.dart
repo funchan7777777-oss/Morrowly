@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_preview_screen.dart';
@@ -6,6 +9,7 @@ import 'package:morrowly/journeys/time_capsule/view/custom_opening_time_screen.d
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CapsuleEditorScreen extends StatefulWidget {
   const CapsuleEditorScreen({
@@ -22,28 +26,20 @@ class CapsuleEditorScreen extends StatefulWidget {
 }
 
 class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
+  final ImagePicker _mediaPicker = ImagePicker();
   final TextEditingController _messageController = TextEditingController();
   late CapsuleDraftLedger _draft;
   String _selectedPresetKey = 'one-year';
+  bool _pickingMedia = false;
 
   @override
   void initState() {
     super.initState();
     final presets = CapsuleSquareSeed.openingPresets(DateTime.now());
-    final seededMedia = widget.craftKind == CapsuleCraftKind.videoMemory
-        ? [
-            CapsuleSquareSeed.memorySnaps.firstWhere(
-              (snap) => snap.kind == CapsuleMediaKind.motion,
-            ),
-          ]
-        : [
-            CapsuleSquareSeed.memorySnaps[13],
-            CapsuleSquareSeed.memorySnaps[19],
-          ];
     _draft = CapsuleDraftLedger(
       craftKind: widget.craftKind,
       messageLine: '',
-      mediaSnaps: seededMedia,
+      mediaSnaps: const [],
       openingAt: presets[3].openingAt,
       visibility: CapsuleVisibility.publicSquare,
     );
@@ -118,6 +114,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                     const SizedBox(height: 12),
                     _MediaStrip(
                       selected: _draft.mediaSnaps,
+                      picking: _pickingMedia,
                       onAdd: _showMediaPicker,
                       onRemove: (snap) {
                         setState(() {
@@ -160,7 +157,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                       child: CapsuleAssetTap(
                         assetName: CapsuleArtwork.sealedCapsules,
                         width: contentWidth * 0.84,
-                        height: 50,
+                        height: 54,
                         semanticLabel: 'Sealed capsules',
                         onTap: _openPreview,
                       ),
@@ -215,24 +212,151 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
   }
 
   Future<void> _showMediaPicker() async {
-    final snap = await showModalBottomSheet<CapsuleMediaSnap>(
+    if (_pickingMedia || _draft.mediaSnaps.length >= 6) {
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+    final action = await showModalBottomSheet<_MediaPickAction>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.52),
-      builder: (context) => const _MediaPickerSheet(),
+      builder: (context) =>
+          _MediaPickerSheet(remainingSlots: 6 - _draft.mediaSnaps.length),
     );
-    if (snap == null || !mounted) {
+    if (action == null || !mounted) {
       return;
     }
-    if (_draft.mediaSnaps.any((item) => item.snapKey == snap.snapKey)) {
+
+    await _pickMedia(action);
+  }
+
+  Future<void> _pickMedia(_MediaPickAction action) async {
+    final remainingSlots = 6 - _draft.mediaSnaps.length;
+    if (remainingSlots <= 0) {
       return;
     }
-    setState(() {
-      _draft = _draft.copyWith(
-        mediaSnaps: [..._draft.mediaSnaps, snap].take(6).toList(),
+
+    setState(() => _pickingMedia = true);
+    try {
+      final pickedFiles = await _pickFilesForAction(action, remainingSlots);
+      if (pickedFiles.isEmpty) {
+        return;
+      }
+
+      final kind = _kindForAction(action);
+      final snaps = <CapsuleMediaSnap>[];
+      for (final pickedFile in pickedFiles.take(remainingSlots)) {
+        final savedPath = await _copyMediaIntoLocalShelf(
+          sourcePath: pickedFile.path,
+          kind: kind,
+        );
+        final stamp = DateTime.now().microsecondsSinceEpoch;
+        snaps.add(
+          CapsuleMediaSnap(
+            snapKey: 'local-${kind.name}-$stamp-${snaps.length}',
+            assetPath: savedPath,
+            kind: kind,
+            captionTrace: kind == CapsuleMediaKind.motion
+                ? 'Local video'
+                : 'Local photo',
+            isLocalFile: true,
+          ),
+        );
+      }
+
+      if (!mounted || snaps.isEmpty) {
+        return;
+      }
+      setState(() {
+        _draft = _draft.copyWith(
+          mediaSnaps: [..._draft.mediaSnaps, ...snaps].take(6).toList(),
+        );
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      _showNotice(
+        title: 'Media unavailable',
+        message:
+            'Morrowly could not open this media source. Please check photo, camera, or microphone permission and try again.',
       );
-    });
+    } finally {
+      if (mounted) {
+        setState(() => _pickingMedia = false);
+      }
+    }
+  }
+
+  Future<List<XFile>> _pickFilesForAction(
+    _MediaPickAction action,
+    int limit,
+  ) async {
+    switch (action) {
+      case _MediaPickAction.galleryPhotos:
+        return _mediaPicker.pickMultiImage(
+          maxWidth: 2000,
+          imageQuality: 88,
+          limit: limit,
+        );
+      case _MediaPickAction.galleryVideos:
+        return _mediaPicker.pickMultiVideo(limit: limit);
+      case _MediaPickAction.cameraPhoto:
+        final picked = await _mediaPicker.pickImage(
+          source: ImageSource.camera,
+          maxWidth: 2000,
+          imageQuality: 88,
+        );
+        return picked == null ? const [] : [picked];
+      case _MediaPickAction.cameraVideo:
+        final picked = await _mediaPicker.pickVideo(
+          source: ImageSource.camera,
+          maxDuration: const Duration(minutes: 5),
+        );
+        return picked == null ? const [] : [picked];
+    }
+  }
+
+  CapsuleMediaKind _kindForAction(_MediaPickAction action) {
+    switch (action) {
+      case _MediaPickAction.galleryPhotos:
+      case _MediaPickAction.cameraPhoto:
+        return CapsuleMediaKind.still;
+      case _MediaPickAction.galleryVideos:
+      case _MediaPickAction.cameraVideo:
+        return CapsuleMediaKind.motion;
+    }
+  }
+
+  Future<String> _copyMediaIntoLocalShelf({
+    required String sourcePath,
+    required CapsuleMediaKind kind,
+  }) async {
+    final directory = await getApplicationSupportDirectory();
+    final mediaShelf = Directory('${directory.path}/morrowly_capsule_media');
+    if (!mediaShelf.existsSync()) {
+      mediaShelf.createSync(recursive: true);
+    }
+
+    final extension = _extensionFor(sourcePath, kind);
+    final prefix = kind == CapsuleMediaKind.motion ? 'video' : 'photo';
+    final filename =
+        'morrowly_capsule_${prefix}_${DateTime.now().microsecondsSinceEpoch}.$extension';
+    final copiedFile = await File(
+      sourcePath,
+    ).copy('${mediaShelf.path}/$filename');
+    return copiedFile.path;
+  }
+
+  String _extensionFor(String sourcePath, CapsuleMediaKind kind) {
+    final filename = sourcePath.split(Platform.pathSeparator).last;
+    final dotIndex = filename.lastIndexOf('.');
+    if (dotIndex >= 0 && dotIndex < filename.length - 1) {
+      return filename.substring(dotIndex + 1).toLowerCase();
+    }
+    return kind == CapsuleMediaKind.motion ? 'mov' : 'jpg';
   }
 
   Future<void> _openPreview() async {
@@ -270,6 +394,8 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
     );
   }
 }
+
+enum _MediaPickAction { galleryPhotos, galleryVideos, cameraPhoto, cameraVideo }
 
 class _MessageField extends StatelessWidget {
   const _MessageField({required this.controller, required this.onChanged});
@@ -322,11 +448,13 @@ class _MessageField extends StatelessWidget {
 class _MediaStrip extends StatelessWidget {
   const _MediaStrip({
     required this.selected,
+    required this.picking,
     required this.onAdd,
     required this.onRemove,
   });
 
   final List<CapsuleMediaSnap> selected;
+  final bool picking;
   final VoidCallback onAdd;
   final ValueChanged<CapsuleMediaSnap> onRemove;
 
@@ -349,7 +477,7 @@ class _MediaStrip extends StatelessWidget {
           if (selected.length < 6)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: onAdd,
+              onTap: picking ? null : onAdd,
               child: Container(
                 width: tileSize,
                 height: tileSize,
@@ -361,11 +489,22 @@ class _MediaStrip extends StatelessWidget {
                     width: 1.2,
                   ),
                 ),
-                child: const Icon(
-                  Icons.add_rounded,
-                  color: Color(0xFF8F7596),
-                  size: 34,
-                ),
+                child: picking
+                    ? const Center(
+                        child: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Color(0xFFB96CFF),
+                          ),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.add_rounded,
+                        color: Color(0xFF8F7596),
+                        size: 34,
+                      ),
               ),
             ),
         ],
@@ -541,7 +680,9 @@ class _PresetTile extends StatelessWidget {
 }
 
 class _MediaPickerSheet extends StatelessWidget {
-  const _MediaPickerSheet();
+  const _MediaPickerSheet({required this.remainingSlots});
+
+  final int remainingSlots;
 
   @override
   Widget build(BuildContext context) {
@@ -550,18 +691,22 @@ class _MediaPickerSheet extends StatelessWidget {
       minimum: 24,
       extra: 18,
     );
-    return DraggableScrollableSheet(
-      initialChildSize: 0.72,
-      minChildSize: 0.4,
-      maxChildSize: 0.92,
-      builder: (context, controller) {
-        return Container(
-          padding: EdgeInsets.fromLTRB(18, 14, 18, bottom),
-          decoration: const BoxDecoration(
-            color: Color(0xFF37273C),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
+    final slotLabel = remainingSlots == 1
+        ? '1 attachment slot left'
+        : '$remainingSlots attachment slots left';
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(18, 0, 18, bottom),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF37273C),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
@@ -576,37 +721,127 @@ class _MediaPickerSheet extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               const Text(
-                'Choose a memory trace',
+                'Add photos/videos',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 14),
-              Expanded(
-                child: GridView.builder(
-                  controller: controller,
-                  itemCount: CapsuleSquareSeed.memorySnaps.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemBuilder: (context, index) {
-                    final snap = CapsuleSquareSeed.memorySnaps[index];
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.of(context).pop(snap),
-                      child: CapsuleMediaTile(snap: snap, size: 96),
-                    );
-                  },
+              const SizedBox(height: 4),
+              Text(
+                slotLabel,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.44),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
+              ),
+              const SizedBox(height: 14),
+              _MediaSourceRow(
+                icon: Icons.photo_library_outlined,
+                title: 'Choose photos',
+                subtitle: 'Select local photos from your library.',
+                action: _MediaPickAction.galleryPhotos,
+              ),
+              const SizedBox(height: 10),
+              _MediaSourceRow(
+                icon: Icons.video_library_outlined,
+                title: 'Choose videos',
+                subtitle: 'Select local videos from your library.',
+                action: _MediaPickAction.galleryVideos,
+              ),
+              const SizedBox(height: 10),
+              _MediaSourceRow(
+                icon: Icons.photo_camera_outlined,
+                title: 'Take a photo',
+                subtitle: 'Open the camera and add a new photo.',
+                action: _MediaPickAction.cameraPhoto,
+              ),
+              const SizedBox(height: 10),
+              _MediaSourceRow(
+                icon: Icons.videocam_outlined,
+                title: 'Record a video',
+                subtitle: 'Open the camera and add a new video.',
+                action: _MediaPickAction.cameraVideo,
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+class _MediaSourceRow extends StatelessWidget {
+  const _MediaSourceRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.action,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final _MediaPickAction action;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(context).pop(action),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: const BoxDecoration(
+                color: Color(0xFFB96CFF),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.54),
+                      fontSize: 11,
+                      height: 1.28,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
