@@ -7,6 +7,9 @@ import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart
 import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_compose_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/journeys/time_capsule/data/local_capsule_store.dart';
+import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
+import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/journeys/welcome_gate/data/local_gate_store.dart';
 import 'package:morrowly/journeys/welcome_gate/models/legal_document_marker.dart';
 import 'package:morrowly/journeys/welcome_gate/view/legal_document_viewer.dart';
@@ -67,7 +70,12 @@ class MemoryRibbonScreen extends StatefulWidget {
 
 class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
   final LifeSnippetStore _store = LifeSnippetStore.instance;
-  late final Future<void> _loadFuture = _store.load();
+  final LocalCapsuleStore _capsules = LocalCapsuleStore.instance;
+  late final Future<void> _loadFuture = Future.wait([
+    _store.load(),
+    _capsules.load(),
+    MorrowlyWalletStore.instance.load(),
+  ]);
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +89,7 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
             );
           }
           return AnimatedBuilder(
-            animation: _store,
+            animation: Listenable.merge([_store, _capsules]),
             builder: (context, _) {
               final user = _store.currentUser;
               final approvedPosts = _store.postsForUser(user.userKey);
@@ -134,6 +142,7 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
                             const SizedBox(height: 30),
                             _ProfileStats(
                               user: user,
+                              capsuleCount: _capsules.archivedCount,
                               onFollow: () => _openRelationshipList(true),
                               onFans: () => _openRelationshipList(false),
                               onLikes: _openWallet,
@@ -145,7 +154,12 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
                               style: _sectionTitleStyle,
                             ),
                             const SizedBox(height: 14),
-                            _CapsuleSummaryRow(onOpen: _openMyCapsules),
+                            _CapsuleSummaryRow(
+                              archivedCount: _capsules.archivedCount,
+                              toBeOpenedCount: _capsules.toBeOpenedCount,
+                              unlockedCount: _capsules.unlockedCount,
+                              onOpen: _openMyCapsules,
+                            ),
                             const SizedBox(height: 24),
                             const Text('My post', style: _sectionTitleStyle),
                             const SizedBox(height: 12),
@@ -402,6 +416,7 @@ class ProfileSettingsScreen extends StatelessWidget {
     final gateStore = await LocalGateStore.open();
     if (deleteAccount) {
       await LifeSnippetStore.instance.clearLocalAccountData();
+      await LocalCapsuleStore.instance.clear();
       await MorrowlyWalletStore.instance.clearLocalWallet();
       await gateStore.deleteLocalAccount();
     } else {
@@ -610,97 +625,148 @@ class ProfileCapsulesScreen extends StatefulWidget {
 }
 
 class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
+  final LocalCapsuleStore _store = LocalCapsuleStore.instance;
+  late final Future<void> _loadFuture = _store.load();
   int _selectedIndex = 0;
-  final List<_ProfileCapsule> _capsules = List.of(_capsuleFixtures);
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _capsules
-        .where((capsule) => capsule.status.index == _selectedIndex)
-        .toList();
     return LifeSnippetStage(
-      child: Stack(
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final contentWidth = MorrowlyFrameGuard.contentWidth(
-                constraints.maxWidth,
-                maxWidth: 430,
-                phoneGutter: 18,
-              );
-              final side = (constraints.maxWidth - contentWidth) / 2;
-              return SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 104,
-                    extra: 36,
-                  ),
-                  side,
-                  32,
-                ),
-                child: Column(
-                  children: [
-                    _CapsuleSegmentedControl(
-                      selectedIndex: _selectedIndex,
-                      onChanged: (index) {
-                        setState(() => _selectedIndex = index);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Image.asset(
-                      _selectedIndex == 1
-                          ? ProfileCenterAssets.countdown
-                          : ProfileCenterAssets.capsuleBanner,
-                      width: contentWidth,
-                      height:
-                          contentWidth *
-                          (_selectedIndex == 1 ? 166 / 700 : 236 / 700),
-                      fit: BoxFit.fill,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    const SizedBox(height: 18),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 0.76,
+      child: FutureBuilder<void>(
+        future: _loadFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+
+          return AnimatedBuilder(
+            animation: _store,
+            builder: (context, _) {
+              final filtered = _filteredCapsules
+                  .map(_profileCapsuleFromNote)
+                  .toList();
+              return Stack(
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final contentWidth = MorrowlyFrameGuard.contentWidth(
+                        constraints.maxWidth,
+                        maxWidth: 430,
+                        phoneGutter: 18,
+                      );
+                      final side = (constraints.maxWidth - contentWidth) / 2;
+                      return SingleChildScrollView(
+                        padding: EdgeInsets.fromLTRB(
+                          side,
+                          MorrowlyFrameGuard.topClearance(
+                            context,
+                            minimum: 104,
+                            extra: 36,
                           ),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final capsule = filtered[index];
-                        return _CapsuleTile(
-                          capsule: capsule,
-                          onDelete: () {
-                            setState(() => _capsules.remove(capsule));
-                          },
-                          onCheck: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${capsule.title} is ready.'),
-                                backgroundColor: lifePanel,
-                                behavior: SnackBarBehavior.floating,
+                          side,
+                          32,
+                        ),
+                        child: Column(
+                          children: [
+                            _CapsuleSegmentedControl(
+                              selectedIndex: _selectedIndex,
+                              onChanged: (index) {
+                                setState(() => _selectedIndex = index);
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            Image.asset(
+                              _selectedIndex == 1
+                                  ? ProfileCenterAssets.countdown
+                                  : ProfileCenterAssets.capsuleBanner,
+                              width: contentWidth,
+                              height:
+                                  contentWidth *
+                                  (_selectedIndex == 1 ? 166 / 700 : 236 / 700),
+                              fit: BoxFit.fill,
+                              filterQuality: FilterQuality.high,
+                            ),
+                            const SizedBox(height: 18),
+                            if (filtered.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 48),
+                                child: _EmptyCenterPanel(),
+                              )
+                            else
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 12,
+                                      mainAxisSpacing: 16,
+                                      childAspectRatio: 0.76,
+                                    ),
+                                itemCount: filtered.length,
+                                itemBuilder: (context, index) {
+                                  final capsule = filtered[index];
+                                  return _CapsuleTile(
+                                    capsule: capsule,
+                                    onDelete: () => _store.remove(
+                                      capsule.sourceNote.noteKey,
+                                    ),
+                                    onCheck: () => _showCapsuleReady(capsule),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  LifeTopBar(
+                    title: 'My capsules',
+                    onBack: () => Navigator.of(context).pop(),
+                  ),
+                ],
               );
             },
-          ),
-          LifeTopBar(
-            title: 'My capsules',
-            onBack: () => Navigator.of(context).pop(),
-          ),
-        ],
+          );
+        },
+      ),
+    );
+  }
+
+  List<CapsuleSquareNote> get _filteredCapsules {
+    return switch (_selectedIndex) {
+      1 => _store.capsules.where((capsule) => !capsule.canOpenNow).toList(),
+      2 => _store.capsules.where((capsule) => capsule.canOpenNow).toList(),
+      _ => _store.capsules,
+    };
+  }
+
+  _ProfileCapsule _profileCapsuleFromNote(CapsuleSquareNote note) {
+    final status = note.canOpenNow
+        ? _CapsuleProfileStatus.unlocked
+        : _CapsuleProfileStatus.opening;
+    return _ProfileCapsule(
+      title: note.canOpenNow ? 'Can be opened' : 'Open in 1 year',
+      status: status,
+      visibility: note.visibility == CapsuleVisibility.publicSquare
+          ? 'Public'
+          : 'Private',
+      asset: note.canOpenNow
+          ? ProfileCenterAssets.capsuleUnlocked
+          : ProfileCenterAssets.capsuleOpening,
+      date: '${capsuleDateStamp(note.sealedAt)} seal',
+      sourceNote: note,
+    );
+  }
+
+  void _showCapsuleReady(_ProfileCapsule capsule) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${capsule.title} is ready.'),
+        backgroundColor: lifePanel,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -1380,6 +1446,7 @@ class _ProfileHeader extends StatelessWidget {
 class _ProfileStats extends StatelessWidget {
   const _ProfileStats({
     required this.user,
+    required this.capsuleCount,
     required this.onFollow,
     required this.onFans,
     required this.onLikes,
@@ -1387,6 +1454,7 @@ class _ProfileStats extends StatelessWidget {
   });
 
   final LifeSnippetUser user;
+  final int capsuleCount;
   final VoidCallback onFollow;
   final VoidCallback onFans;
   final VoidCallback onLikes;
@@ -1401,7 +1469,7 @@ class _ProfileStats extends StatelessWidget {
         _StatButton(value: user.fansCount, label: 'Fans', onTap: onFans),
         _StatButton(value: user.likeCount, label: 'Get likes', onTap: onLikes),
         _StatButton(
-          value: user.capsuleCount,
+          value: capsuleCount,
           label: 'Capsule',
           onTap: onCapsules,
         ),
@@ -1461,16 +1529,36 @@ class _StatButton extends StatelessWidget {
 }
 
 class _CapsuleSummaryRow extends StatelessWidget {
-  const _CapsuleSummaryRow({required this.onOpen});
+  const _CapsuleSummaryRow({
+    required this.archivedCount,
+    required this.toBeOpenedCount,
+    required this.unlockedCount,
+    required this.onOpen,
+  });
 
+  final int archivedCount;
+  final int toBeOpenedCount;
+  final int unlockedCount;
   final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
-    final cards = const [
-      _SummaryCapsule('Archived', '246', ProfileCenterAssets.capsuleArchived),
-      _SummaryCapsule('To be opened', '85', ProfileCenterAssets.capsuleOpening),
-      _SummaryCapsule('Unlocked', '136', ProfileCenterAssets.capsuleUnlocked),
+    final cards = [
+      _SummaryCapsule(
+        'Archived',
+        '$archivedCount',
+        ProfileCenterAssets.capsuleArchived,
+      ),
+      _SummaryCapsule(
+        'To be opened',
+        '$toBeOpenedCount',
+        ProfileCenterAssets.capsuleOpening,
+      ),
+      _SummaryCapsule(
+        'Unlocked',
+        '$unlockedCount',
+        ProfileCenterAssets.capsuleUnlocked,
+      ),
     ];
     return Row(
       children: [
@@ -2084,6 +2172,7 @@ class _ProfileCapsule {
     required this.visibility,
     required this.asset,
     required this.date,
+    required this.sourceNote,
   });
 
   final String title;
@@ -2091,52 +2180,8 @@ class _ProfileCapsule {
   final String visibility;
   final String asset;
   final String date;
+  final CapsuleSquareNote sourceNote;
 }
-
-const _capsuleFixtures = [
-  _ProfileCapsule(
-    title: 'Open in 1 year',
-    status: _CapsuleProfileStatus.archived,
-    visibility: 'Public',
-    asset: ProfileCenterAssets.capsuleArchived,
-    date: '2025.02.25 seal',
-  ),
-  _ProfileCapsule(
-    title: 'Open in 1 year',
-    status: _CapsuleProfileStatus.archived,
-    visibility: 'Private',
-    asset: ProfileCenterAssets.capsuleArchived,
-    date: '2025.02.25 seal',
-  ),
-  _ProfileCapsule(
-    title: 'Open in 24 hours',
-    status: _CapsuleProfileStatus.opening,
-    visibility: 'Private',
-    asset: ProfileCenterAssets.capsuleOpening,
-    date: '2025.02.25 seal',
-  ),
-  _ProfileCapsule(
-    title: 'Open in 24 hours',
-    status: _CapsuleProfileStatus.opening,
-    visibility: 'Private',
-    asset: ProfileCenterAssets.capsuleOpening,
-    date: '2025.02.25 seal',
-  ),
-  _ProfileCapsule(
-    title: 'Can be opened',
-    status: _CapsuleProfileStatus.unlocked,
-    visibility: 'Public',
-    asset: ProfileCenterAssets.capsuleUnlocked,
-    date: '2025.02.25 seal',
-  ),
-  _ProfileCapsule(
-    title: 'Can be opened',
-    status: _CapsuleProfileStatus.unlocked,
-    visibility: 'Public',
-    asset: ProfileCenterAssets.capsuleUnlocked,
-    date: '2025.02.25 seal',
-  ),
-];
 
 class _CapsuleSegmentedControl extends StatelessWidget {
   const _CapsuleSegmentedControl({

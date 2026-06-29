@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
+import 'package:morrowly/journeys/time_capsule/data/local_capsule_store.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_composer_screen.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_detail_screen.dart';
@@ -31,23 +34,26 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
       CapsuleSquareSeed.squareNotes()
           .where((note) => note.visibility == CapsuleVisibility.publicSquare)
           .toList();
-  final List<CapsuleSquareNote> _myCapsules = [];
   final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   final MorrowlyWalletStore _wallet = MorrowlyWalletStore.instance;
+  final LocalCapsuleStore _capsules = LocalCapsuleStore.instance;
 
   @override
   void initState() {
     super.initState();
     _moderation.addListener(_refreshModeratedContent);
     _wallet.addListener(_refreshModeratedContent);
+    _capsules.addListener(_refreshModeratedContent);
     _moderation.load();
     _wallet.load();
+    _capsules.load();
   }
 
   @override
   void dispose() {
     _moderation.removeListener(_refreshModeratedContent);
     _wallet.removeListener(_refreshModeratedContent);
+    _capsules.removeListener(_refreshModeratedContent);
     super.dispose();
   }
 
@@ -170,6 +176,25 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
 
   List<CapsuleSquareNote> get _visibleSquareNotes {
     return [
+      for (final note in _capsules.publicCapsules)
+        if (!_moderation.shouldHide(
+          contentKey: note.noteKey,
+          authorKey: note.keeper.keeperKey,
+        ))
+          note.copyWith(
+            visitorTrail: [
+              for (final keeper in note.visitorTrail)
+                if (!_moderation.isAuthorBlocked(keeper.keeperKey)) keeper,
+            ],
+            comments: [
+              for (final comment in note.comments)
+                if (!_moderation.shouldHide(
+                  contentKey: comment.commentKey,
+                  authorKey: comment.author.keeperKey,
+                ))
+                  comment,
+            ],
+          ),
       for (final note in _squareNotes)
         if (!_moderation.shouldHide(
           contentKey: note.noteKey,
@@ -193,6 +218,11 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
   }
 
   CapsuleSquareNote _sourceNoteFor(CapsuleSquareNote visibleNote) {
+    for (final note in _capsules.capsules) {
+      if (note.noteKey == visibleNote.noteKey) {
+        return note;
+      }
+    }
     for (final note in _squareNotes) {
       if (note.noteKey == visibleNote.noteKey) {
         return note;
@@ -212,15 +242,9 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
       MaterialPageRoute(
         builder: (_) => CapsuleComposerScreen(
           coinBalance: _wallet.balance,
-          capsules: _myCapsules,
+          capsules: _capsules.capsules,
           onCapsulesChanged: (value) {
-            if (mounted) {
-              setState(() {
-                _myCapsules
-                  ..clear()
-                  ..addAll(value);
-              });
-            }
+            unawaited(_capsules.replaceAll(value));
           },
         ),
       ),
@@ -228,12 +252,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     if (sealed == null || !mounted) {
       return;
     }
-    setState(() {
-      _myCapsules.insert(0, sealed);
-      if (sealed.visibility == CapsuleVisibility.publicSquare) {
-        _squareNotes.insert(0, sealed);
-      }
-    });
+    await _capsules.add(sealed);
   }
 
   Future<void> _openWallet() async {
@@ -265,30 +284,21 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
       for (var index = 0; index < _squareNotes.length; index++) {
         if (_squareNotes[index].noteKey == updated.noteKey) {
           _squareNotes[index] = updated;
-        }
-      }
-      for (var index = 0; index < _myCapsules.length; index++) {
-        if (_myCapsules[index].noteKey == updated.noteKey) {
-          _myCapsules[index] = updated;
+          return;
         }
       }
     });
+    unawaited(_capsules.replace(updated));
   }
 
   Future<void> _openMyCapsules() async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => MyCapsulesScreen(
-          capsules: _myCapsules,
+          capsules: _capsules.capsules,
           coinBalance: _wallet.balance,
           onCapsulesChanged: (value) {
-            if (mounted) {
-              setState(() {
-                _myCapsules
-                  ..clear()
-                  ..addAll(value);
-              });
-            }
+            unawaited(_capsules.replaceAll(value));
           },
         ),
       ),
