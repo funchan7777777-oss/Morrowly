@@ -7,6 +7,9 @@ import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
+const _heroJarWidth = 390.0;
+const _heroJarHeight = 335.0;
+
 class CapsuleHomeScreen extends StatefulWidget {
   const CapsuleHomeScreen({super.key});
 
@@ -69,21 +72,28 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                 ),
                 const SizedBox(height: 14),
                 Center(
-                  child: Image.asset(
-                    CapsuleArtwork.heroJar,
-                    width: contentWidth * 0.82,
-                    height: contentWidth * 0.6,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
+                  child: SizedBox(
+                    width: contentWidth,
+                    height: _heroJarHeight,
+                    child: OverflowBox(
+                      minWidth: _heroJarWidth,
+                      maxWidth: _heroJarWidth,
+                      minHeight: _heroJarHeight,
+                      maxHeight: _heroJarHeight,
+                      child: Image.asset(
+                        CapsuleArtwork.heroJar,
+                        width: _heroJarWidth,
+                        height: _heroJarHeight,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Center(
-                  child: CapsuleAssetTap(
-                    assetName: CapsuleArtwork.actionOrbit,
+                  child: _MakingCapsuleBanner(
                     width: contentWidth,
-                    height: 74,
-                    semanticLabel: 'Making time capsules',
                     onTap: _openComposer,
                   ),
                 ),
@@ -238,18 +248,10 @@ class _HomeHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Time Capsule',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
               Image.asset(
                 CapsuleArtwork.threadUnderline,
-                width: 118,
-                height: 18,
+                width: 117,
+                height: 37,
                 fit: BoxFit.fill,
                 filterQuality: FilterQuality.high,
               ),
@@ -282,6 +284,51 @@ class _HomeHeader extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MakingCapsuleBanner extends StatelessWidget {
+  const _MakingCapsuleBanner({required this.width, required this.onTap});
+
+  final double width;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Making time capsules',
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: width,
+          height: 74,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.asset(
+                CapsuleArtwork.actionOrbit,
+                width: width,
+                height: 74,
+                fit: BoxFit.fill,
+                filterQuality: FilterQuality.high,
+              ),
+              Positioned(
+                right: 18,
+                child: Image.asset(
+                  CapsuleArtwork.actionFeather,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

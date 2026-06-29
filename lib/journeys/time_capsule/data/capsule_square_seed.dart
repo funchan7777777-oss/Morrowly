@@ -3,6 +3,7 @@ import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 abstract final class CapsuleArtwork {
   static const threadUnderline = 'assets/images/Thread.png';
   static const actionOrbit = 'assets/images/Orbit.png';
+  static const actionFeather = 'assets/images/Nova.png';
   static const capsuleCoin = 'assets/images/Capsule.png';
   static const heroJar = 'assets/images/Dream.png';
   static const previewWash = 'assets/images/Recall.png';
