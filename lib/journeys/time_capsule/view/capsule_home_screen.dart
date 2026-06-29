@@ -7,8 +7,10 @@ import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
-const _heroJarWidth = 390.0;
-const _heroJarHeight = 335.0;
+const _designCanvasWidth = 375.0;
+const _homeHorizontalInset = 18.0;
+const _heroJarAspectRatio = 780 / 764;
+const _bannerAspectRatio = 700 / 154;
 
 class CapsuleHomeScreen extends StatefulWidget {
   const CapsuleHomeScreen({super.key});
@@ -47,20 +49,23 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
           final width = constraints.maxWidth;
           final contentWidth = MorrowlyFrameGuard.contentWidth(
             width,
-            maxWidth: 430,
-            phoneGutter: 24,
+            maxWidth: _designCanvasWidth,
+            phoneGutter: _homeHorizontalInset,
           );
           final side = (width - contentWidth) / 2;
+          final heroWidth = (contentWidth + 22).clamp(0.0, 408.0);
+          final heroHeight = heroWidth / _heroJarAspectRatio;
+          final bannerWidth = (contentWidth - 24).clamp(0.0, 336.0);
 
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               side,
-              MorrowlyFrameGuard.topClearance(context, minimum: 64, extra: 12),
+              MorrowlyFrameGuard.topClearance(context, minimum: 42, extra: 8),
               side,
               MorrowlyFrameGuard.bottomClearance(
                 context,
-                minimum: 132,
-                extra: 110,
+                minimum: 120,
+                extra: 92,
               ),
             ),
             child: Column(
@@ -70,50 +75,50 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                   coinBalance: _coinBalance,
                   onMyCapsules: _openMyCapsules,
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 8),
                 Center(
                   child: SizedBox(
                     width: contentWidth,
-                    height: _heroJarHeight,
+                    height: heroHeight - 26,
                     child: OverflowBox(
-                      minWidth: _heroJarWidth,
-                      maxWidth: _heroJarWidth,
-                      minHeight: _heroJarHeight,
-                      maxHeight: _heroJarHeight,
+                      minWidth: heroWidth,
+                      maxWidth: heroWidth,
+                      minHeight: heroHeight,
+                      maxHeight: heroHeight,
                       child: Image.asset(
                         CapsuleArtwork.heroJar,
-                        width: _heroJarWidth,
-                        height: _heroJarHeight,
+                        width: heroWidth,
+                        height: heroHeight,
                         fit: BoxFit.contain,
                         filterQuality: FilterQuality.high,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 0),
                 Center(
                   child: _MakingCapsuleBanner(
-                    width: contentWidth,
+                    width: bannerWidth,
                     onTap: _openComposer,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 const Text(
                   'Open Capsule Square',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 for (final note in _squareNotes) ...[
                   _SquareNoteCard(
                     note: note,
                     onVisitors: () => _showVisitors(note.visitorTrail),
                     onSay: () => _showSaySheet(note),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                 ],
               ],
             ),
@@ -261,13 +266,13 @@ class _HomeHeader extends StatelessWidget {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onMyCapsules,
-          child: Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(999),
-            ),
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 9),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.28),
+            borderRadius: BorderRadius.circular(999),
+          ),
             child: CapsuleCoinAmount(amount: coinBalance),
           ),
         ),
@@ -276,7 +281,7 @@ class _HomeHeader extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: onMyCapsules,
           child: CircleAvatar(
-            radius: 19,
+            radius: 18,
             backgroundColor: Colors.white.withValues(alpha: 0.2),
             backgroundImage: const AssetImage(
               'assets/images/head/bloom_arch_window.jpg',
@@ -304,23 +309,23 @@ class _MakingCapsuleBanner extends StatelessWidget {
         onTap: onTap,
         child: SizedBox(
           width: width,
-          height: 74,
+          height: width / _bannerAspectRatio,
           child: Stack(
             alignment: Alignment.center,
             children: [
               Image.asset(
                 CapsuleArtwork.actionOrbit,
                 width: width,
-                height: 74,
+                height: width / _bannerAspectRatio,
                 fit: BoxFit.fill,
                 filterQuality: FilterQuality.high,
               ),
               Positioned(
-                right: 18,
+                right: 15,
                 child: Image.asset(
                   CapsuleArtwork.actionFeather,
-                  width: 50,
-                  height: 50,
+                  width: 46,
+                  height: 46,
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.high,
                 ),
@@ -347,9 +352,9 @@ class _SquareNoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF514057).withValues(alpha: 0.92),
+        color: const Color(0xFF4E3D54).withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -358,10 +363,10 @@ class _SquareNoteCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 24,
+                radius: 23,
                 backgroundImage: AssetImage(note.keeper.avatarAsset),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 11),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +377,7 @@ class _SquareNoteCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -392,7 +397,7 @@ class _SquareNoteCard extends StatelessWidget {
                           '${note.keeper.ageLine}  · ${note.keeper.placeLine}',
                           style: const TextStyle(
                             color: Color(0xFFBD88FF),
-                            fontSize: 12,
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -416,27 +421,27 @@ class _SquareNoteCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 13),
           Text(
             note.messageLine,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.86),
-              fontSize: 14,
+              fontSize: 13,
               height: 1.34,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 13),
           Row(
             children: [
               for (final snap in note.mediaSnaps.take(2)) ...[
-                Expanded(child: CapsuleMediaTile(snap: snap, size: 116)),
+                Expanded(child: _SquareMediaTile(snap: snap)),
                 if (snap != note.mediaSnaps.take(2).last)
                   const SizedBox(width: 8),
               ],
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -454,22 +459,22 @@ class _SquareNoteCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onVisitors,
                 child: SizedBox(
-                  height: 30,
-                  width: 142,
+                  height: 27,
+                  width: 160,
                   child: Stack(
                     children: [
                       for (var index = 0; index < 4; index++)
                         Positioned(
-                          left: index * 18,
+                          left: index * 16,
                           child: CircleAvatar(
-                            radius: 15,
+                            radius: 13.5,
                             backgroundColor: Colors.white,
                             backgroundImage: AssetImage(
                               note.visitorTrail[index].avatarAsset,
@@ -477,13 +482,13 @@ class _SquareNoteCard extends StatelessWidget {
                           ),
                         ),
                       Positioned(
-                        left: 82,
-                        top: 7,
+                        left: 72,
+                        top: 6,
                         child: Text(
                           '${note.leftMessageCount} people left messages',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.3),
-                            fontSize: 10,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -495,14 +500,35 @@ class _SquareNoteCard extends StatelessWidget {
               const Spacer(),
               CapsuleAssetTap(
                 assetName: CapsuleArtwork.sayButton,
-                width: 84,
-                height: 34,
+                width: 82,
+                height: 33,
                 semanticLabel: 'Say something',
                 onTap: onSay,
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SquareMediaTile extends StatelessWidget {
+  const _SquareMediaTile({required this.snap});
+
+  final CapsuleMediaSnap snap;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return CapsuleMediaTile(
+            snap: snap,
+            size: constraints.maxWidth,
+          );
+        },
       ),
     );
   }
@@ -517,7 +543,7 @@ class _SoftCapsuleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.88),
         borderRadius: BorderRadius.circular(999),
@@ -528,7 +554,7 @@ class _SoftCapsuleChip extends StatelessWidget {
           color: color == const Color(0xFFFF4747)
               ? const Color(0xFF791111)
               : const Color(0xFF7557A4),
-          fontSize: 11,
+          fontSize: 10.5,
           fontWeight: FontWeight.w800,
         ),
       ),
