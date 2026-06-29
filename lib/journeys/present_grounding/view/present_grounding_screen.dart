@@ -6,6 +6,7 @@ import 'package:morrowly/journeys/present_grounding/view/life_snippet_detail_scr
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
 
 class PresentGroundingScreen extends StatefulWidget {
   const PresentGroundingScreen({super.key});
@@ -172,12 +173,16 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
     );
   }
 
-  Future<void> _showPostModeration(LifeSnippetPost post) {
-    return showLifeModerationSheet(
+  Future<void> _showPostModeration(LifeSnippetPost post) async {
+    final result = await showMorrowlyModerationFlow(
       context: context,
-      onReport: () => _store.reportPost(post),
+      target: _store.moderationTargetForPost(post),
+      onReport: (reason) => _store.reportPost(post, reason: reason),
       onBlock: () => _store.blockUser(post.authorKey),
     );
+    if (result != null && mounted) {
+      setState(() {});
+    }
   }
 }
 
@@ -192,25 +197,15 @@ class _LifeHeader extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Life Snippets',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              Image.asset(
-                LifeSnippetAssets.titleUnderline,
-                width: 96,
-                height: 20,
-                fit: BoxFit.fill,
-                filterQuality: FilterQuality.high,
-              ),
-            ],
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Image.asset(
+              'assets/images/Dam.png',
+              width: 117,
+              height: 37,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.high,
+            ),
           ),
         ),
         Container(
@@ -255,22 +250,38 @@ class _FeedFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _FilterPill(
-          label: 'Popular',
-          selected: value == LifeSnippetFeedFilter.popular,
-          selectedAsset: LifeSnippetAssets.popular,
-          onTap: () => onChanged(LifeSnippetFeedFilter.popular),
+    return SizedBox(
+      width: 252,
+      height: 42,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF432C4D).withValues(alpha: 0.62),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
-        const SizedBox(width: 12),
-        _FilterPill(
-          label: 'Followed',
-          selected: value == LifeSnippetFeedFilter.followed,
-          selectedAsset: LifeSnippetAssets.followed,
-          onTap: () => onChanged(LifeSnippetFeedFilter.followed),
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: [
+              Expanded(
+                child: _FilterPill(
+                  label: 'Popular',
+                  selected: value == LifeSnippetFeedFilter.popular,
+                  onTap: () => onChanged(LifeSnippetFeedFilter.popular),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _FilterPill(
+                  label: 'Followed',
+                  selected: value == LifeSnippetFeedFilter.followed,
+                  onTap: () => onChanged(LifeSnippetFeedFilter.followed),
+                ),
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -279,13 +290,11 @@ class _FilterPill extends StatelessWidget {
   const _FilterPill({
     required this.label,
     required this.selected,
-    required this.selectedAsset,
     required this.onTap,
   });
 
   final String label;
   final bool selected;
-  final String selectedAsset;
   final VoidCallback onTap;
 
   @override
@@ -293,31 +302,43 @@ class _FilterPill extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: selected
-          ? Image.asset(
-              selectedAsset,
-              width: label == 'Popular' ? 92 : 112,
-              height: 39,
-              fit: BoxFit.fill,
-              filterQuality: FilterQuality.high,
-            )
-          : Container(
-              height: 35,
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4D3655),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.32),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: selected
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFC982FF), Color(0xFFAA5EFF)],
+                )
+              : null,
+          color: selected ? null : const Color(0xFF4B3553),
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: lifePurple.withValues(alpha: 0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                  ),
+                ]
+              : null,
+        ),
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          style: TextStyle(
+            color: selected
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.44),
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+          ),
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+      ),
     );
   }
 }
@@ -459,22 +480,12 @@ class _PostMediaGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shown = media.take(2).toList();
-    return Row(
-      children: [
-        for (var index = 0; index < shown.length; index++) ...[
-          Expanded(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(9),
-                child: LifeMediaImage(media: shown[index]),
-              ),
-            ),
-          ),
-          if (index != shown.length - 1) const SizedBox(width: 5),
-        ],
-      ],
+    return AspectRatio(
+      aspectRatio: 1.28,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: LifeMediaImage(media: media.first),
+      ),
     );
   }
 }

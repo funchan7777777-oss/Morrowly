@@ -92,6 +92,8 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
         const CredentialHandoffLoadingScreen(),
       WelcomeGateScene.daybookHome => MorrowlyTabShell(
         onSignedOut: _openInvitation,
+        onLoggedOut: _openLogin,
+        onAccountDeleted: _openInvitation,
       ),
     };
   }

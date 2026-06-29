@@ -4,9 +4,16 @@ import 'package:morrowly/journeys/present_grounding/view/present_grounding_scree
 import 'package:morrowly/journeys/time_capsule/view/capsule_home_screen.dart';
 
 class MorrowlyTabShell extends StatefulWidget {
-  const MorrowlyTabShell({super.key, this.onSignedOut});
+  const MorrowlyTabShell({
+    super.key,
+    this.onSignedOut,
+    this.onLoggedOut,
+    this.onAccountDeleted,
+  });
 
   final VoidCallback? onSignedOut;
+  final VoidCallback? onLoggedOut;
+  final VoidCallback? onAccountDeleted;
 
   @override
   State<MorrowlyTabShell> createState() => _MorrowlyTabShellState();
@@ -34,7 +41,11 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
         voiceLabel: 'Profile center',
         restingAsset: 'assets/images/Milestone.png',
         litAsset: 'assets/images/Anniversary.png',
-        screen: MemoryRibbonScreen(onSignedOut: widget.onSignedOut),
+        screen: MemoryRibbonScreen(
+          onSignedOut: widget.onSignedOut,
+          onLoggedOut: widget.onLoggedOut,
+          onAccountDeleted: widget.onAccountDeleted,
+        ),
       ),
     ];
 

@@ -64,30 +64,19 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Write down the content you want to publish ..',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const _ComposeHeader(),
+                    const SizedBox(height: 16),
                     _ComposeField(
                       controller: _controller,
                       draft: _draft,
                       onChanged: (value) => setState(() => _draft = value),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      'Add photos',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    _ComposeSectionHeader(
+                      title: 'Photos',
+                      meta: '${_media.length}/1 added',
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     _PhotoPickerRow(
                       media: _media,
                       onAdd: _pickPhotos,
@@ -95,30 +84,21 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
                         setState(() => _media.remove(media));
                       },
                     ),
-                    const SizedBox(height: 142),
-                    Center(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _submitting ? null : _submit,
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 140),
-                          opacity: _canSubmit && !_submitting ? 1 : 0.44,
-                          child: Image.asset(
-                            LifeSnippetAssets.release,
-                            width: contentWidth * 0.78,
-                            height: contentWidth * 0.78 * 108 / 568,
-                            fit: BoxFit.fill,
-                            filterQuality: FilterQuality.high,
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: 76),
+                    _SubmitReviewButton(
+                      enabled: _canSubmit && !_submitting,
+                      loading: _submitting,
+                      onTap: _submit,
                     ),
                   ],
                 ),
               );
             },
           ),
-          LifeTopBar(title: 'Post', onBack: () => Navigator.of(context).pop()),
+          LifeTopBar(
+            title: 'New snippet',
+            onBack: () => Navigator.of(context).pop(),
+          ),
         ],
       ),
     );
@@ -154,14 +134,14 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
     if (!mounted) {
       return;
     }
-    setState(() => _media.addAll(saved.take(4 - _media.length)));
+    setState(() => _media.addAll(saved.take(1 - _media.length)));
   }
 
   Future<void> _submit() async {
     if (!_canSubmit) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Add text or at least one photo before posting.'),
+          content: const Text('Write a note or add a photo before submitting.'),
           backgroundColor: lifePanel,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -191,6 +171,103 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
   }
 }
 
+class _ComposeHeader extends StatelessWidget {
+  const _ComposeHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 15, 16, 16),
+      decoration: BoxDecoration(
+        color: lifePanel.withValues(alpha: 0.38),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: lifePurple.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Release a Life Snippet',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Shared moments appear after review.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.58),
+                    fontSize: 12,
+                    height: 1.28,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComposeSectionHeader extends StatelessWidget {
+  const _ComposeSectionHeader({required this.title, required this.meta});
+
+  final String title;
+  final String meta;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        Text(
+          meta,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.42),
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ComposeField extends StatelessWidget {
   const _ComposeField({
     required this.controller,
@@ -205,12 +282,19 @@ class _ComposeField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 222,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      height: 220,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF4B3A50).withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: const Color(0xFF4A3852).withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Stack(
         children: [
@@ -224,13 +308,13 @@ class _ComposeField extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
-              height: 1.35,
+              height: 1.42,
               fontWeight: FontWeight.w700,
             ),
             decoration: InputDecoration(
-              hintText: 'Please enter',
+              hintText: 'Share a small moment, wish, or memory...',
               hintStyle: TextStyle(
-                color: Colors.white.withValues(alpha: 0.22),
+                color: Colors.white.withValues(alpha: 0.32),
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
@@ -243,7 +327,9 @@ class _ComposeField extends StatelessWidget {
             child: Text(
               '${draft.length}/100',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.28),
+                color: draft.length >= 90
+                    ? const Color(0xFFFFC7E5)
+                    : Colors.white.withValues(alpha: 0.34),
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
               ),
@@ -274,8 +360,8 @@ class _PhotoPickerRow extends StatelessWidget {
       children: [
         for (final item in media)
           SizedBox(
-            width: 82,
-            height: 82,
+            width: 92,
+            height: 92,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -309,29 +395,131 @@ class _PhotoPickerRow extends StatelessWidget {
               ],
             ),
           ),
-        if (media.length < 4)
+        if (media.isEmpty)
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: onAdd,
             child: Container(
-              width: 82,
-              height: 82,
+              width: 92,
+              height: 92,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(14),
+                color: Colors.white.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.18),
+                  color: Colors.white.withValues(alpha: 0.16),
                   style: BorderStyle.solid,
                 ),
               ),
-              child: Icon(
-                Icons.add_rounded,
-                color: Colors.white.withValues(alpha: 0.32),
-                size: 34,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_photo_alternate_rounded,
+                    color: Colors.white.withValues(alpha: 0.42),
+                    size: 30,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Add',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.42),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
       ],
+    );
+  }
+}
+
+class _SubmitReviewButton extends StatelessWidget {
+  const _SubmitReviewButton({
+    required this.enabled,
+    required this.loading,
+    required this.onTap,
+  });
+
+  final bool enabled;
+  final bool loading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 58,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: enabled
+              ? const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [Color(0xFFC776FF), Color(0xFFA960FF)],
+                )
+              : null,
+          color: enabled ? null : Colors.white.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: enabled
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.white.withValues(alpha: 0.08),
+          ),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: lifePurple.withValues(alpha: 0.24),
+                    blurRadius: 22,
+                    offset: const Offset(0, 12),
+                  ),
+                ]
+              : null,
+        ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 160),
+          child: loading
+              ? const SizedBox(
+                  key: ValueKey('loading'),
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.6,
+                    color: Colors.white,
+                  ),
+                )
+              : Row(
+                  key: const ValueKey('label'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.task_alt_rounded,
+                      color: enabled
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.34),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      enabled ? 'Submit for review' : 'Add text or photos',
+                      style: TextStyle(
+                        color: enabled
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.34),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
     );
   }
 }
@@ -389,7 +577,7 @@ class _ReviewSubmittedDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Post submitted',
+              'Sent for review',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -399,7 +587,7 @@ class _ReviewSubmittedDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Your snippet is waiting for background review. It will become visible only after approval.',
+              'Your Life Snippet was saved locally and will appear in the feed only after approval.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.66),
@@ -409,15 +597,22 @@ class _ReviewSubmittedDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 18),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).pop(),
-              child: Image.asset(
-                LifeSnippetAssets.goNow,
-                width: 178,
-                height: 40,
-                fit: BoxFit.fill,
-                filterQuality: FilterQuality.high,
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: lifePurple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                child: const Text(
+                  'Done',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                ),
               ),
             ),
           ],

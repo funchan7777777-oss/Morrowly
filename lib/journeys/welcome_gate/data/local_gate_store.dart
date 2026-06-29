@@ -130,10 +130,7 @@ class LocalGateStore {
     required String birthDate,
   }) async {
     await _preferences.setString(_profileNameKey, displayName.trim());
-    await _preferences.setString(
-      _profileSignatureKey,
-      signatureLine.trim(),
-    );
+    await _preferences.setString(_profileSignatureKey, signatureLine.trim());
     await _preferences.setString(_profileAvatarPathKey, avatarLocalPath);
     await _preferences.setString(_profileGenderKey, gender);
     await _preferences.setString(_profileRegionKey, region);
@@ -142,5 +139,20 @@ class LocalGateStore {
 
   Future<void> signOut() async {
     await _preferences.setBool(_sessionActiveKey, false);
+  }
+
+  Future<void> deleteLocalAccount() async {
+    await _preferences.setBool(_sessionActiveKey, false);
+    await _preferences.remove(_registeredEmailKey);
+    await _preferences.remove(_registeredPasswordKey);
+    await _preferences.remove(_profileNameKey);
+    await _preferences.remove(_profileHandleKey);
+    await _preferences.remove(_profileSignatureKey);
+    await _preferences.remove(_profileAvatarPathKey);
+    await _preferences.remove(_profileGenderKey);
+    await _preferences.remove(_profileRegionKey);
+    await _preferences.remove(_profileBirthDateKey);
+    await _preferences.remove(_appleUserKey);
+    await _preferences.remove(_lastProviderKey);
   }
 }

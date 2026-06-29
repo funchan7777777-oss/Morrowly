@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum MorrowlyModerationKind { capsule, snippet, comment, message, chat }
+enum MorrowlyModerationKind { capsule, snippet, comment, profile, message, chat }
 
 enum MorrowlyReportReason { harassment, inappropriate, spam, scam, other }
 
@@ -37,6 +37,7 @@ class MorrowlyModerationTarget {
       MorrowlyModerationKind.capsule => 'capsule',
       MorrowlyModerationKind.snippet => 'snippet',
       MorrowlyModerationKind.comment => 'comment',
+      MorrowlyModerationKind.profile => 'profile',
       MorrowlyModerationKind.message => 'message',
       MorrowlyModerationKind.chat => 'chat',
     };
@@ -119,6 +120,17 @@ class MorrowlyModerationStore extends ChangeNotifier {
       _blockedAuthorKeysKey,
       _blockedAuthorKeys.toList()..sort(),
     );
+    notifyListeners();
+  }
+
+  Future<void> clearLocalRecords() async {
+    await load();
+
+    _reportedContentKeys.clear();
+    _blockedAuthorKeys.clear();
+    await _preferences!.remove(_reportedContentKeysKey);
+    await _preferences!.remove(_blockedAuthorKeysKey);
+    await _preferences!.remove(_reportRecordsKey);
     notifyListeners();
   }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.d
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_compose_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
 import 'package:morrowly/journeys/welcome_gate/data/local_gate_store.dart';
+import 'package:morrowly/journeys/welcome_gate/models/legal_document_marker.dart';
+import 'package:morrowly/journeys/welcome_gate/view/legal_document_viewer.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,7 +35,6 @@ abstract final class ProfileCenterAssets {
   static const camera = 'assets/images/Continuum.png';
   static const message = 'assets/images/Awakening.png';
   static const send = 'assets/images/Compass.png';
-  static const settingsContact = 'assets/images/Opening.png';
   static const settingsDelete = 'assets/images/Recollection.png';
   static const settingsDoc = 'assets/images/Moonrise.png';
   static const settingsGuide = 'assets/images/Resonance.png';
@@ -47,9 +49,16 @@ abstract final class ProfileCenterAssets {
 }
 
 class MemoryRibbonScreen extends StatefulWidget {
-  const MemoryRibbonScreen({super.key, this.onSignedOut});
+  const MemoryRibbonScreen({
+    super.key,
+    this.onSignedOut,
+    this.onLoggedOut,
+    this.onAccountDeleted,
+  });
 
   final VoidCallback? onSignedOut;
+  final VoidCallback? onLoggedOut;
+  final VoidCallback? onAccountDeleted;
 
   @override
   State<MemoryRibbonScreen> createState() => _MemoryRibbonScreenState();
@@ -155,7 +164,11 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
   Future<void> _openSettings() {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => ProfileSettingsScreen(onSignedOut: widget.onSignedOut),
+        builder: (_) => ProfileSettingsScreen(
+          onSignedOut: widget.onSignedOut,
+          onLoggedOut: widget.onLoggedOut,
+          onAccountDeleted: widget.onAccountDeleted,
+        ),
       ),
     );
   }
@@ -194,9 +207,16 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
 }
 
 class ProfileSettingsScreen extends StatelessWidget {
-  const ProfileSettingsScreen({super.key, this.onSignedOut});
+  const ProfileSettingsScreen({
+    super.key,
+    this.onSignedOut,
+    this.onLoggedOut,
+    this.onAccountDeleted,
+  });
 
   final VoidCallback? onSignedOut;
+  final VoidCallback? onLoggedOut;
+  final VoidCallback? onAccountDeleted;
 
   @override
   Widget build(BuildContext context) {
@@ -211,22 +231,21 @@ class ProfileSettingsScreen extends StatelessWidget {
       _SettingItem(
         label: 'Privacy agreement',
         asset: ProfileCenterAssets.settingsPrivacy,
-        onTap: () => _openInfo(context, 'Privacy agreement'),
+        onTap: () =>
+            _openLegalDocument(context, LegalDocumentMarker.privacyPolicy),
       ),
       _SettingItem(
         label: 'User agreement',
         asset: ProfileCenterAssets.settingsDoc,
-        onTap: () => _openInfo(context, 'User agreement'),
-      ),
-      _SettingItem(
-        label: 'Contact Us',
-        asset: ProfileCenterAssets.settingsContact,
-        onTap: () => _openInfo(context, 'Contact Us'),
+        onTap: () =>
+            _openLegalDocument(context, LegalDocumentMarker.userAgreement),
       ),
       _SettingItem(
         label: 'Community guidelines',
         asset: ProfileCenterAssets.settingsGuide,
-        onTap: () => _openInfo(context, 'Community guidelines'),
+        onTap: () => Navigator.of(context).push<void>(
+          MaterialPageRoute(builder: (_) => const CommunityGuidelinesScreen()),
+        ),
       ),
       _SettingItem(
         label: 'Deletion of account',
@@ -297,9 +316,11 @@ class ProfileSettingsScreen extends StatelessWidget {
     );
   }
 
-  void _openInfo(BuildContext context, String title) {
+  void _openLegalDocument(BuildContext context, LegalDocumentMarker document) {
     Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => ProfileInfoScreen(title: title)),
+      MaterialPageRoute(
+        builder: (_) => LegalDocumentViewer(document: document),
+      ),
     );
   }
 
@@ -313,20 +334,78 @@ class ProfileSettingsScreen extends StatelessWidget {
       builder: (context) => _ProfileConfirmDialog(
         title: deleteAccount ? 'Delete local account?' : 'Log out?',
         message: deleteAccount
-            ? 'This clears the active local session on this device. Your public moderation and safety records remain stored locally.'
-            : 'You can sign in again from the welcome screen.',
+            ? 'This clears your local account profile, session, messages, draft posts, and safety records on this device.'
+            : 'You can sign in again from the login screen.',
       ),
     );
     if (confirmed != true || !context.mounted) {
       return;
     }
+    await _runSessionExitFlow(context, deleteAccount: deleteAccount);
+  }
+
+  Future<void> _runSessionExitFlow(
+    BuildContext context, {
+    required bool deleteAccount,
+  }) async {
+    var completed = false;
+    StateSetter? dialogSetState;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black.withValues(alpha: 0.62),
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              dialogSetState = setState;
+              return _ProfileSessionProgressDialog(
+                completed: completed,
+                loadingTitle: deleteAccount
+                    ? 'Deleting account'
+                    : 'Logging out',
+                successTitle: deleteAccount ? 'Account deleted' : 'Logged out',
+                loadingMessage: deleteAccount
+                    ? 'Clearing the local profile and safety records on this device.'
+                    : 'Closing your current session.',
+                successMessage: deleteAccount
+                    ? 'Done. Returning to the guide screen.'
+                    : 'Done. Returning to the login screen.',
+              );
+            },
+          );
+        },
+      ),
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 520));
     final gateStore = await LocalGateStore.open();
-    await gateStore.signOut();
+    if (deleteAccount) {
+      await LifeSnippetStore.instance.clearLocalAccountData();
+      await gateStore.deleteLocalAccount();
+    } else {
+      await gateStore.signOut();
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 240));
+    completed = true;
+    dialogSetState?.call(() {});
+    await Future<void>.delayed(const Duration(milliseconds: 820));
     if (!context.mounted) {
       return;
     }
+    Navigator.of(context, rootNavigator: true).pop();
     Navigator.of(context).popUntil((route) => route.isFirst);
-    onSignedOut?.call();
+    if (deleteAccount) {
+      if (onAccountDeleted != null) {
+        onAccountDeleted!();
+      } else {
+        onSignedOut?.call();
+      }
+    } else if (onLoggedOut != null) {
+      onLoggedOut!();
+    } else {
+      onSignedOut?.call();
+    }
   }
 }
 
@@ -339,70 +418,87 @@ class ProfileBlacklistScreen extends StatefulWidget {
 
 class _ProfileBlacklistScreenState extends State<ProfileBlacklistScreen> {
   final LifeSnippetStore _store = LifeSnippetStore.instance;
+  late final Future<void> _loadFuture = _store.load();
 
   @override
   Widget build(BuildContext context) {
     return LifeSnippetStage(
-      child: AnimatedBuilder(
-        animation: _store,
-        builder: (context, _) {
-          final users = _store.blockedUsers;
-          return Stack(
-            children: [
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final contentWidth = MorrowlyFrameGuard.contentWidth(
-                    constraints.maxWidth,
-                    maxWidth: 430,
-                    phoneGutter: 20,
-                  );
-                  final side = (constraints.maxWidth - contentWidth) / 2;
-                  return Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      side,
-                      MorrowlyFrameGuard.topClearance(
-                        context,
-                        minimum: 102,
-                        extra: 34,
-                      ),
-                      side,
-                      34,
-                    ),
-                    child: users.isEmpty
-                        ? const _EmptyCenterPanel()
-                        : ListView.separated(
-                            padding: EdgeInsets.zero,
-                            itemCount: users.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final user = users[index];
-                              return _RelationshipRow(
-                                user: user,
-                                trailing: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => _store.unblockUser(user.userKey),
-                                  child: Image.asset(
-                                    ProfileCenterAssets.deleteWide,
-                                    width: 92,
-                                    height: 36,
-                                    fit: BoxFit.fill,
-                                    filterQuality: FilterQuality.high,
-                                  ),
-                                ),
-                              );
-                            },
+      child: FutureBuilder<void>(
+        future: _loadFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+          return AnimatedBuilder(
+            animation: _store,
+            builder: (context, _) {
+              final users = _store.blockedUsers;
+              return Stack(
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final contentWidth = MorrowlyFrameGuard.contentWidth(
+                        constraints.maxWidth,
+                        maxWidth: 430,
+                        phoneGutter: 20,
+                      );
+                      final side = (constraints.maxWidth - contentWidth) / 2;
+                      return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          side,
+                          MorrowlyFrameGuard.topClearance(
+                            context,
+                            minimum: 102,
+                            extra: 34,
                           ),
-                  );
-                },
-              ),
-              LifeTopBar(
-                title: 'Blacklist',
-                onBack: () => Navigator.of(context).pop(),
-              ),
-            ],
+                          side,
+                          34,
+                        ),
+                        child: users.isEmpty
+                            ? const _EmptyCenterPanel()
+                            : ListView.separated(
+                                padding: EdgeInsets.zero,
+                                itemCount: users.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final user = users[index];
+                                  return _RelationshipRow(
+                                    user: user,
+                                    trailing: _UnblockButton(
+                                      onTap: () => _unblockUser(user),
+                                    ),
+                                  );
+                                },
+                              ),
+                      );
+                    },
+                  ),
+                  LifeTopBar(
+                    title: 'Blacklist',
+                    onBack: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              );
+            },
           );
         },
+      ),
+    );
+  }
+
+  Future<void> _unblockUser(LifeSnippetUser user) async {
+    await _store.unblockUser(user.userKey);
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${user.displayName} has been removed from blacklist.'),
+        backgroundColor: lifePanel,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -530,6 +626,18 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
                       onChanged: (index) {
                         setState(() => _selectedIndex = index);
                       },
+                    ),
+                    const SizedBox(height: 12),
+                    Image.asset(
+                      _selectedIndex == 1
+                          ? ProfileCenterAssets.countdown
+                          : ProfileCenterAssets.capsuleBanner,
+                      width: contentWidth,
+                      height:
+                          contentWidth *
+                          (_selectedIndex == 1 ? 166 / 700 : 236 / 700),
+                      fit: BoxFit.fill,
+                      filterQuality: FilterQuality.high,
                     ),
                     const SizedBox(height: 18),
                     GridView.builder(
@@ -1043,10 +1151,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 }
 
-class ProfileInfoScreen extends StatelessWidget {
-  const ProfileInfoScreen({super.key, required this.title});
-
-  final String title;
+class CommunityGuidelinesScreen extends StatelessWidget {
+  const CommunityGuidelinesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1072,27 +1178,146 @@ class ProfileInfoScreen extends StatelessWidget {
                   side,
                   34,
                 ),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: lifePanel.withValues(alpha: 0.88),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Text(
-                    _infoCopy(title),
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.72),
-                      fontSize: 13,
-                      height: 1.45,
-                      fontWeight: FontWeight.w700,
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: const [
+                    _GuidelineHero(),
+                    SizedBox(height: 14),
+                    _GuidelineSection(
+                      title: 'Real identity, real consent',
+                      body:
+                          'Morrowly does not support anonymous or random chat. Messaging and video calls are available only when both people have truly followed each other. Do not impersonate another person, pressure someone to follow back, or create misleading profiles.',
                     ),
-                  ),
+                    _GuidelineSection(
+                      title: 'Keep memories safe',
+                      body:
+                          'Posts, comments, capsules, names, avatars, and messages must not include harassment, threats, hate, sexual content involving minors, explicit sexual solicitation, self-harm encouragement, illegal activity, scams, spam, or private information about another person.',
+                    ),
+                    _GuidelineSection(
+                      title: 'Review before public display',
+                      body:
+                          'New public posts are submitted for review first. A successful release message means the post was received; it does not mean the post is already public. Content appears only after review approval.',
+                    ),
+                    _GuidelineSection(
+                      title: 'Report and block',
+                      body:
+                          'Use Report on unsafe posts or comments. Use Block when you do not want another person to appear in your experience. Reported comments and blocked users are hidden locally right away while the safety record is saved on this device.',
+                    ),
+                    _GuidelineSection(
+                      title: 'Respect future recipients',
+                      body:
+                          'Time capsules should preserve wishes, memories, and meaningful notes. Do not use capsules to store abusive messages, unwanted contact attempts, financial manipulation, or content intended to embarrass or harm someone later.',
+                    ),
+                    _GuidelineSection(
+                      title: 'Enforcement',
+                      body:
+                          'Morrowly may hide reported content, restrict chat actions, remove abusive posts after review, or require account changes when a profile or post violates these rules. For safety support, use the support contact published on the app listing.',
+                    ),
+                  ],
                 ),
               );
             },
           ),
-          LifeTopBar(title: title, onBack: () => Navigator.of(context).pop()),
+          LifeTopBar(
+            title: 'Community guidelines',
+            onBack: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuidelineHero extends StatelessWidget {
+  const _GuidelineHero();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
+      decoration: BoxDecoration(
+        color: lifePanel.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        children: [
+          Image.asset(
+            ProfileCenterAssets.settingsGuide,
+            width: 68,
+            height: 68,
+            filterQuality: FilterQuality.high,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Preserve wishes without harm',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    height: 1.15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'These rules keep Life Snippets, capsules, comments, and mutual-follow chat safe for real people.',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.62),
+                    fontSize: 12,
+                    height: 1.36,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GuidelineSection extends StatelessWidget {
+  const _GuidelineSection({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      decoration: BoxDecoration(
+        color: lifePanel.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            body,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.66),
+              fontSize: 12,
+              height: 1.45,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -1551,6 +1776,46 @@ class _SettingCard extends StatelessWidget {
   }
 }
 
+class _UnblockButton extends StatelessWidget {
+  const _UnblockButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: lifePurple,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: [
+            BoxShadow(
+              color: lifePurple.withValues(alpha: 0.24),
+              blurRadius: 14,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: const Text(
+          'Unblock',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _RelationshipRow extends StatelessWidget {
   const _RelationshipRow({required this.user, required this.trailing});
 
@@ -1922,13 +2187,18 @@ class _CapsuleTile extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _SmallCapsuleButton(label: 'Delete', onTap: onDelete),
+                child: _SmallCapsuleButton(
+                  label: 'Delete',
+                  asset: ProfileCenterAssets.deleteCompact,
+                  onTap: onDelete,
+                ),
               ),
               if (unlocked) ...[
                 const SizedBox(width: 8),
                 Expanded(
                   child: _SmallCapsuleButton(
                     label: 'Check',
+                    asset: ProfileCenterAssets.goCheck,
                     onTap: onCheck,
                     filled: true,
                   ),
@@ -1946,11 +2216,13 @@ class _SmallCapsuleButton extends StatelessWidget {
   const _SmallCapsuleButton({
     required this.label,
     required this.onTap,
+    this.asset,
     this.filled = false,
   });
 
   final String label;
   final VoidCallback onTap;
+  final String? asset;
   final bool filled;
 
   @override
@@ -1958,23 +2230,53 @@ class _SmallCapsuleButton extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        height: 30,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: filled ? lifePurple : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.26)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: filled ? Colors.white : Colors.white.withValues(alpha: 0.32),
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
+      child: asset == null
+          ? Container(
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: filled ? lifePurple : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.26)),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: filled
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.32),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            )
+          : Image.asset(
+              asset!,
+              height: 30,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: filled ? lifePurple : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.26),
+                  ),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: filled
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.32),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
@@ -2281,20 +2583,99 @@ class _ProfileConfirmDialog extends StatelessWidget {
   }
 }
 
-String _formatBalance(double value) {
-  return value.toStringAsFixed(1).replaceAll('.', ',');
+class _ProfileSessionProgressDialog extends StatelessWidget {
+  const _ProfileSessionProgressDialog({
+    required this.completed,
+    required this.loadingTitle,
+    required this.successTitle,
+    required this.loadingMessage,
+    required this.successMessage,
+  });
+
+  final bool completed;
+  final String loadingTitle;
+  final String successTitle;
+  final String loadingMessage;
+  final String successMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
+        decoration: BoxDecoration(
+          color: lifePanel,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.26),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              child: completed
+                  ? Container(
+                      key: const ValueKey('done'),
+                      width: 64,
+                      height: 64,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: lifePurple,
+                      ),
+                      child: const Icon(
+                        Icons.check_rounded,
+                        color: Colors.white,
+                        size: 38,
+                      ),
+                    )
+                  : const SizedBox(
+                      key: ValueKey('loading'),
+                      width: 64,
+                      height: 64,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 5,
+                        color: lifePurple,
+                        backgroundColor: Color(0xFF6A4C77),
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              completed ? successTitle : loadingTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              completed ? successMessage : loadingMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.64),
+                fontSize: 12,
+                height: 1.36,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-String _infoCopy(String title) {
-  return switch (title) {
-    'Privacy agreement' =>
-      'Morrowly stores local profile, moderation, wallet, and message records on this device. Community posts and conversations use reporting and blocking controls to keep user-generated content manageable.',
-    'User agreement' =>
-      'Use Morrowly to preserve capsules, post reviewed life snippets, and communicate only with mutually approved contacts. Do not publish harmful, abusive, or misleading content.',
-    'Contact Us' =>
-      'For support, safety reports, or account questions, contact the Morrowly team through the support mailbox configured for this app release.',
-    'Community guidelines' =>
-      'Be specific, kind, and accountable. Report unsafe posts or comments, block users when needed, and remember that new public posts appear only after review.',
-    _ => 'No additional content is available for this section.',
-  };
+String _formatBalance(double value) {
+  return value.toStringAsFixed(1).replaceAll('.', ',');
 }

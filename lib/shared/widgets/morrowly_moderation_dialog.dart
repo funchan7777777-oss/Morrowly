@@ -14,6 +14,8 @@ Future<MorrowlyModerationResult?> showMorrowlyModerationFlow({
   required BuildContext context,
   required MorrowlyModerationTarget target,
   MorrowlyModerationStore? store,
+  Future<void> Function(MorrowlyReportReason reason)? onReport,
+  Future<void> Function()? onBlock,
 }) async {
   final moderationStore = store ?? MorrowlyModerationStore.instance;
   await moderationStore.load();
@@ -40,7 +42,12 @@ Future<MorrowlyModerationResult?> showMorrowlyModerationFlow({
       return null;
     }
 
-    await moderationStore.reportContent(target: target, reason: reason);
+    final reportHandler = onReport;
+    if (reportHandler == null) {
+      await moderationStore.reportContent(target: target, reason: reason);
+    } else {
+      await reportHandler(reason);
+    }
     if (context.mounted) {
       await showDialog<void>(
         context: context,
@@ -55,7 +62,12 @@ Future<MorrowlyModerationResult?> showMorrowlyModerationFlow({
     return MorrowlyModerationResult.reported;
   }
 
-  await moderationStore.blockAuthor(target);
+  final blockHandler = onBlock;
+  if (blockHandler == null) {
+    await moderationStore.blockAuthor(target);
+  } else {
+    await blockHandler();
+  }
   if (context.mounted) {
     await showDialog<void>(
       context: context,

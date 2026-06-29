@@ -632,7 +632,7 @@ class _CommentComposer extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: CircleAvatar(
               radius: 17,
-              backgroundImage: const AssetImage(
+              backgroundImage: AssetImage(
                 CapsuleSquareSeed.currentKeeper.avatarAsset,
               ),
               backgroundColor: Colors.white.withValues(alpha: 0.14),

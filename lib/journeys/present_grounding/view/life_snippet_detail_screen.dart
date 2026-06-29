@@ -4,6 +4,7 @@ import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.d
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
 
 class LifeSnippetDetailScreen extends StatefulWidget {
   const LifeSnippetDetailScreen({
@@ -81,8 +82,8 @@ class _LifeSnippetDetailScreenState extends State<LifeSnippetDetailScreen> {
                       side,
                       MorrowlyFrameGuard.topClearance(
                         context,
-                        minimum: 94,
-                        extra: 26,
+                        minimum: 128,
+                        extra: 72,
                       ),
                       side,
                       MorrowlyFrameGuard.bottomClearance(
@@ -153,18 +154,9 @@ class _LifeSnippetDetailScreenState extends State<LifeSnippetDetailScreen> {
                   ),
                 ),
               ),
-              LifeTopBar(
-                title: 'Details',
+              _DetailTopBar(
                 onBack: () => Navigator.of(context).pop(),
-                trailing: IconButton(
-                  onPressed: () => _showPostModeration(post),
-                  icon: const Icon(
-                    Icons.info_rounded,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                  tooltip: 'Report or block',
-                ),
+                onMore: () => _showPostModeration(post),
               ),
             ],
           );
@@ -203,19 +195,142 @@ class _LifeSnippetDetailScreenState extends State<LifeSnippetDetailScreen> {
     _commentFocusNode.requestFocus();
   }
 
-  Future<void> _showPostModeration(LifeSnippetPost post) {
-    return showLifeModerationSheet(
+  Future<void> _showPostModeration(LifeSnippetPost post) async {
+    final result = await showMorrowlyModerationFlow(
       context: context,
-      onReport: () => _store.reportPost(post),
+      target: _store.moderationTargetForPost(post),
+      onReport: (reason) => _store.reportPost(post, reason: reason),
       onBlock: () => _store.blockUser(post.authorKey),
     );
+    if (result == null || !mounted) {
+      return;
+    }
+    if (_store.shouldHidePost(post)) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {});
+    }
   }
 
-  Future<void> _showCommentModeration(LifeSnippetComment comment) {
-    return showLifeModerationSheet(
+  Future<void> _showCommentModeration(LifeSnippetComment comment) async {
+    final result = await showMorrowlyModerationFlow(
       context: context,
-      onReport: () => _store.reportComment(comment),
+      target: _store.moderationTargetForComment(comment),
+      onReport: (reason) => _store.reportComment(comment, reason: reason),
       onBlock: () => _store.blockUser(comment.authorKey),
+    );
+    if (result == null || !mounted) {
+      return;
+    }
+    if (_store.postByKey(widget.postKey) == null) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {});
+    }
+  }
+}
+
+class _DetailTopBar extends StatelessWidget {
+  const _DetailTopBar({required this.onBack, required this.onMore});
+
+  final VoidCallback onBack;
+  final VoidCallback onMore;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final contentWidth = MorrowlyFrameGuard.contentWidth(
+          constraints.maxWidth,
+          maxWidth: 430,
+          phoneGutter: 16,
+        );
+        final side = (constraints.maxWidth - contentWidth) / 2;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            side,
+            MorrowlyFrameGuard.topClearance(context, minimum: 50, extra: 4),
+            side,
+            0,
+          ),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4D3658).withValues(alpha: 0.58),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                _DetailTopAction(
+                  icon: Icons.chevron_left_rounded,
+                  tooltip: 'Back',
+                  onTap: onBack,
+                ),
+                const Expanded(
+                  child: Text(
+                    'Snippet details',
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                _DetailTopAction(
+                  icon: Icons.more_horiz_rounded,
+                  tooltip: 'Report or block',
+                  onTap: onMore,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DetailTopAction extends StatelessWidget {
+  const _DetailTopAction({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.white, size: 25),
+        ),
+      ),
     );
   }
 }

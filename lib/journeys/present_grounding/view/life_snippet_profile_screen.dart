@@ -395,22 +395,12 @@ class _ProfilePostCard extends StatelessWidget {
             ),
             if (post.media.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  for (final media in post.media.take(2)) ...[
-                    Expanded(
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(9),
-                          child: LifeMediaImage(media: media),
-                        ),
-                      ),
-                    ),
-                    if (media != post.media.take(2).last)
-                      const SizedBox(width: 5),
-                  ],
-                ],
+              AspectRatio(
+                aspectRatio: 1.28,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: LifeMediaImage(media: post.media.first),
+                ),
               ),
             ],
             const SizedBox(height: 10),

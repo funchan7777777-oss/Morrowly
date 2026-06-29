@@ -51,19 +51,25 @@ class LifeSnippetStore extends ChangeNotifier {
 
   List<LifeSnippetUser> get followListUsers {
     final keys = {..._followingUserKeys, ..._outgoingFollowRequests};
-    return keys.map(userByKey).where((user) => !user.isCurrentUser).toList();
+    return keys
+        .map(userByKey)
+        .where((user) => !user.isCurrentUser)
+        .where((user) => !_moderation.isAuthorBlocked(user.userKey))
+        .toList();
   }
 
   List<LifeSnippetUser> get fanListUsers {
     return _followerUserKeys
         .map(userByKey)
         .where((user) => !user.isCurrentUser)
+        .where((user) => !_moderation.isAuthorBlocked(user.userKey))
         .toList();
   }
 
   List<LifeSnippetUser> get blockedUsers {
     return _moderation.blockedAuthorKeys
-        .map(userByKey)
+        .map(_knownUserByKey)
+        .whereType<LifeSnippetUser>()
         .where((user) => !user.isCurrentUser)
         .toList();
   }
@@ -89,13 +95,85 @@ class LifeSnippetStore extends ChangeNotifier {
     );
   }
 
+  LifeSnippetUser? _knownUserByKey(String userKey) {
+    if (userKey == _currentUser.userKey) {
+      return _currentUser;
+    }
+    for (final user in _seedUsers) {
+      if (user.userKey == userKey) {
+        return user;
+      }
+    }
+    return null;
+  }
+
   LifeSnippetPost? postByKey(String postKey) {
     for (final post in _seedPosts) {
       if (post.postKey == postKey) {
+        if (shouldHidePost(post)) {
+          return null;
+        }
         return post;
       }
     }
     return null;
+  }
+
+  MorrowlyModerationTarget moderationTargetForPost(LifeSnippetPost post) {
+    final author = userByKey(post.authorKey);
+    return MorrowlyModerationTarget(
+      contentKey: post.postKey,
+      authorKey: author.userKey,
+      authorName: author.displayName,
+      kind: MorrowlyModerationKind.snippet,
+    );
+  }
+
+  MorrowlyModerationTarget moderationTargetForComment(
+    LifeSnippetComment comment,
+  ) {
+    final author = userByKey(comment.authorKey);
+    return MorrowlyModerationTarget(
+      contentKey: comment.commentKey,
+      authorKey: author.userKey,
+      authorName: author.displayName,
+      kind: MorrowlyModerationKind.comment,
+    );
+  }
+
+  MorrowlyModerationTarget moderationTargetForUser(String userKey) {
+    final user = userByKey(userKey);
+    return MorrowlyModerationTarget(
+      contentKey: _profileContentKey(userKey),
+      authorKey: user.userKey,
+      authorName: user.displayName,
+      kind: MorrowlyModerationKind.profile,
+    );
+  }
+
+  bool shouldHidePost(LifeSnippetPost post) {
+    return _moderation.shouldHide(
+      contentKey: post.postKey,
+      authorKey: post.authorKey,
+    );
+  }
+
+  bool shouldHideComment(LifeSnippetComment comment) {
+    return _moderation.shouldHide(
+      contentKey: comment.commentKey,
+      authorKey: comment.authorKey,
+    );
+  }
+
+  bool shouldHideUserProfile(String userKey) {
+    return _moderation.shouldHide(
+      contentKey: _profileContentKey(userKey),
+      authorKey: userKey,
+    );
+  }
+
+  bool isUserBlocked(String userKey) {
+    return _moderation.isAuthorBlocked(userKey);
   }
 
   List<LifeSnippetPost> visiblePosts(LifeSnippetFeedFilter filter) {
@@ -165,17 +243,24 @@ class LifeSnippetStore extends ChangeNotifier {
   }
 
   bool isMutualFollow(String userKey) {
+    if (_moderation.isAuthorBlocked(userKey)) {
+      return false;
+    }
     return _followingUserKeys.contains(userKey) &&
         _followerUserKeys.contains(userKey);
   }
 
   List<LifeChatMessage> chatMessagesFor(String userKey) {
+    if (_moderation.isAuthorBlocked(userKey)) {
+      return const [];
+    }
     return List.unmodifiable(_chatThreads[userKey] ?? const []);
   }
 
   Future<void> requestFollow(String userKey) async {
     if (userKey == _currentUser.userKey ||
-        _followingUserKeys.contains(userKey)) {
+        _followingUserKeys.contains(userKey) ||
+        _moderation.isAuthorBlocked(userKey)) {
       return;
     }
 
@@ -246,55 +331,38 @@ class LifeSnippetStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> reportPost(LifeSnippetPost post) async {
-    final author = userByKey(post.authorKey);
+  Future<void> reportPost(
+    LifeSnippetPost post, {
+    MorrowlyReportReason reason = MorrowlyReportReason.inappropriate,
+  }) async {
     await _moderation.reportContent(
-      target: MorrowlyModerationTarget(
-        contentKey: post.postKey,
-        authorKey: author.userKey,
-        authorName: author.displayName,
-        kind: MorrowlyModerationKind.snippet,
-      ),
-      reason: MorrowlyReportReason.inappropriate,
+      target: moderationTargetForPost(post),
+      reason: reason,
     );
   }
 
-  Future<void> reportComment(LifeSnippetComment comment) async {
-    final author = userByKey(comment.authorKey);
+  Future<void> reportComment(
+    LifeSnippetComment comment, {
+    MorrowlyReportReason reason = MorrowlyReportReason.inappropriate,
+  }) async {
     await _moderation.reportContent(
-      target: MorrowlyModerationTarget(
-        contentKey: comment.commentKey,
-        authorKey: author.userKey,
-        authorName: author.displayName,
-        kind: MorrowlyModerationKind.comment,
-      ),
-      reason: MorrowlyReportReason.inappropriate,
+      target: moderationTargetForComment(comment),
+      reason: reason,
     );
   }
 
-  Future<void> reportUser(String userKey) async {
-    final user = userByKey(userKey);
+  Future<void> reportUser(
+    String userKey, {
+    MorrowlyReportReason reason = MorrowlyReportReason.inappropriate,
+  }) async {
     await _moderation.reportContent(
-      target: MorrowlyModerationTarget(
-        contentKey: 'profile-$userKey',
-        authorKey: user.userKey,
-        authorName: user.displayName,
-        kind: MorrowlyModerationKind.snippet,
-      ),
-      reason: MorrowlyReportReason.inappropriate,
+      target: moderationTargetForUser(userKey),
+      reason: reason,
     );
   }
 
   Future<void> blockUser(String userKey) async {
-    final user = userByKey(userKey);
-    await _moderation.blockAuthor(
-      MorrowlyModerationTarget(
-        contentKey: 'author-$userKey',
-        authorKey: user.userKey,
-        authorName: user.displayName,
-        kind: MorrowlyModerationKind.snippet,
-      ),
-    );
+    await _moderation.blockAuthor(moderationTargetForUser(userKey));
     _outgoingFollowRequests.remove(userKey);
     _followingUserKeys.remove(userKey);
     _followerUserKeys.remove(userKey);
@@ -330,6 +398,27 @@ class LifeSnippetStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearLocalAccountData() async {
+    await load();
+    _likedPostKeys.clear();
+    _outgoingFollowRequests.clear();
+    _followingUserKeys.clear();
+    _followerUserKeys.clear();
+    _commentsByPost.clear();
+    _chatThreads.clear();
+    _pendingReviewPosts.clear();
+    await _preferences!.remove(_pendingPostsKey);
+    await _preferences!.remove(_commentsKey);
+    await _preferences!.remove(_likedPostsKey);
+    await _preferences!.remove(_outgoingFollowRequestsKey);
+    await _preferences!.remove(_followingUserKeysKey);
+    await _preferences!.remove(_followerUserKeysKey);
+    await _preferences!.remove(_chatThreadsKey);
+    await _moderation.clearLocalRecords();
+    _currentUser = _fallbackCurrentUser;
+    notifyListeners();
+  }
+
   Future<void> sendMessage({
     required String userKey,
     required String body,
@@ -339,6 +428,9 @@ class LifeSnippetStore extends ChangeNotifier {
       return;
     }
     if (!isMutualFollow(userKey)) {
+      throw const LifeSnippetRelationshipGate();
+    }
+    if (_moderation.isAuthorBlocked(userKey)) {
       throw const LifeSnippetRelationshipGate();
     }
 
@@ -480,6 +572,8 @@ class LifeSnippetStore extends ChangeNotifier {
   }
 }
 
+String _profileContentKey(String userKey) => 'profile-$userKey';
+
 const _fallbackCurrentUser = LifeSnippetUser(
   userKey: LifeSnippetStore.currentUserKey,
   displayName: 'Morrowly friend',
@@ -531,7 +625,7 @@ const _seedUsers = [
 
 final _seedPosts = [
   LifeSnippetPost(
-    postKey: 'snippet-sunrise-lake',
+    postKey: 'snippet-lake-cocktail',
     authorKey: 'carolyn-massey',
     body:
         'I hope scattered life can also have passionate romance. You must be happy in the future!',
@@ -539,11 +633,6 @@ final _seedPosts = [
       LifeSnippetMedia(
         mediaKey: 'sunrise-lake-a',
         path: 'assets/images/post/memory_lake_cocktail_view.jpg',
-        kind: LifeSnippetMediaKind.asset,
-      ),
-      LifeSnippetMedia(
-        mediaKey: 'sunrise-lake-b',
-        path: 'assets/images/post/memory_harbor_supper_sunset.jpg',
         kind: LifeSnippetMediaKind.asset,
       ),
     ],
@@ -567,6 +656,22 @@ final _seedPosts = [
     ],
   ),
   LifeSnippetPost(
+    postKey: 'snippet-harbor-supper',
+    authorKey: 'evan-perkins',
+    body:
+        'A sunset table, a few cards, and the kind of evening I want to remember slowly.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'harbor-supper-a',
+        path: 'assets/images/post/memory_harbor_supper_sunset.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 24, 19, 18),
+    likeCount: 116,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
     postKey: 'snippet-window-note',
     authorKey: 'talia-arden',
     body:
@@ -575,11 +680,6 @@ final _seedPosts = [
       LifeSnippetMedia(
         mediaKey: 'window-note-a',
         path: 'assets/images/post/memory_dusk_window_note.jpg',
-        kind: LifeSnippetMediaKind.asset,
-      ),
-      LifeSnippetMedia(
-        mediaKey: 'window-note-b',
-        path: 'assets/images/post/memory_coffee_letter_table.jpg',
         kind: LifeSnippetMediaKind.asset,
       ),
     ],
@@ -596,6 +696,22 @@ final _seedPosts = [
     ],
   ),
   LifeSnippetPost(
+    postKey: 'snippet-coffee-letter',
+    authorKey: 'carolyn-massey',
+    body:
+        'Coffee cooled beside the letter before I found the words I wanted to keep.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'coffee-letter-a',
+        path: 'assets/images/post/memory_coffee_letter_table.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 20, 10, 12),
+    likeCount: 102,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
     postKey: 'snippet-market-light',
     authorKey: 'evan-perkins',
     body:
@@ -606,14 +722,253 @@ final _seedPosts = [
         path: 'assets/images/post/memory_flower_market_smile.jpg',
         kind: LifeSnippetMediaKind.asset,
       ),
+    ],
+    createdAt: DateTime(2025, 11, 18, 16, 12),
+    likeCount: 76,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-green-path',
+    authorKey: 'talia-arden',
+    body:
+        'The path bent out of sight, so I saved the turn for a braver version of me.',
+    media: const [
       LifeSnippetMedia(
-        mediaKey: 'market-light-b',
+        mediaKey: 'green-path-a',
         path: 'assets/images/post/memory_green_path_turn.jpg',
         kind: LifeSnippetMediaKind.asset,
       ),
     ],
-    createdAt: DateTime(2025, 11, 18, 16, 12),
-    likeCount: 76,
+    createdAt: DateTime(2025, 11, 17, 15, 4),
+    likeCount: 84,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-amber-room',
+    authorKey: 'carolyn-massey',
+    body: 'This quiet amber corner made the whole day feel less temporary.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'amber-room-a',
+        path: 'assets/images/post/memory_amber_room_table.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 16, 20, 22),
+    likeCount: 91,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-beach-mat',
+    authorKey: 'evan-perkins',
+    body:
+        'A beach mat, a warm pause, and one small proof that rest can be planned.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'beach-mat-a',
+        path: 'assets/images/post/memory_beach_mat_memory.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 15, 14, 9),
+    likeCount: 70,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-cafe-companion',
+    authorKey: 'talia-arden',
+    body: 'Some tables remember conversations better than we do.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'cafe-companion-a',
+        path: 'assets/images/post/memory_cafe_companion_table.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 14, 11, 42),
+    likeCount: 118,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-car-window',
+    authorKey: 'carolyn-massey',
+    body: 'The road kept moving, but the light stayed with me for a few miles.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'car-window-a',
+        path: 'assets/images/post/memory_car_window_drive.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 13, 17, 28),
+    likeCount: 63,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-cathedral-morning',
+    authorKey: 'evan-perkins',
+    body:
+        'Morning made the stone look gentle, so I stood there longer than planned.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'cathedral-morning-a',
+        path: 'assets/images/post/memory_cathedral_morning.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 12, 9, 36),
+    likeCount: 95,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-garden-portrait',
+    authorKey: 'talia-arden',
+    body:
+        'A garden portrait for the version of me that keeps choosing softness.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'garden-portrait-a',
+        path: 'assets/images/post/memory_garden_portrait.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 11, 13, 18),
+    likeCount: 132,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-hammock-valley',
+    authorKey: 'carolyn-massey',
+    body: 'If future me forgets how to slow down, start with this valley.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'hammock-valley-a',
+        path: 'assets/images/post/memory_hammock_valley_rest.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 10, 16, 44),
+    likeCount: 73,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-handheld-game',
+    authorKey: 'evan-perkins',
+    body: 'Tiny games are better when the afternoon has nowhere urgent to go.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'handheld-game-a',
+        path: 'assets/images/post/memory_handheld_game_rest.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 9, 15, 20),
+    likeCount: 58,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-lemonade-arcade',
+    authorKey: 'talia-arden',
+    body: 'A bright drink and an old machine made the day feel fictional.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'lemonade-arcade-a',
+        path: 'assets/images/post/memory_lemonade_arcade.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 8, 12, 16),
+    likeCount: 82,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-palm-street',
+    authorKey: 'carolyn-massey',
+    body: 'The palm street looked like it had already forgiven the week.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'palm-street-a',
+        path: 'assets/images/post/memory_palm_street_walk.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 7, 18, 2),
+    likeCount: 104,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-paper-wall',
+    authorKey: 'evan-perkins',
+    body: 'Paused by the paper wall and let the silence finish the sentence.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'paper-wall-a',
+        path: 'assets/images/post/memory_paper_wall_pause.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 6, 10, 50),
+    likeCount: 77,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-poolside-wings',
+    authorKey: 'talia-arden',
+    body: 'A poolside picture for the days that need proof of sunlight.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'poolside-wings-a',
+        path: 'assets/images/post/memory_poolside_wings.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 5, 14, 37),
+    likeCount: 125,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-quiet-stair',
+    authorKey: 'carolyn-massey',
+    body: 'Waiting on the quiet stair felt less lonely than rushing past it.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'quiet-stair-a',
+        path: 'assets/images/post/memory_quiet_stair_wait.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 4, 9, 24),
+    likeCount: 66,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-resort-pool',
+    authorKey: 'evan-perkins',
+    body: 'The pool was still enough to make every plan feel optional.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'resort-pool-a',
+        path: 'assets/images/post/memory_resort_pool_still.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 3, 16, 8),
+    likeCount: 88,
+    commentCount: 0,
+  ),
+  LifeSnippetPost(
+    postKey: 'snippet-travel-mirror',
+    authorKey: 'talia-arden',
+    body: 'Travel mirror, narrow lane, and one small version of becoming.',
+    media: const [
+      LifeSnippetMedia(
+        mediaKey: 'travel-mirror-a',
+        path: 'assets/images/post/memory_travel_mirror_lane.jpg',
+        kind: LifeSnippetMediaKind.asset,
+      ),
+    ],
+    createdAt: DateTime(2025, 11, 2, 18, 55),
+    likeCount: 99,
     commentCount: 0,
   ),
 ];
