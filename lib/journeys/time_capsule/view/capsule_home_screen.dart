@@ -10,6 +10,8 @@ import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 const _designCanvasWidth = 375.0;
 const _homeHorizontalInset = 18.0;
 const _heroJarAspectRatio = 780 / 764;
+const _heroHorizontalBleed = 48.0;
+const _heroBannerOverlap = 108.0;
 const _bannerAspectRatio = 700 / 154;
 
 class CapsuleHomeScreen extends StatefulWidget {
@@ -53,11 +55,14 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
             phoneGutter: _homeHorizontalInset,
           );
           final side = (width - contentWidth) / 2;
-          final heroWidth = (contentWidth + 22).clamp(0.0, 408.0).toDouble();
-          final heroHeight = heroWidth / _heroJarAspectRatio;
-          final bannerWidth = (contentWidth - 24)
-              .clamp(0.0, 336.0)
+          final heroWidth = (width + _heroHorizontalBleed)
+              .clamp(0.0, 456.0)
               .toDouble();
+          final heroHeight = heroWidth / _heroJarAspectRatio;
+          final heroStageHeight = (heroHeight - _heroBannerOverlap)
+              .clamp(0.0, heroHeight)
+              .toDouble();
+          final bannerWidth = (contentWidth - 24).clamp(0.0, 336.0).toDouble();
 
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
@@ -81,8 +86,9 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                 Center(
                   child: SizedBox(
                     width: contentWidth,
-                    height: heroHeight - 26,
+                    height: heroStageHeight,
                     child: OverflowBox(
+                      alignment: Alignment.topCenter,
                       minWidth: heroWidth,
                       maxWidth: heroWidth,
                       minHeight: heroHeight,
@@ -526,10 +532,7 @@ class _SquareMediaTile extends StatelessWidget {
       aspectRatio: 1,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return CapsuleMediaTile(
-            snap: snap,
-            size: constraints.maxWidth,
-          );
+          return CapsuleMediaTile(snap: snap, size: constraints.maxWidth);
         },
       ),
     );
