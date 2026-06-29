@@ -7,6 +7,8 @@ import 'package:morrowly/journeys/time_capsule/view/my_capsules_screen.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/moderation/morrowly_moderation_store.dart';
+import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
 
 const _designCanvasWidth = 375.0;
 const _homeHorizontalInset = 18.0;
@@ -28,7 +30,21 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
           .where((note) => note.visibility == CapsuleVisibility.publicSquare)
           .toList();
   final List<CapsuleSquareNote> _myCapsules = [];
+  final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   int _coinBalance = 999;
+
+  @override
+  void initState() {
+    super.initState();
+    _moderation.addListener(_refreshModeratedContent);
+    _moderation.load();
+  }
+
+  @override
+  void dispose() {
+    _moderation.removeListener(_refreshModeratedContent);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +68,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
           final bannerWidth = (contentWidth - 24).clamp(0.0, 336.0).toDouble();
           final bannerHeight = bannerWidth / _bannerAspectRatio;
           final heroBlockHeight = heroBannerTop + bannerHeight;
+          final visibleNotes = _visibleSquareNotes;
 
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
@@ -119,22 +136,69 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                for (final note in _squareNotes) ...[
-                  _SquareNoteCard(
-                    note: note,
-                    onOpen: () => _openCapsuleDetail(note),
-                    onVisitors: () => _showVisitors(note.visitorTrail),
-                    onSay: () =>
-                        _openCapsuleDetail(note, focusComposer: true),
-                  ),
-                  const SizedBox(height: 14),
-                ],
+                if (visibleNotes.isEmpty)
+                  const _ModeratedEmptyState()
+                else
+                  for (final note in visibleNotes) ...[
+                    _SquareNoteCard(
+                      note: note,
+                      onOpen: () => _openCapsuleDetail(_sourceNoteFor(note)),
+                      onVisitors: () => _showVisitors(note.visitorTrail),
+                      onSay: () => _openCapsuleDetail(
+                        _sourceNoteFor(note),
+                        focusComposer: true,
+                      ),
+                      onModerate: note.isLocalDraft
+                          ? null
+                          : () => _showNoteModeration(note),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
               ],
             ),
           );
         },
       ),
     );
+  }
+
+  List<CapsuleSquareNote> get _visibleSquareNotes {
+    return [
+      for (final note in _squareNotes)
+        if (!_moderation.shouldHide(
+          contentKey: note.noteKey,
+          authorKey: note.keeper.keeperKey,
+        ))
+          note.copyWith(
+            visitorTrail: [
+              for (final keeper in note.visitorTrail)
+                if (!_moderation.isAuthorBlocked(keeper.keeperKey)) keeper,
+            ],
+            comments: [
+              for (final comment in note.comments)
+                if (!_moderation.shouldHide(
+                  contentKey: comment.commentKey,
+                  authorKey: comment.author.keeperKey,
+                ))
+                  comment,
+            ],
+          ),
+    ];
+  }
+
+  CapsuleSquareNote _sourceNoteFor(CapsuleSquareNote visibleNote) {
+    for (final note in _squareNotes) {
+      if (note.noteKey == visibleNote.noteKey) {
+        return note;
+      }
+    }
+    return visibleNote;
+  }
+
+  void _refreshModeratedContent() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _openComposer() async {
@@ -242,6 +306,18 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     );
   }
 
+  Future<void> _showNoteModeration(CapsuleSquareNote note) async {
+    await showMorrowlyModerationFlow(
+      context: context,
+      store: _moderation,
+      target: MorrowlyModerationTarget(
+        contentKey: note.noteKey,
+        authorKey: note.keeper.keeperKey,
+        authorName: note.keeper.displayName,
+        kind: MorrowlyModerationKind.capsule,
+      ),
+    );
+  }
 }
 
 class _HomeHeader extends StatelessWidget {
@@ -349,12 +425,14 @@ class _SquareNoteCard extends StatelessWidget {
     required this.onOpen,
     required this.onVisitors,
     required this.onSay,
+    this.onModerate,
   });
 
   final CapsuleSquareNote note;
   final VoidCallback onOpen;
   final VoidCallback onVisitors;
   final VoidCallback onSay;
+  final VoidCallback? onModerate;
 
   @override
   Widget build(BuildContext context) {
@@ -428,19 +506,24 @@ class _SquareNoteCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
+                  if (onModerate != null)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onModerate,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: const Icon(
+                          Icons.more_horiz_rounded,
+                          color: Color(0xFF55415A),
+                          size: 17,
+                        ),
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.more_horiz_rounded,
-                      color: Color(0xFF55415A),
-                      size: 16,
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 13),
@@ -549,6 +632,58 @@ class _SquareVisitorSummary extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ModeratedEmptyState extends StatelessWidget {
+  const _ModeratedEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 24, 18, 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4E3D54).withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Image.asset(
+              CapsuleArtwork.dialogPrelude,
+              width: 156,
+              height: 86,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Nothing to show here',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Reported capsules and blocked people stay hidden on this device.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.58),
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

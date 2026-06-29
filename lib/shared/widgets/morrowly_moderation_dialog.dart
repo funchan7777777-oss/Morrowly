@@ -76,7 +76,8 @@ class _ModerationActionDialog extends StatefulWidget {
   final MorrowlyModerationTarget target;
 
   @override
-  State<_ModerationActionDialog> createState() => _ModerationActionDialogState();
+  State<_ModerationActionDialog> createState() =>
+      _ModerationActionDialogState();
 }
 
 class _ModerationActionDialogState extends State<_ModerationActionDialog> {
@@ -110,9 +111,7 @@ class _ModerationActionDialogState extends State<_ModerationActionDialog> {
             icon: Icons.priority_high_rounded,
             selected: _selectedAction == _MorrowlyModerationAction.block,
             onTap: () {
-              setState(
-                () => _selectedAction = _MorrowlyModerationAction.block,
-              );
+              setState(() => _selectedAction = _MorrowlyModerationAction.block);
             },
           ),
         ],
@@ -137,7 +136,8 @@ class _ReportReasonDialogState extends State<_ReportReasonDialog> {
   Widget build(BuildContext context) {
     return _MorrowlyDialogShell(
       title: 'Report reason',
-      message: 'Choose the reason that best matches this ${widget.target.contentLabel}.',
+      message:
+          'Choose the reason that best matches this ${widget.target.contentLabel}.',
       actionAsset: _reportAsset,
       actionLabel: 'Report',
       actionEnabled: _selectedReason != null,
@@ -167,10 +167,7 @@ class _ReportReasonDialogState extends State<_ReportReasonDialog> {
 }
 
 class _ModerationSuccessDialog extends StatelessWidget {
-  const _ModerationSuccessDialog({
-    required this.title,
-    required this.message,
-  });
+  const _ModerationSuccessDialog({required this.title, required this.message});
 
   final String title;
   final String message;
@@ -312,9 +309,7 @@ class _ModerationChoiceTile extends StatelessWidget {
           height: 58,
           padding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
           decoration: BoxDecoration(
-            color: selected
-                ? const Color(0xFF614665)
-                : const Color(0xFF58425E),
+            color: selected ? const Color(0xFF614665) : const Color(0xFF58425E),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: selected
@@ -402,7 +397,9 @@ class _ReasonTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: selected ? 0.96 : 0.74),
+                    color: Colors.white.withValues(
+                      alpha: selected ? 0.96 : 0.74,
+                    ),
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0,

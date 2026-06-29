@@ -217,7 +217,7 @@ class LifeChatMessage {
 
 List<Map<String, Object?>> decodeJsonObjectList(String source) {
   final decoded = jsonDecode(source);
-  if (decoded is! List<Object?>) {
+  if (decoded is! List) {
     return const [];
   }
   return decoded.map(castJsonObject).toList();

@@ -4,6 +4,8 @@ import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/moderation/morrowly_moderation_store.dart';
+import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
 
 class CapsuleDetailScreen extends StatefulWidget {
   const CapsuleDetailScreen({
@@ -26,11 +28,14 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
   late List<CapsuleSquareComment> _comments = [...widget.note.comments];
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
+  final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   String _commentDraft = '';
 
   @override
   void initState() {
     super.initState();
+    _moderation.addListener(_refreshModeratedContent);
+    _moderation.load();
     if (widget.focusComposer) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -42,6 +47,7 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
 
   @override
   void dispose() {
+    _moderation.removeListener(_refreshModeratedContent);
     _commentController.dispose();
     _commentFocusNode.dispose();
     super.dispose();
@@ -49,6 +55,8 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final visibleComments = _visibleComments;
+    final visibleNote = _visibleNote(visibleComments);
     return CapsuleStage(
       resizeForKeyboard: true,
       child: Stack(
@@ -82,15 +90,25 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _CapsuleDetailPanel(note: _note),
+                    _CapsuleDetailPanel(
+                      note: visibleNote,
+                      onModerate: _canModerateKeeper(visibleNote.keeper)
+                          ? _showNoteModeration
+                          : null,
+                    ),
                     const SizedBox(height: 18),
-                    _CommentSectionHeader(note: _note),
+                    _CommentSectionHeader(note: visibleNote),
                     const SizedBox(height: 10),
-                    if (_comments.isEmpty)
+                    if (visibleComments.isEmpty)
                       const _EmptyCommentPanel()
                     else
-                      for (final comment in _comments) ...[
-                        _CommentTile(comment: comment),
+                      for (final comment in visibleComments) ...[
+                        _CommentTile(
+                          comment: comment,
+                          onModerate: _canModerateKeeper(comment.author)
+                              ? () => _showCommentModeration(comment)
+                              : null,
+                        ),
                         const SizedBox(height: 10),
                       ],
                     const SizedBox(height: 6),
@@ -115,6 +133,40 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
         ],
       ),
     );
+  }
+
+  List<CapsuleSquareComment> get _visibleComments {
+    return [
+      for (final comment in _comments)
+        if (!_moderation.shouldHide(
+          contentKey: comment.commentKey,
+          authorKey: comment.author.keeperKey,
+        ))
+          comment,
+    ];
+  }
+
+  CapsuleSquareNote _visibleNote(List<CapsuleSquareComment> visibleComments) {
+    final hiddenCommentCount = _comments.length - visibleComments.length;
+    final visibleMessageCount = _note.leftMessageCount - hiddenCommentCount;
+    return _note.copyWith(
+      comments: visibleComments,
+      leftMessageCount: visibleMessageCount < 0 ? 0 : visibleMessageCount,
+      visitorTrail: [
+        for (final keeper in _note.visitorTrail)
+          if (!_moderation.isAuthorBlocked(keeper.keeperKey)) keeper,
+      ],
+    );
+  }
+
+  bool _canModerateKeeper(CapsuleKeeper keeper) {
+    return keeper.keeperKey != CapsuleSquareSeed.currentKeeper.keeperKey;
+  }
+
+  void _refreshModeratedContent() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _sendComment() {
@@ -144,12 +196,58 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
     widget.onNoteChanged?.call(updatedNote);
     _commentFocusNode.requestFocus();
   }
+
+  Future<void> _showNoteModeration() async {
+    final result = await showMorrowlyModerationFlow(
+      context: context,
+      store: _moderation,
+      target: MorrowlyModerationTarget(
+        contentKey: _note.noteKey,
+        authorKey: _note.keeper.keeperKey,
+        authorName: _note.keeper.displayName,
+        kind: MorrowlyModerationKind.capsule,
+      ),
+    );
+    if (result != null &&
+        mounted &&
+        _moderation.shouldHide(
+          contentKey: _note.noteKey,
+          authorKey: _note.keeper.keeperKey,
+        )) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _showCommentModeration(CapsuleSquareComment comment) async {
+    final result = await showMorrowlyModerationFlow(
+      context: context,
+      store: _moderation,
+      target: MorrowlyModerationTarget(
+        contentKey: comment.commentKey,
+        authorKey: comment.author.keeperKey,
+        authorName: comment.author.displayName,
+        kind: MorrowlyModerationKind.message,
+      ),
+    );
+    if (result == null || !mounted) {
+      return;
+    }
+    if (_moderation.shouldHide(
+      contentKey: _note.noteKey,
+      authorKey: _note.keeper.keeperKey,
+    )) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {});
+    }
+  }
 }
 
 class _CapsuleDetailPanel extends StatelessWidget {
-  const _CapsuleDetailPanel({required this.note});
+  const _CapsuleDetailPanel({required this.note, this.onModerate});
 
   final CapsuleSquareNote note;
+  final VoidCallback? onModerate;
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +264,7 @@ class _CapsuleDetailPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _KeeperHeader(keeper: note.keeper),
+          _KeeperHeader(keeper: note.keeper, onModerate: onModerate),
           const SizedBox(height: 16),
           Text(
             note.messageLine,
@@ -205,9 +303,10 @@ class _CapsuleDetailPanel extends StatelessWidget {
 }
 
 class _KeeperHeader extends StatelessWidget {
-  const _KeeperHeader({required this.keeper});
+  const _KeeperHeader({required this.keeper, this.onModerate});
 
   final CapsuleKeeper keeper;
+  final VoidCallback? onModerate;
 
   @override
   Widget build(BuildContext context) {
@@ -261,6 +360,26 @@ class _KeeperHeader extends StatelessWidget {
             ],
           ),
         ),
+        if (onModerate != null) ...[
+          const SizedBox(width: 10),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onModerate,
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.94),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.more_horiz_rounded,
+                color: Color(0xFF55415A),
+                size: 19,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -362,9 +481,10 @@ class _CommentSectionHeader extends StatelessWidget {
 }
 
 class _CommentTile extends StatelessWidget {
-  const _CommentTile({required this.comment});
+  const _CommentTile({required this.comment, this.onModerate});
 
   final CapsuleSquareComment comment;
+  final VoidCallback? onModerate;
 
   @override
   Widget build(BuildContext context) {
@@ -425,6 +545,29 @@ class _CommentTile extends StatelessWidget {
               ],
             ),
           ),
+          if (onModerate != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onModerate,
+              child: Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Icon(
+                  Icons.more_horiz_rounded,
+                  color: Colors.white.withValues(alpha: 0.66),
+                  size: 17,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

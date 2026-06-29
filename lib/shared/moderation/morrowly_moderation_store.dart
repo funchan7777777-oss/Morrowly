@@ -5,13 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum MorrowlyModerationKind { capsule, snippet, comment, message, chat }
 
-enum MorrowlyReportReason {
-  harassment,
-  inappropriate,
-  spam,
-  scam,
-  other,
-}
+enum MorrowlyReportReason { harassment, inappropriate, spam, scam, other }
 
 extension MorrowlyReportReasonCopy on MorrowlyReportReason {
   String get label {
@@ -56,8 +50,7 @@ class MorrowlyModerationStore extends ChangeNotifier {
 
   static const _reportedContentKeysKey =
       'morrowly.moderation.reportedContentKeys';
-  static const _blockedAuthorKeysKey =
-      'morrowly.moderation.blockedAuthorKeys';
+  static const _blockedAuthorKeysKey = 'morrowly.moderation.blockedAuthorKeys';
   static const _reportRecordsKey = 'morrowly.moderation.reportRecords';
 
   SharedPreferences? _preferences;
@@ -88,10 +81,7 @@ class MorrowlyModerationStore extends ChangeNotifier {
     return _blockedAuthorKeys.contains(authorKey);
   }
 
-  bool shouldHide({
-    required String contentKey,
-    required String authorKey,
-  }) {
+  bool shouldHide({required String contentKey, required String authorKey}) {
     return isContentReported(contentKey) || isAuthorBlocked(authorKey);
   }
 
