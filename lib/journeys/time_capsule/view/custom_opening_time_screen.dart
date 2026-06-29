@@ -185,7 +185,7 @@ class _CalendarPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const Row(
+          Row(
             children: [
               for (final day in [
                 'Mon',
@@ -200,7 +200,7 @@ class _CalendarPanel extends StatelessWidget {
                   child: Text(
                     day,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xFFBAA9C1),
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
