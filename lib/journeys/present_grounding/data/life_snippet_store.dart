@@ -335,6 +335,7 @@ class LifeSnippetStore extends ChangeNotifier {
     LifeSnippetPost post, {
     MorrowlyReportReason reason = MorrowlyReportReason.inappropriate,
   }) async {
+    await load();
     await _moderation.reportContent(
       target: moderationTargetForPost(post),
       reason: reason,
@@ -345,6 +346,7 @@ class LifeSnippetStore extends ChangeNotifier {
     LifeSnippetComment comment, {
     MorrowlyReportReason reason = MorrowlyReportReason.inappropriate,
   }) async {
+    await load();
     await _moderation.reportContent(
       target: moderationTargetForComment(comment),
       reason: reason,
@@ -355,6 +357,7 @@ class LifeSnippetStore extends ChangeNotifier {
     String userKey, {
     MorrowlyReportReason reason = MorrowlyReportReason.inappropriate,
   }) async {
+    await load();
     await _moderation.reportContent(
       target: moderationTargetForUser(userKey),
       reason: reason,
@@ -362,6 +365,7 @@ class LifeSnippetStore extends ChangeNotifier {
   }
 
   Future<void> blockUser(String userKey) async {
+    await load();
     await _moderation.blockAuthor(moderationTargetForUser(userKey));
     _outgoingFollowRequests.remove(userKey);
     _followingUserKeys.remove(userKey);
