@@ -226,7 +226,7 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
         contentKey: comment.commentKey,
         authorKey: comment.author.keeperKey,
         authorName: comment.author.displayName,
-        kind: MorrowlyModerationKind.message,
+        kind: MorrowlyModerationKind.comment,
       ),
     );
     if (result == null || !mounted) {

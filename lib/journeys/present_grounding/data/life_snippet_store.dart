@@ -70,6 +70,15 @@ class LifeSnippetStore extends ChangeNotifier {
     );
   }
 
+  LifeSnippetPost? postByKey(String postKey) {
+    for (final post in _seedPosts) {
+      if (post.postKey == postKey) {
+        return post;
+      }
+    }
+    return null;
+  }
+
   List<LifeSnippetPost> visiblePosts(LifeSnippetFeedFilter filter) {
     final posts = _seedPosts.where((post) {
       if (post.isPendingReview) {
