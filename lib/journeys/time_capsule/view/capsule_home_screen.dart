@@ -53,9 +53,11 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
             phoneGutter: _homeHorizontalInset,
           );
           final side = (width - contentWidth) / 2;
-          final heroWidth = (contentWidth + 22).clamp(0.0, 408.0);
+          final heroWidth = (contentWidth + 22).clamp(0.0, 408.0).toDouble();
           final heroHeight = heroWidth / _heroJarAspectRatio;
-          final bannerWidth = (contentWidth - 24).clamp(0.0, 336.0);
+          final bannerWidth = (contentWidth - 24)
+              .clamp(0.0, 336.0)
+              .toDouble();
 
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
@@ -266,13 +268,13 @@ class _HomeHeader extends StatelessWidget {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onMyCapsules,
-        child: Container(
-          height: 32,
-          padding: const EdgeInsets.symmetric(horizontal: 9),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.28),
-            borderRadius: BorderRadius.circular(999),
-          ),
+          child: Container(
+            height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 9),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(999),
+            ),
             child: CapsuleCoinAmount(amount: coinBalance),
           ),
         ),
