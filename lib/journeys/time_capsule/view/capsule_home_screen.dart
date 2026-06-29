@@ -59,10 +59,12 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
               .clamp(0.0, 456.0)
               .toDouble();
           final heroHeight = heroWidth / _heroJarAspectRatio;
-          final heroStageHeight = (heroHeight - _heroBannerOverlap)
+          final heroBannerTop = (heroHeight - _heroBannerOverlap)
               .clamp(0.0, heroHeight)
               .toDouble();
           final bannerWidth = (contentWidth - 24).clamp(0.0, 336.0).toDouble();
+          final bannerHeight = bannerWidth / _bannerAspectRatio;
+          final heroBlockHeight = heroBannerTop + bannerHeight;
 
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
@@ -84,30 +86,37 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                 ),
                 const SizedBox(height: 8),
                 Center(
-                  child: SizedBox(
-                    width: contentWidth,
-                    height: heroStageHeight,
-                    child: OverflowBox(
-                      alignment: Alignment.topCenter,
-                      minWidth: heroWidth,
-                      maxWidth: heroWidth,
-                      minHeight: heroHeight,
-                      maxHeight: heroHeight,
-                      child: Image.asset(
-                        CapsuleArtwork.heroJar,
-                        width: heroWidth,
-                        height: heroHeight,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
+                  child: OverflowBox(
+                    minWidth: width,
+                    maxWidth: width,
+                    child: SizedBox(
+                      width: width,
+                      height: heroBlockHeight,
+                      child: Stack(
+                        clipBehavior: Clip.hardEdge,
+                        children: [
+                          Positioned(
+                            top: 0,
+                            left: (width - heroWidth) / 2,
+                            child: Image.asset(
+                              CapsuleArtwork.heroJar,
+                              width: heroWidth,
+                              height: heroHeight,
+                              fit: BoxFit.contain,
+                              filterQuality: FilterQuality.high,
+                            ),
+                          ),
+                          Positioned(
+                            top: heroBannerTop,
+                            left: (width - bannerWidth) / 2,
+                            child: _MakingCapsuleBanner(
+                              width: bannerWidth,
+                              onTap: _openComposer,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 0),
-                Center(
-                  child: _MakingCapsuleBanner(
-                    width: bannerWidth,
-                    onTap: _openComposer,
                   ),
                 ),
                 const SizedBox(height: 18),
