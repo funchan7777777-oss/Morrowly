@@ -25,12 +25,14 @@ class LifeSnippetStore extends ChangeNotifier {
       'morrowly.lifeSnippets.followingUserKeys';
   static const _followerUserKeysKey = 'morrowly.lifeSnippets.followerUserKeys';
   static const _chatThreadsKey = 'morrowly.lifeSnippets.chatThreads';
+  static const _deletedPostKeysKey = 'morrowly.lifeSnippets.deletedPostKeys';
 
   final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   final Set<String> _likedPostKeys = {};
   final Set<String> _outgoingFollowRequests = {};
   final Set<String> _followingUserKeys = {};
   final Set<String> _followerUserKeys = {};
+  final Set<String> _deletedPostKeys = {};
   final Map<String, List<LifeSnippetComment>> _commentsByPost = {};
   final Map<String, List<LifeChatMessage>> _chatThreads = {};
   final List<LifeSnippetPost> _pendingReviewPosts = [];
