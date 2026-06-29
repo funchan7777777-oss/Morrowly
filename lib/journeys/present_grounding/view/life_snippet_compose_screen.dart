@@ -51,8 +51,8 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 94,
-                    extra: 26,
+                    minimum: 86,
+                    extra: 18,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -95,10 +95,7 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
               );
             },
           ),
-          LifeTopBar(
-            title: 'New snippet',
-            onBack: () => Navigator.of(context).pop(),
-          ),
+          _ComposeTopBar(onBack: () => Navigator.of(context).pop()),
         ],
       ),
     );
@@ -107,34 +104,49 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
   bool get _canSubmit => _draft.trim().isNotEmpty || _media.isNotEmpty;
 
   Future<void> _pickPhotos() async {
-    final picked = await _picker.pickMultiImage(imageQuality: 88);
-    if (picked.isEmpty) {
+    if (_media.isNotEmpty) {
+      return;
+    }
+
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.58),
+      builder: (_) => const _PhotoSourceSheet(),
+    );
+    if (source == null || !mounted) {
+      return;
+    }
+
+    final picked = await _picker.pickImage(
+      source: source,
+      imageQuality: 88,
+      maxWidth: 1800,
+      maxHeight: 1800,
+    );
+    if (picked == null) {
       return;
     }
 
     final directory = await getApplicationDocumentsDirectory();
-    final saved = <LifeSnippetMedia>[];
-    for (var index = 0; index < picked.length; index++) {
-      final source = File(picked[index].path);
-      final extension = picked[index].path.split('.').last;
-      final fileName =
-          'life-snippet-${DateTime.now().microsecondsSinceEpoch}-$index.$extension';
-      final target = File('${directory.path}/$fileName');
-      await source.copy(target.path);
-      saved.add(
-        LifeSnippetMedia(
-          mediaKey:
-              'local-photo-${DateTime.now().microsecondsSinceEpoch}-$index',
-          path: target.path,
-          kind: LifeSnippetMediaKind.localFile,
-        ),
-      );
-    }
+    final sourceFile = File(picked.path);
+    final extension = picked.path.contains('.')
+        ? picked.path.split('.').last
+        : 'jpg';
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    final fileName = 'life-snippet-$timestamp.$extension';
+    final target = File('${directory.path}/$fileName');
+    await sourceFile.copy(target.path);
+    final saved = LifeSnippetMedia(
+      mediaKey: 'local-photo-$timestamp',
+      path: target.path,
+      kind: LifeSnippetMediaKind.localFile,
+    );
 
     if (!mounted) {
       return;
     }
-    setState(() => _media.addAll(saved.take(1 - _media.length)));
+    setState(() => _media.add(saved));
   }
 
   Future<void> _submit() async {
@@ -168,6 +180,64 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
     if (mounted) {
       Navigator.of(context).pop();
     }
+  }
+}
+
+class _ComposeTopBar extends StatelessWidget {
+  const _ComposeTopBar({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final contentWidth = MorrowlyFrameGuard.contentWidth(
+          constraints.maxWidth,
+          maxWidth: 430,
+          phoneGutter: 18,
+        );
+        final side = (constraints.maxWidth - contentWidth) / 2;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            side,
+            MorrowlyFrameGuard.topClearance(context, minimum: 42, extra: -10),
+            side,
+            0,
+          ),
+          child: SizedBox(
+            height: 44,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    onPressed: onBack,
+                    icon: const Icon(
+                      Icons.chevron_left_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    tooltip: 'Back',
+                  ),
+                ),
+                const Text(
+                  'New snippet',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -436,6 +506,137 @@ class _PhotoPickerRow extends StatelessWidget {
   }
 }
 
+class _PhotoSourceSheet extends StatelessWidget {
+  const _PhotoSourceSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4D3A55),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 30,
+                offset: const Offset(0, 16),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Add photo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _PhotoSourceTile(
+                      icon: Icons.photo_camera_rounded,
+                      label: 'Camera',
+                      onTap: () =>
+                          Navigator.of(context).pop(ImageSource.camera),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _PhotoSourceTile(
+                      icon: Icons.photo_library_rounded,
+                      label: 'Album',
+                      onTap: () =>
+                          Navigator.of(context).pop(ImageSource.gallery),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.72),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoSourceTile extends StatelessWidget {
+  const _PhotoSourceTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 96,
+        decoration: BoxDecoration(
+          color: lifePurple.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 30),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _SubmitReviewButton extends StatelessWidget {
   const _SubmitReviewButton({
     required this.enabled,
@@ -531,92 +732,301 @@ class _ReviewSubmittedDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 26),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(32),
           gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF7442A0), Color(0xFF3F3045)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF7A42A7), Color(0xFF51385D), Color(0xFF342637)],
           ),
-          border: Border.all(color: Colors.white24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFBC6DFF).withValues(alpha: 0.28),
-              blurRadius: 34,
-              offset: const Offset(0, 18),
+              color: const Color(0xFF1A0D1F).withValues(alpha: 0.38),
+              blurRadius: 38,
+              offset: const Offset(0, 22),
             ),
           ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 138,
-              height: 96,
-              child: Stack(
-                alignment: Alignment.center,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 13),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.09),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: Row(
                 children: [
-                  Image.asset(
-                    LifeSnippetAssets.titleUnderline,
-                    width: 126,
-                    height: 44,
-                    fit: BoxFit.fill,
-                    filterQuality: FilterQuality.high,
+                  Container(
+                    width: 62,
+                    height: 62,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB66DFF).withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          LifeSnippetAssets.titleUnderline,
+                          width: 54,
+                          height: 25,
+                          fit: BoxFit.fill,
+                          filterQuality: FilterQuality.high,
+                        ),
+                        Image.asset(
+                          LifeSnippetAssets.compose,
+                          width: 38,
+                          height: 38,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ],
+                    ),
                   ),
-                  Image.asset(
-                    LifeSnippetAssets.compose,
-                    width: 74,
-                    height: 74,
-                    filterQuality: FilterQuality.high,
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFFFFD6F6,
+                            ).withValues(alpha: 0.14),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: const Color(
+                                0xFFFFD6F6,
+                              ).withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: const Text(
+                            'UNDER REVIEW',
+                            style: TextStyle(
+                              color: Color(0xFFFFD6F6),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Snippet released',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            height: 1.05,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Sent for review',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 21,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 18),
             Text(
-              'Your Life Snippet was saved locally and will appear in the feed only after approval.',
+              'Published successfully. Morrowly is reviewing it in the background, and it will be visible only after approval.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.66),
+                color: Colors.white.withValues(alpha: 0.74),
                 fontSize: 13,
-                height: 1.36,
+                height: 1.42,
                 fontWeight: FontWeight.w700,
+                letterSpacing: 0,
               ),
             ),
             const SizedBox(height: 18),
-            SizedBox(
+            const _ReviewStageRail(),
+            const SizedBox(height: 18),
+            Container(
               width: double.infinity,
-              height: 48,
-              child: FilledButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: FilledButton.styleFrom(
-                  backgroundColor: lifePurple,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(999),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2E2432).withValues(alpha: 0.58),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.lock_clock_rounded,
+                    color: Colors.white.withValues(alpha: 0.72),
+                    size: 20,
                   ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'It is saved locally for now and will not appear in public feeds until review passes.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.62),
+                        fontSize: 12,
+                        height: 1.34,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                height: 50,
+                width: double.infinity,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  gradient: const LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [Color(0xFFC776FF), Color(0xFF9E5CFF)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: lifePurple.withValues(alpha: 0.22),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
                 child: const Text(
-                  'Done',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                  'Got it',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ReviewStageRail extends StatelessWidget {
+  const _ReviewStageRail();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(13, 12, 13, 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          const _ReviewStageDot(
+            icon: Icons.check_rounded,
+            label: 'Released',
+            active: true,
+          ),
+          _ReviewStageLine(color: lifePurple.withValues(alpha: 0.65)),
+          const _ReviewStageDot(
+            icon: Icons.policy_rounded,
+            label: 'Reviewing',
+            active: true,
+          ),
+          _ReviewStageLine(color: Colors.white.withValues(alpha: 0.18)),
+          const _ReviewStageDot(
+            icon: Icons.visibility_rounded,
+            label: 'Visible',
+            active: false,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReviewStageDot extends StatelessWidget {
+  const _ReviewStageDot({
+    required this.icon,
+    required this.label,
+    required this.active,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 64,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active
+                  ? lifePurple.withValues(alpha: 0.9)
+                  : Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white.withValues(alpha: active ? 1 : 0.46),
+              size: 18,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: active ? 0.82 : 0.42),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReviewStageLine extends StatelessWidget {
+  const _ReviewStageLine({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        height: 2,
+        margin: const EdgeInsets.only(bottom: 22),
+        color: color,
       ),
     );
   }

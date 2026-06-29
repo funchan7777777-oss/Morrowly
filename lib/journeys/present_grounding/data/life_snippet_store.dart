@@ -257,6 +257,18 @@ class LifeSnippetStore extends ChangeNotifier {
     return List.unmodifiable(_chatThreads[userKey] ?? const []);
   }
 
+  List<String> get chatThreadUserKeys {
+    final keys = _chatThreads.entries
+        .where((entry) => entry.value.isNotEmpty)
+        .where((entry) => !_moderation.isAuthorBlocked(entry.key))
+        .where((entry) => _knownUserByKey(entry.key) != null)
+        .toList();
+    keys.sort((left, right) {
+      return right.value.last.createdAt.compareTo(left.value.last.createdAt);
+    });
+    return keys.map((entry) => entry.key).toList();
+  }
+
   Future<void> requestFollow(String userKey) async {
     if (userKey == _currentUser.userKey ||
         _followingUserKeys.contains(userKey) ||

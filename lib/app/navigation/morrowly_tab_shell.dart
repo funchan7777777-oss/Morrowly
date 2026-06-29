@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:morrowly/journeys/memory_ribbon/view/memory_ribbon_screen.dart';
 import 'package:morrowly/journeys/present_grounding/view/present_grounding_screen.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_home_screen.dart';
+import 'package:morrowly/journeys/time_mail/view/time_mail_screen.dart';
 
 class MorrowlyTabShell extends StatefulWidget {
   const MorrowlyTabShell({
@@ -38,10 +38,11 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
         screen: PresentGroundingScreen(),
       ),
       _MorrowlyHarbor(
-        voiceLabel: 'Profile center',
+        voiceLabel: 'Time mail',
         restingAsset: 'assets/images/Milestone.png',
         litAsset: 'assets/images/Anniversary.png',
-        screen: MemoryRibbonScreen(
+        screen: TimeMailScreen(
+          onGoCheckCapsules: () => setState(() => _selectedHarborIndex = 0),
           onSignedOut: widget.onSignedOut,
           onLoggedOut: widget.onLoggedOut,
           onAccountDeleted: widget.onAccountDeleted,

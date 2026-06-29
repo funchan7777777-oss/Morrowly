@@ -144,7 +144,7 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
                             const Text('My post', style: _sectionTitleStyle),
                             const SizedBox(height: 12),
                             _MyPostsPanel(
-                              posts: _store.pendingReviewPosts,
+                              pendingCount: _store.pendingReviewPosts.length,
                               onCompose: _openCompose,
                             ),
                           ],
@@ -1580,125 +1580,54 @@ class _CapsuleSummaryRow extends StatelessWidget {
 }
 
 class _MyPostsPanel extends StatelessWidget {
-  const _MyPostsPanel({required this.posts, required this.onCompose});
+  const _MyPostsPanel({required this.pendingCount, required this.onCompose});
 
-  final List<LifeSnippetPost> posts;
+  final int pendingCount;
   final VoidCallback onCompose;
 
   @override
   Widget build(BuildContext context) {
-    if (posts.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
-        decoration: BoxDecoration(
-          color: lifePanel.withValues(alpha: 0.82),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          children: [
-            Image.asset(
-              ProfileCenterAssets.message,
-              width: 58,
-              height: 58,
-              filterQuality: FilterQuality.high,
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'No approved posts yet. New posts wait for moderation.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.62),
-                fontSize: 12,
-                height: 1.35,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 14),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onCompose,
-              child: Image.asset(
-                LifeSnippetAssets.release,
-                width: 176,
-                height: 34,
-                fit: BoxFit.fill,
-                filterQuality: FilterQuality.high,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return Column(
-      children: [
-        for (final post in posts.take(2)) ...[
-          _PendingPostCard(post: post),
-          const SizedBox(height: 12),
-        ],
-      ],
-    );
-  }
-}
-
-class _PendingPostCard extends StatelessWidget {
-  const _PendingPostCard({required this.post});
-
-  final LifeSnippetPost post;
-
-  @override
-  Widget build(BuildContext context) {
-    final media = post.media.isEmpty ? null : post.media.first;
+    final hasPending = pendingCount > 0;
     return Container(
-      padding: const EdgeInsets.all(14),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
       decoration: BoxDecoration(
-        color: lifePanel.withValues(alpha: 0.88),
+        color: lifePanel.withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Column(
         children: [
-          if (media != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 76,
-                height: 76,
-                child: LifeMediaImage(media: media),
-              ),
-            )
-          else
-            Image.asset(
-              ProfileCenterAssets.message,
-              width: 76,
-              height: 76,
-              filterQuality: FilterQuality.high,
+          Image.asset(
+            hasPending
+                ? ProfileCenterAssets.settingsGuide
+                : ProfileCenterAssets.message,
+            width: 58,
+            height: 58,
+            filterQuality: FilterQuality.high,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            hasPending
+                ? '$pendingCount snippet${pendingCount == 1 ? '' : 's'} waiting for review. It will appear here only after approval.'
+                : 'No approved posts yet. New posts wait for moderation.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.62),
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
             ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'In review',
-                  style: TextStyle(
-                    color: Color(0xFFFF77D6),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  post.body.isEmpty ? 'Photo snippet' : post.body,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    fontSize: 12,
-                    height: 1.32,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(height: 14),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onCompose,
+            child: Image.asset(
+              LifeSnippetAssets.release,
+              width: 176,
+              height: 34,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.high,
             ),
           ),
         ],
