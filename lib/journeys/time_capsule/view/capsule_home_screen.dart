@@ -89,6 +89,8 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                   child: OverflowBox(
                     minWidth: width,
                     maxWidth: width,
+                    minHeight: heroBlockHeight,
+                    maxHeight: heroBlockHeight,
                     child: SizedBox(
                       width: width,
                       height: heroBlockHeight,
