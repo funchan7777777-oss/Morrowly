@@ -3,7 +3,14 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum MorrowlyModerationKind { capsule, snippet, comment, profile, message, chat }
+enum MorrowlyModerationKind {
+  capsule,
+  snippet,
+  comment,
+  profile,
+  message,
+  chat,
+}
 
 enum MorrowlyReportReason { harassment, inappropriate, spam, scam, other }
 
