@@ -85,38 +85,39 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                   onMyCapsules: _openMyCapsules,
                 ),
                 const SizedBox(height: 8),
-                Center(
-                  child: OverflowBox(
-                    minWidth: width,
-                    maxWidth: width,
-                    minHeight: heroBlockHeight,
-                    maxHeight: heroBlockHeight,
-                    child: SizedBox(
-                      width: width,
-                      height: heroBlockHeight,
-                      child: Stack(
-                        clipBehavior: Clip.hardEdge,
-                        children: [
-                          Positioned(
-                            top: 0,
-                            left: (width - heroWidth) / 2,
-                            child: Image.asset(
-                              CapsuleArtwork.heroJar,
-                              width: heroWidth,
-                              height: heroHeight,
-                              fit: BoxFit.contain,
-                              filterQuality: FilterQuality.high,
+                SizedBox(
+                  height: heroBlockHeight,
+                  child: Center(
+                    child: OverflowBox(
+                      minWidth: width,
+                      maxWidth: width,
+                      child: SizedBox(
+                        width: width,
+                        height: heroBlockHeight,
+                        child: Stack(
+                          clipBehavior: Clip.hardEdge,
+                          children: [
+                            Positioned(
+                              top: 0,
+                              left: (width - heroWidth) / 2,
+                              child: Image.asset(
+                                CapsuleArtwork.heroJar,
+                                width: heroWidth,
+                                height: heroHeight,
+                                fit: BoxFit.contain,
+                                filterQuality: FilterQuality.high,
+                              ),
                             ),
-                          ),
-                          Positioned(
-                            top: heroBannerTop,
-                            left: (width - bannerWidth) / 2,
-                            child: _MakingCapsuleBanner(
-                              width: bannerWidth,
-                              onTap: _openComposer,
+                            Positioned(
+                              top: heroBannerTop,
+                              left: (width - bannerWidth) / 2,
+                              child: _MakingCapsuleBanner(
+                                width: bannerWidth,
+                                onTap: _openComposer,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
