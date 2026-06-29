@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
@@ -8,6 +9,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LifeSnippetRelationshipGate implements Exception {
   const LifeSnippetRelationshipGate();
+}
+
+class LifeCommentNotice {
+  const LifeCommentNotice({required this.post, required this.comment});
+
+  final LifeSnippetPost post;
+  final LifeSnippetComment comment;
 }
 
 class LifeSnippetStore extends ChangeNotifier {
@@ -26,6 +34,8 @@ class LifeSnippetStore extends ChangeNotifier {
   static const _followerUserKeysKey = 'morrowly.lifeSnippets.followerUserKeys';
   static const _chatThreadsKey = 'morrowly.lifeSnippets.chatThreads';
   static const _deletedPostKeysKey = 'morrowly.lifeSnippets.deletedPostKeys';
+  static const _autoFollowerSeededKey =
+      'morrowly.lifeSnippets.autoFollowerSeeded';
 
   final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   final Set<String> _likedPostKeys = {};
@@ -66,6 +76,47 @@ class LifeSnippetStore extends ChangeNotifier {
         .where((user) => !user.isCurrentUser)
         .where((user) => !_moderation.isAuthorBlocked(user.userKey))
         .toList();
+  }
+
+  List<LifeSnippetUser> get incomingFollowRequestUsers {
+    return _followerUserKeys
+        .where((userKey) => !_followingUserKeys.contains(userKey))
+        .map(userByKey)
+        .where((user) => !user.isCurrentUser)
+        .where((user) => !_moderation.isAuthorBlocked(user.userKey))
+        .toList();
+  }
+
+  List<LifeSnippetUser> get mutualFriendUsers {
+    return _followerUserKeys
+        .where(_followingUserKeys.contains)
+        .map(userByKey)
+        .where((user) => !user.isCurrentUser)
+        .where((user) => !_moderation.isAuthorBlocked(user.userKey))
+        .toList();
+  }
+
+  List<LifeCommentNotice> get commentNotices {
+    final notices = <LifeCommentNotice>[];
+    for (final post in visiblePosts(LifeSnippetFeedFilter.popular)) {
+      for (final comment in commentsForPost(post.postKey)) {
+        if (comment.authorKey == _currentUser.userKey) {
+          continue;
+        }
+        notices.add(LifeCommentNotice(post: post, comment: comment));
+      }
+    }
+    notices.sort(
+      (left, right) =>
+          right.comment.createdAt.compareTo(left.comment.createdAt),
+    );
+    return List.unmodifiable(notices);
+  }
+
+  List<LifeSnippetPost> get likedPosts {
+    return visiblePosts(
+      LifeSnippetFeedFilter.popular,
+    ).where((post) => _likedPostKeys.contains(post.postKey)).toList();
   }
 
   List<LifeSnippetUser> get blockedUsers {
@@ -183,6 +234,9 @@ class LifeSnippetStore extends ChangeNotifier {
       if (post.isPendingReview) {
         return false;
       }
+      if (_deletedPostKeys.contains(post.postKey)) {
+        return false;
+      }
       if (filter == LifeSnippetFeedFilter.followed &&
           !_followingUserKeys.contains(post.authorKey)) {
         return false;
@@ -253,7 +307,7 @@ class LifeSnippetStore extends ChangeNotifier {
   }
 
   List<LifeChatMessage> chatMessagesFor(String userKey) {
-    if (_moderation.isAuthorBlocked(userKey)) {
+    if (_moderation.isAuthorBlocked(userKey) || !isMutualFollow(userKey)) {
       return const [];
     }
     return List.unmodifiable(_chatThreads[userKey] ?? const []);
@@ -263,6 +317,7 @@ class LifeSnippetStore extends ChangeNotifier {
     final keys = _chatThreads.entries
         .where((entry) => entry.value.isNotEmpty)
         .where((entry) => !_moderation.isAuthorBlocked(entry.key))
+        .where((entry) => isMutualFollow(entry.key))
         .where((entry) => _knownUserByKey(entry.key) != null)
         .toList();
     keys.sort((left, right) {
@@ -272,15 +327,35 @@ class LifeSnippetStore extends ChangeNotifier {
   }
 
   Future<void> requestFollow(String userKey) async {
+    await load();
     if (userKey == _currentUser.userKey ||
         _followingUserKeys.contains(userKey) ||
         _moderation.isAuthorBlocked(userKey)) {
       return;
     }
 
+    if (_followerUserKeys.contains(userKey)) {
+      _outgoingFollowRequests.remove(userKey);
+      _followingUserKeys.add(userKey);
+      await _saveStringSet(_outgoingFollowRequestsKey, _outgoingFollowRequests);
+      await _saveStringSet(_followingUserKeysKey, _followingUserKeys);
+    } else {
+      _outgoingFollowRequests.add(userKey);
+      await _saveStringSet(_outgoingFollowRequestsKey, _outgoingFollowRequests);
+    }
+    notifyListeners();
+  }
+
+  Future<void> acceptIncomingFollow(String userKey) async {
     await load();
-    _outgoingFollowRequests.add(userKey);
+    if (!_followerUserKeys.contains(userKey) ||
+        _moderation.isAuthorBlocked(userKey)) {
+      return;
+    }
+    _outgoingFollowRequests.remove(userKey);
+    _followingUserKeys.add(userKey);
     await _saveStringSet(_outgoingFollowRequestsKey, _outgoingFollowRequests);
+    await _saveStringSet(_followingUserKeysKey, _followingUserKeys);
     notifyListeners();
   }
 
@@ -312,6 +387,16 @@ class LifeSnippetStore extends ChangeNotifier {
     final comments = _commentsByPost.putIfAbsent(postKey, () => []);
     comments.add(comment);
     await _saveComments();
+    notifyListeners();
+  }
+
+  Future<void> deleteOwnPostLocally(LifeSnippetPost post) async {
+    await load();
+    if (post.authorKey != _currentUser.userKey) {
+      return;
+    }
+    _deletedPostKeys.add(post.postKey);
+    await _saveStringSet(_deletedPostKeysKey, _deletedPostKeys);
     notifyListeners();
   }
 
@@ -425,6 +510,7 @@ class LifeSnippetStore extends ChangeNotifier {
     _commentsByPost.clear();
     _chatThreads.clear();
     _pendingReviewPosts.clear();
+    _deletedPostKeys.clear();
     await _preferences!.remove(_pendingPostsKey);
     await _preferences!.remove(_commentsKey);
     await _preferences!.remove(_likedPostsKey);
@@ -432,6 +518,8 @@ class LifeSnippetStore extends ChangeNotifier {
     await _preferences!.remove(_followingUserKeysKey);
     await _preferences!.remove(_followerUserKeysKey);
     await _preferences!.remove(_chatThreadsKey);
+    await _preferences!.remove(_deletedPostKeysKey);
+    await _preferences!.remove(_autoFollowerSeededKey);
     await _moderation.clearLocalRecords();
     _currentUser = _fallbackCurrentUser;
     notifyListeners();
@@ -441,6 +529,7 @@ class LifeSnippetStore extends ChangeNotifier {
     required String userKey,
     required String body,
   }) async {
+    await load();
     final trimmed = body.trim();
     if (trimmed.isEmpty) {
       return;
@@ -452,7 +541,6 @@ class LifeSnippetStore extends ChangeNotifier {
       throw const LifeSnippetRelationshipGate();
     }
 
-    await load();
     final thread = _chatThreads.putIfAbsent(userKey, () => []);
     thread.add(
       LifeChatMessage(
@@ -488,7 +576,11 @@ class LifeSnippetStore extends ChangeNotifier {
     _followerUserKeys
       ..clear()
       ..addAll(_preferences!.getStringList(_followerUserKeysKey) ?? const []);
+    _deletedPostKeys
+      ..clear()
+      ..addAll(_preferences!.getStringList(_deletedPostKeysKey) ?? const []);
 
+    await _seedIncomingFollowersIfNeeded();
     _loadPendingPosts();
     _loadComments();
     _loadChatThreads();
@@ -496,6 +588,24 @@ class LifeSnippetStore extends ChangeNotifier {
     final gateStore = await LocalGateStore.open();
     _currentUser = _currentUserFromGate(gateStore);
     notifyListeners();
+  }
+
+  Future<void> _seedIncomingFollowersIfNeeded() async {
+    if (_preferences!.getBool(_autoFollowerSeededKey) == true) {
+      return;
+    }
+
+    final random = Random();
+    final candidates =
+        _seedUsers
+            .where((user) => !_moderation.isAuthorBlocked(user.userKey))
+            .map((user) => user.userKey)
+            .toList()
+          ..shuffle(random);
+    final count = min(candidates.length, 2 + random.nextInt(2));
+    _followerUserKeys.addAll(candidates.take(count));
+    await _saveStringSet(_followerUserKeysKey, _followerUserKeys);
+    await _preferences!.setBool(_autoFollowerSeededKey, true);
   }
 
   LifeSnippetUser _currentUserFromGate(LocalGateStore gateStore) {

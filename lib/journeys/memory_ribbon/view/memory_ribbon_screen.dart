@@ -83,6 +83,7 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
             animation: _store,
             builder: (context, _) {
               final user = _store.currentUser;
+              final approvedPosts = _store.postsForUser(user.userKey);
               return Stack(
                 children: [
                   Positioned.fill(
@@ -106,26 +107,30 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
                           side,
                           MorrowlyFrameGuard.topClearance(
                             context,
-                            minimum: 64,
-                            extra: 14,
+                            minimum: 48,
+                            extra: 4,
                           ),
                           side,
                           MorrowlyFrameGuard.bottomClearance(
                             context,
-                            minimum: 150,
-                            extra: 110,
+                            minimum: 52,
+                            extra: 24,
                           ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _ProfileHeader(
-                              user: user,
+                            _ProfileTopChrome(
+                              onBack: _closeProfileCenter,
                               onSettings: _openSettings,
                               onWallet: _openWallet,
+                            ),
+                            const SizedBox(height: 26),
+                            _ProfileHeader(
+                              user: user,
                               onEdit: _openEditProfile,
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 30),
                             _ProfileStats(
                               user: user,
                               onFollow: () => _openRelationshipList(true),
@@ -138,14 +143,17 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
                               'My capsules',
                               style: _sectionTitleStyle,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 14),
                             _CapsuleSummaryRow(onOpen: _openMyCapsules),
-                            const SizedBox(height: 22),
+                            const SizedBox(height: 24),
                             const Text('My post', style: _sectionTitleStyle),
                             const SizedBox(height: 12),
                             _MyPostsPanel(
+                              user: user,
+                              posts: approvedPosts,
                               pendingCount: _store.pendingReviewPosts.length,
                               onCompose: _openCompose,
+                              onDelete: _deletePost,
                             ),
                           ],
                         ),
@@ -159,6 +167,13 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
         },
       ),
     );
+  }
+
+  void _closeProfileCenter() {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
   }
 
   Future<void> _openSettings() {
@@ -203,6 +218,10 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(builder: (_) => const LifeSnippetComposeScreen()),
     );
+  }
+
+  Future<void> _deletePost(LifeSnippetPost post) async {
+    await _store.deleteOwnPostLocally(post);
   }
 }
 
@@ -1326,21 +1345,107 @@ class _GuidelineSection extends StatelessWidget {
 
 const _sectionTitleStyle = TextStyle(
   color: Colors.white,
-  fontSize: 15,
+  fontSize: 16,
   fontWeight: FontWeight.w900,
+  letterSpacing: 0,
 );
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({
-    required this.user,
+class _ProfileTopChrome extends StatelessWidget {
+  const _ProfileTopChrome({
+    required this.onBack,
     required this.onSettings,
     required this.onWallet,
-    required this.onEdit,
   });
 
-  final LifeSnippetUser user;
+  final VoidCallback onBack;
   final VoidCallback onSettings;
   final VoidCallback onWallet;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 36,
+      child: Row(
+        children: [
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 38, height: 36),
+            onPressed: onBack,
+            icon: const Icon(
+              Icons.chevron_left_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+            tooltip: 'Back',
+          ),
+          const Spacer(),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onWallet,
+            child: const _ProfileCoinPill(),
+          ),
+          const SizedBox(width: 12),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            onPressed: onSettings,
+            icon: const Icon(
+              Icons.settings_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+            tooltip: 'Settings',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileCoinPill extends StatelessWidget {
+  const _ProfileCoinPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 27,
+      padding: const EdgeInsets.fromLTRB(7, 3, 10, 3),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            ProfileCenterAssets.coin,
+            width: 17,
+            height: 17,
+            filterQuality: FilterQuality.high,
+          ),
+          const SizedBox(width: 4),
+          const Text(
+            '123,45',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              height: 1,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.user, required this.onEdit});
+
+  final LifeSnippetUser user;
   final VoidCallback onEdit;
 
   @override
@@ -1348,7 +1453,7 @@ class _ProfileHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LifeAvatar(user: user, radius: 42),
+        LifeAvatar(user: user, radius: 34),
         const SizedBox(width: 14),
         Expanded(
           child: Column(
@@ -1363,8 +1468,10 @@ class _ProfileHeader extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 17,
+                        fontSize: 15,
+                        height: 1.08,
                         fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
                       ),
                     ),
                   ),
@@ -1381,74 +1488,46 @@ class _ProfileHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 5),
-              Text(
-                user.regionLine,
-                style: const TextStyle(
-                  color: Color(0xFFBD78FF),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.female_rounded,
+                    color: Color(0xFFFF6EEA),
+                    size: 13,
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      user.regionLine,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFFBD78FF),
+                        fontSize: 11,
+                        height: 1.1,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 13),
+              const SizedBox(height: 11),
               Text(
                 user.signatureLine,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.78),
-                  fontSize: 13,
+                  fontSize: 12,
                   height: 1.28,
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(width: 8),
-        Column(
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onWallet,
-              child: Container(
-                height: 28,
-                padding: const EdgeInsets.symmetric(horizontal: 9),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      ProfileCenterAssets.coin,
-                      width: 15,
-                      height: 15,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      '123,45',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: onSettings,
-              icon: const Icon(
-                Icons.settings_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-              tooltip: 'Settings',
-            ),
-          ],
         ),
       ],
     );
@@ -1476,22 +1555,11 @@ class _ProfileStats extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _StatButton(value: user.followCount, label: 'Follow', onTap: onFollow),
-        _StatButton(
-          value: user.fansCount,
-          label: 'Fans',
-          asset: ProfileCenterAssets.fanStat,
-          onTap: onFans,
-        ),
-        _StatButton(
-          value: user.likeCount,
-          label: 'Get likes',
-          asset: ProfileCenterAssets.likeStat,
-          onTap: onLikes,
-        ),
+        _StatButton(value: user.fansCount, label: 'Fans', onTap: onFans),
+        _StatButton(value: user.likeCount, label: 'Get likes', onTap: onLikes),
         _StatButton(
           value: user.capsuleCount,
           label: 'Capsule',
-          asset: ProfileCenterAssets.messageStat,
           onTap: onCapsules,
         ),
       ],
@@ -1504,13 +1572,11 @@ class _StatButton extends StatelessWidget {
     required this.value,
     required this.label,
     required this.onTap,
-    this.asset = ProfileCenterAssets.followStat,
   });
 
   final int value;
   final String label;
   final VoidCallback onTap;
-  final String asset;
 
   @override
   Widget build(BuildContext context) {
@@ -1521,19 +1587,14 @@ class _StatButton extends StatelessWidget {
         width: 72,
         child: Column(
           children: [
-            Image.asset(
-              asset,
-              width: 34,
-              height: 34,
-              filterQuality: FilterQuality.high,
-            ),
-            const SizedBox(height: 7),
             Text(
               '$value',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 14,
+                height: 1.1,
                 fontWeight: FontWeight.w900,
+                letterSpacing: 0,
               ),
             ),
             const SizedBox(height: 6),
@@ -1544,7 +1605,9 @@ class _StatButton extends StatelessWidget {
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.38),
                 fontSize: 11,
-                fontWeight: FontWeight.w800,
+                height: 1.1,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0,
               ),
             ),
           ],
@@ -1572,7 +1635,7 @@ class _CapsuleSummaryRow extends StatelessWidget {
           Expanded(
             child: _CapsuleSummaryCard(data: cards[index], onTap: onOpen),
           ),
-          if (index != cards.length - 1) const SizedBox(width: 12),
+          if (index != cards.length - 1) const SizedBox(width: 10),
         ],
       ],
     );
@@ -1580,20 +1643,44 @@ class _CapsuleSummaryRow extends StatelessWidget {
 }
 
 class _MyPostsPanel extends StatelessWidget {
-  const _MyPostsPanel({required this.pendingCount, required this.onCompose});
+  const _MyPostsPanel({
+    required this.user,
+    required this.posts,
+    required this.pendingCount,
+    required this.onCompose,
+    required this.onDelete,
+  });
 
+  final LifeSnippetUser user;
+  final List<LifeSnippetPost> posts;
   final int pendingCount;
   final VoidCallback onCompose;
+  final ValueChanged<LifeSnippetPost> onDelete;
 
   @override
   Widget build(BuildContext context) {
+    if (posts.isNotEmpty) {
+      return Column(
+        children: [
+          for (final post in posts) ...[
+            _ProfilePostCard(
+              user: user,
+              post: post,
+              onDelete: () => onDelete(post),
+            ),
+            if (post != posts.last) const SizedBox(height: 12),
+          ],
+        ],
+      );
+    }
+
     final hasPending = pendingCount > 0;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
       decoration: BoxDecoration(
-        color: lifePanel.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(20),
+        color: lifePanel.withValues(alpha: 0.66),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
         children: [
@@ -1613,9 +1700,10 @@ class _MyPostsPanel extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.62),
-              fontSize: 12,
+              fontSize: 13,
               height: 1.35,
               fontWeight: FontWeight.w700,
+              letterSpacing: 0,
             ),
           ),
           const SizedBox(height: 14),
@@ -1632,6 +1720,220 @@ class _MyPostsPanel extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ProfilePostCard extends StatelessWidget {
+  const _ProfilePostCard({
+    required this.user,
+    required this.post,
+    required this.onDelete,
+  });
+
+  final LifeSnippetUser user;
+  final LifeSnippetPost post;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(13, 12, 13, 11),
+      decoration: BoxDecoration(
+        color: lifePanel.withValues(alpha: 0.76),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              LifeAvatar(user: user, radius: 24),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.08,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.female_rounded,
+                          color: Color(0xFFFF6EEA),
+                          size: 12,
+                        ),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            user.regionLine,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFBD78FF),
+                              fontSize: 11,
+                              height: 1.1,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              _DeletePostPill(onTap: onDelete),
+            ],
+          ),
+          if (post.body.trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              post.body,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.88),
+                fontSize: 12,
+                height: 1.38,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0,
+              ),
+            ),
+          ],
+          if (post.media.isNotEmpty) ...[
+            const SizedBox(height: 11),
+            _ProfilePostMediaGrid(media: post.media),
+          ],
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _ProfilePostCount(
+                asset: LifeSnippetAssets.comment,
+                count: post.commentCount,
+              ),
+              const SizedBox(width: 28),
+              _ProfilePostCount(
+                asset: LifeSnippetAssets.likeOutline,
+                count: post.likeCount,
+              ),
+              const Spacer(),
+              Image.asset(
+                LifeSnippetAssets.more,
+                width: 19,
+                height: 19,
+                color: Colors.white.withValues(alpha: 0.24),
+                filterQuality: FilterQuality.high,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeletePostPill extends StatelessWidget {
+  const _DeletePostPill({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Image.asset(
+        ProfileCenterAssets.deleteCompact,
+        width: 80,
+        height: 31,
+        fit: BoxFit.fill,
+        filterQuality: FilterQuality.high,
+      ),
+    );
+  }
+}
+
+class _ProfilePostMediaGrid extends StatelessWidget {
+  const _ProfilePostMediaGrid({required this.media});
+
+  final List<LifeSnippetMedia> media;
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = media.take(2).toList();
+    if (visible.length == 1) {
+      return AspectRatio(
+        aspectRatio: 1.62,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LifeMediaImage(media: visible.first),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 112,
+      child: Row(
+        children: [
+          for (var index = 0; index < visible.length; index++) ...[
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LifeMediaImage(media: visible[index]),
+              ),
+            ),
+            if (index != visible.length - 1) const SizedBox(width: 5),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfilePostCount extends StatelessWidget {
+  const _ProfilePostCount({required this.asset, required this.count});
+
+  final String asset;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          asset,
+          width: 17,
+          height: 17,
+          color: Colors.white.withValues(alpha: 0.24),
+          filterQuality: FilterQuality.high,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '$count',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.24),
+            fontSize: 11,
+            height: 1,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1885,18 +2187,18 @@ class _CapsuleSummaryCard extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        height: 150,
-        padding: const EdgeInsets.fromLTRB(10, 18, 10, 12),
+        height: 136,
+        padding: const EdgeInsets.fromLTRB(8, 16, 8, 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF4C2A60).withValues(alpha: 0.66),
-          borderRadius: BorderRadius.circular(12),
+          color: const Color(0xFF4A285B).withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           children: [
             Image.asset(
               data.asset,
-              width: 58,
-              height: 58,
+              width: 52,
+              height: 52,
               filterQuality: FilterQuality.high,
             ),
             const Spacer(),
@@ -1906,17 +2208,21 @@ class _CapsuleSummaryCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: 12,
+                height: 1.1,
                 fontWeight: FontWeight.w800,
+                letterSpacing: 0,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               data.count,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 17,
+                height: 1,
                 fontWeight: FontWeight.w900,
+                letterSpacing: 0,
               ),
             ),
           ],

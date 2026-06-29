@@ -75,7 +75,8 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
                           onFollow: () => _requestFollow(user.userKey),
                           onChat:
                               user.isCurrentUser ||
-                                  _store.isUserBlocked(user.userKey)
+                                  _store.isUserBlocked(user.userKey) ||
+                                  !_store.isMutualFollow(user.userKey)
                               ? null
                               : () => _openChat(user.userKey),
                         ),
