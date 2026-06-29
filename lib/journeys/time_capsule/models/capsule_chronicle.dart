@@ -14,6 +14,7 @@ class CapsuleKeeper {
     required this.placeLine,
     required this.signalBand,
     required this.avatarAsset,
+    this.avatarLocalPath = '',
   });
 
   final String keeperKey;
@@ -22,6 +23,7 @@ class CapsuleKeeper {
   final String placeLine;
   final KeeperSignalBand signalBand;
   final String avatarAsset;
+  final String avatarLocalPath;
 }
 
 class CapsuleMediaSnap {

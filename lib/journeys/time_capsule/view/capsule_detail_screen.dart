@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
@@ -29,13 +30,16 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
+  final LifeSnippetStore _lifeStore = LifeSnippetStore.instance;
   String _commentDraft = '';
 
   @override
   void initState() {
     super.initState();
     _moderation.addListener(_refreshModeratedContent);
+    _lifeStore.addListener(_refreshModeratedContent);
     _moderation.load();
+    _lifeStore.load();
     if (widget.focusComposer) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -48,6 +52,7 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
   @override
   void dispose() {
     _moderation.removeListener(_refreshModeratedContent);
+    _lifeStore.removeListener(_refreshModeratedContent);
     _commentController.dispose();
     _commentFocusNode.dispose();
     super.dispose();
@@ -116,6 +121,7 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
                       controller: _commentController,
                       focusNode: _commentFocusNode,
                       draft: _commentDraft,
+                      currentKeeper: _currentKeeper,
                       onChanged: (value) {
                         setState(() => _commentDraft = value);
                       },
@@ -160,7 +166,21 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
   }
 
   bool _canModerateKeeper(CapsuleKeeper keeper) {
-    return keeper.keeperKey != CapsuleSquareSeed.currentKeeper.keeperKey;
+    return keeper.keeperKey != CapsuleSquareSeed.currentKeeper.keeperKey &&
+        keeper.keeperKey != _lifeStore.currentUser.userKey;
+  }
+
+  CapsuleKeeper get _currentKeeper {
+    final user = _lifeStore.currentUser;
+    return CapsuleKeeper(
+      keeperKey: user.userKey,
+      displayName: user.displayName,
+      ageLine: user.ageLine,
+      placeLine: user.placeLine,
+      signalBand: KeeperSignalBand.bloom,
+      avatarAsset: user.avatarAsset,
+      avatarLocalPath: user.avatarLocalPath,
+    );
   }
 
   void _refreshModeratedContent() {
@@ -177,7 +197,7 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
 
     final comment = CapsuleSquareComment(
       commentKey: 'local-comment-${DateTime.now().microsecondsSinceEpoch}',
-      author: CapsuleSquareSeed.currentKeeper,
+      author: _currentKeeper,
       messageLine: message,
       timeAgoLine: 'Just now',
     );
@@ -314,7 +334,7 @@ class _KeeperHeader extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 25,
-          backgroundImage: AssetImage(keeper.avatarAsset),
+          backgroundImage: capsuleKeeperAvatarProvider(keeper),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -500,7 +520,7 @@ class _CommentTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundImage: AssetImage(comment.author.avatarAsset),
+            backgroundImage: capsuleKeeperAvatarProvider(comment.author),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -632,8 +652,8 @@ class _CommentComposer extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: CircleAvatar(
               radius: 17,
-              backgroundImage: AssetImage(
-                CapsuleSquareSeed.currentKeeper.avatarAsset,
+              backgroundImage: capsuleKeeperAvatarProvider(
+                CapsuleSquareSeed.currentKeeper,
               ),
               backgroundColor: Colors.white.withValues(alpha: 0.14),
             ),

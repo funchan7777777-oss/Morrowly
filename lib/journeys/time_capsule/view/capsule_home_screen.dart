@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
+import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
+import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/data/local_capsule_store.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
@@ -37,6 +40,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
   final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   final MorrowlyWalletStore _wallet = MorrowlyWalletStore.instance;
   final LocalCapsuleStore _capsules = LocalCapsuleStore.instance;
+  final LifeSnippetStore _lifeStore = LifeSnippetStore.instance;
 
   @override
   void initState() {
@@ -44,9 +48,11 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     _moderation.addListener(_refreshModeratedContent);
     _wallet.addListener(_refreshModeratedContent);
     _capsules.addListener(_refreshModeratedContent);
+    _lifeStore.addListener(_refreshModeratedContent);
     _moderation.load();
     _wallet.load();
     _capsules.load();
+    _lifeStore.load();
   }
 
   @override
@@ -54,6 +60,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     _moderation.removeListener(_refreshModeratedContent);
     _wallet.removeListener(_refreshModeratedContent);
     _capsules.removeListener(_refreshModeratedContent);
+    _lifeStore.removeListener(_refreshModeratedContent);
     super.dispose();
   }
 
@@ -97,6 +104,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
               children: [
                 _HomeHeader(
                   coinBalance: _wallet.balance,
+                  currentUser: _lifeStore.currentUser,
                   onWallet: _openWallet,
                   onMyCapsules: _openMyCapsules,
                 ),
@@ -334,11 +342,13 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader({
     required this.coinBalance,
+    required this.currentUser,
     required this.onWallet,
     required this.onMyCapsules,
   });
 
   final int coinBalance;
+  final LifeSnippetUser currentUser;
   final VoidCallback onWallet;
   final VoidCallback onMyCapsules;
 
@@ -377,13 +387,7 @@ class _HomeHeader extends StatelessWidget {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onMyCapsules,
-          child: CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            backgroundImage: const AssetImage(
-              'assets/images/head/bloom_arch_window.jpg',
-            ),
-          ),
+          child: LifeAvatar(user: currentUser, radius: 18),
         ),
       ],
     );
@@ -476,7 +480,7 @@ class _SquareNoteCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 23,
-                    backgroundImage: AssetImage(note.keeper.avatarAsset),
+                    backgroundImage: capsuleKeeperAvatarProvider(note.keeper),
                   ),
                   const SizedBox(width: 11),
                   Expanded(
@@ -625,8 +629,8 @@ class _SquareVisitorSummary extends StatelessWidget {
                     backgroundColor: const Color(0xFF4E3D54),
                     child: CircleAvatar(
                       radius: 13.5,
-                      backgroundImage: AssetImage(
-                        visibleVisitors[index].avatarAsset,
+                      backgroundImage: capsuleKeeperAvatarProvider(
+                        visibleVisitors[index],
                       ),
                     ),
                   ),
@@ -816,7 +820,7 @@ class _VisitorsSheet extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 31,
-                          backgroundImage: AssetImage(keeper.avatarAsset),
+                          backgroundImage: capsuleKeeperAvatarProvider(keeper),
                         ),
                         const SizedBox(height: 6),
                         Text(

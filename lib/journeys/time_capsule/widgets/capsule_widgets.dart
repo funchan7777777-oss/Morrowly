@@ -17,6 +17,15 @@ String capsuleClockStamp(DateTime value) {
   return '$hour:$minute';
 }
 
+ImageProvider<Object> capsuleKeeperAvatarProvider(CapsuleKeeper keeper) {
+  if (keeper.avatarLocalPath.isNotEmpty) {
+    return FileImage(File(keeper.avatarLocalPath));
+  }
+  return AssetImage(
+    keeper.avatarAsset.isEmpty ? 'assets/images/Memoir.png' : keeper.avatarAsset,
+  );
+}
+
 class CapsuleTopBar extends StatelessWidget {
   const CapsuleTopBar({
     super.key,

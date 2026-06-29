@@ -7,6 +7,8 @@ import 'package:morrowly/journeys/welcome_gate/data/local_gate_store.dart';
 import 'package:morrowly/shared/moderation/morrowly_moderation_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _currentUserPlaceholderAvatar = 'assets/images/Memoir.png';
+
 class LifeSnippetRelationshipGate implements Exception {
   const LifeSnippetRelationshipGate();
 }
@@ -637,7 +639,7 @@ class LifeSnippetStore extends ChangeNotifier {
           : gateStore.savedDisplayName,
       ageLine: '23',
       placeLine: gateStore.savedRegion,
-      avatarAsset: 'assets/images/head/bloom_arch_window.jpg',
+      avatarAsset: _currentUserPlaceholderAvatar,
       avatarLocalPath: gateStore.savedAvatarPath,
       signatureLine: gateStore.savedSignatureLine.isEmpty
           ? 'Preserve wishes for future you'
@@ -728,7 +730,7 @@ const _fallbackCurrentUser = LifeSnippetUser(
   displayName: 'Morrowly friend',
   ageLine: '23',
   placeLine: 'United States',
-  avatarAsset: 'assets/images/head/bloom_arch_window.jpg',
+  avatarAsset: _currentUserPlaceholderAvatar,
   signatureLine: 'Preserve wishes for future you',
   isCurrentUser: true,
 );

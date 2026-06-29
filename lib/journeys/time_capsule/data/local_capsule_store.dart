@@ -120,6 +120,11 @@ class LocalCapsuleStore extends ChangeNotifier {
   Map<String, Object?> _capsuleToJson(CapsuleSquareNote capsule) {
     return {
       'noteKey': capsule.noteKey,
+      'keeperDisplayName': capsule.keeper.displayName,
+      'keeperAgeLine': capsule.keeper.ageLine,
+      'keeperPlaceLine': capsule.keeper.placeLine,
+      'keeperAvatarAsset': capsule.keeper.avatarAsset,
+      'keeperAvatarLocalPath': capsule.keeper.avatarLocalPath,
       'messageLine': capsule.messageLine,
       'mediaSnaps': capsule.mediaSnaps.map(_mediaToJson).toList(),
       'sealedAt': capsule.sealedAt.toIso8601String(),
@@ -152,7 +157,19 @@ class LocalCapsuleStore extends ChangeNotifier {
     final leftMessageCount = json['leftMessageCount'];
     return CapsuleSquareNote(
       noteKey: noteKey,
-      keeper: CapsuleSquareSeed.currentKeeper,
+      keeper: CapsuleKeeper(
+        keeperKey: CapsuleSquareSeed.currentKeeper.keeperKey,
+        displayName:
+            '${json['keeperDisplayName'] ?? CapsuleSquareSeed.currentKeeper.displayName}',
+        ageLine:
+            '${json['keeperAgeLine'] ?? CapsuleSquareSeed.currentKeeper.ageLine}',
+        placeLine:
+            '${json['keeperPlaceLine'] ?? CapsuleSquareSeed.currentKeeper.placeLine}',
+        signalBand: CapsuleSquareSeed.currentKeeper.signalBand,
+        avatarAsset:
+            '${json['keeperAvatarAsset'] ?? CapsuleSquareSeed.currentKeeper.avatarAsset}',
+        avatarLocalPath: '${json['keeperAvatarLocalPath'] ?? ''}',
+      ),
       messageLine: messageLine,
       mediaSnaps: mediaList is List
           ? mediaList

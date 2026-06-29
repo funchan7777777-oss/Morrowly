@@ -6,6 +6,7 @@ import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.d
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
 abstract final class LifeSnippetAssets {
+  static const placeholderAvatar = 'assets/images/Memoir.png';
   static const release = 'assets/images/Daybreak.png';
   static const popular = 'assets/images/Heirloom.png';
   static const followed = 'assets/images/Friendship.png';
@@ -125,7 +126,9 @@ ImageProvider<Object> lifeAvatarProvider(LifeSnippetUser user) {
   if (user.avatarLocalPath.isNotEmpty) {
     return FileImage(File(user.avatarLocalPath));
   }
-  return AssetImage(user.avatarAsset);
+  return AssetImage(
+    user.avatarAsset.isEmpty ? LifeSnippetAssets.placeholderAvatar : user.avatarAsset,
+  );
 }
 
 class LifeAvatar extends StatelessWidget {

@@ -34,7 +34,7 @@ abstract final class CapsuleSquareSeed {
     ageLine: '24',
     placeLine: 'United States',
     signalBand: KeeperSignalBand.bloom,
-    avatarAsset: 'assets/images/head/bloom_arch_window.jpg',
+    avatarAsset: 'assets/images/Memoir.png',
   );
 
   static const bloomKeepers = [

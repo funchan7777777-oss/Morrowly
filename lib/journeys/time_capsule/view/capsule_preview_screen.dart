@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_success_screen.dart';
@@ -164,9 +165,18 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
   }
 
   void _sealCapsule() {
+    final currentUser = LifeSnippetStore.instance.currentUser;
     final sealed = CapsuleSquareNote(
       noteKey: 'local-${DateTime.now().microsecondsSinceEpoch}',
-      keeper: CapsuleSquareSeed.currentKeeper,
+      keeper: CapsuleKeeper(
+        keeperKey: currentUser.userKey,
+        displayName: currentUser.displayName,
+        ageLine: currentUser.ageLine,
+        placeLine: currentUser.placeLine,
+        signalBand: KeeperSignalBand.bloom,
+        avatarAsset: currentUser.avatarAsset,
+        avatarLocalPath: currentUser.avatarLocalPath,
+      ),
       messageLine: widget.draft.messageLine,
       mediaSnaps: widget.draft.mediaSnaps,
       sealedAt: DateTime.now(),
