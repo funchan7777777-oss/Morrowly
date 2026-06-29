@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/present_grounding/view/present_grounding_screen.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_home_screen.dart';
 import 'package:morrowly/journeys/time_mail/view/time_mail_screen.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 
 class MorrowlyTabShell extends StatefulWidget {
   const MorrowlyTabShell({
@@ -21,6 +25,15 @@ class MorrowlyTabShell extends StatefulWidget {
 
 class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
   int _selectedHarborIndex = 0;
+  bool _welcomeGiftChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_grantWelcomeGiftIfNeeded());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +89,18 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
         ],
       ),
     );
+  }
+
+  Future<void> _grantWelcomeGiftIfNeeded() async {
+    if (_welcomeGiftChecked) {
+      return;
+    }
+    _welcomeGiftChecked = true;
+    final gifted = await MorrowlyWalletStore.instance.grantWelcomeGiftIfNeeded();
+    if (!mounted || gifted <= 0) {
+      return;
+    }
+    await showMorrowlyWelcomeGiftDialog(context, amount: gifted);
   }
 }
 

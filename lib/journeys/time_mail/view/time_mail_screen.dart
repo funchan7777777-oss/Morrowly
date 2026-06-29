@@ -6,6 +6,7 @@ import 'package:morrowly/journeys/present_grounding/view/life_snippet_chat_scree
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_detail_screen.dart';
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
 class TimeMailScreen extends StatefulWidget {
@@ -98,6 +99,7 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
                             _MailHeader(
                               currentUser: currentUser,
                               onProfile: _openProfileCenter,
+                              onWallet: _openWallet,
                             ),
                             const SizedBox(height: 28),
                             _MailShortcutRow(
@@ -152,6 +154,12 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
     );
   }
 
+  Future<void> _openWallet() {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const MorrowlyWalletScreen()),
+    );
+  }
+
   Future<void> _openChat(String userKey) {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
@@ -186,10 +194,15 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
 }
 
 class _MailHeader extends StatelessWidget {
-  const _MailHeader({required this.currentUser, required this.onProfile});
+  const _MailHeader({
+    required this.currentUser,
+    required this.onProfile,
+    required this.onWallet,
+  });
 
   final LifeSnippetUser currentUser;
   final VoidCallback onProfile;
+  final VoidCallback onWallet;
 
   @override
   Widget build(BuildContext context) {
@@ -211,48 +224,22 @@ class _MailHeader extends StatelessWidget {
             ),
           ),
         ),
-        Padding(padding: const EdgeInsets.only(top: 16), child: _CoinPill()),
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: MorrowlyCoinBalancePill(
+            height: 34,
+            iconSize: 22,
+            fontSize: 14,
+            horizontalPadding: 10,
+            onTap: onWallet,
+          ),
+        ),
         const SizedBox(width: 10),
         Padding(
           padding: const EdgeInsets.only(top: 12),
           child: LifeAvatar(user: currentUser, radius: 20, onTap: onProfile),
         ),
       ],
-    );
-  }
-}
-
-class _CoinPill extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 34,
-      padding: const EdgeInsets.fromLTRB(8, 4, 12, 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            ProfileCenterAssets.coin,
-            width: 22,
-            height: 22,
-            filterQuality: FilterQuality.high,
-          ),
-          const SizedBox(width: 5),
-          const Text(
-            '123,45',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

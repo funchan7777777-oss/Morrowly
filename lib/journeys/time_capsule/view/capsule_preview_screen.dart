@@ -4,6 +4,8 @@ import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_success_screen.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
 class CapsulePreviewScreen extends StatefulWidget {
@@ -21,7 +23,6 @@ class CapsulePreviewScreen extends StatefulWidget {
 }
 
 class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
-  static const int _sealCost = 50;
   late CapsuleVisibility _visibility = widget.draft.visibility;
 
   @override
@@ -151,39 +152,15 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
     );
   }
 
-  void _confirmSealing() {
-    if (widget.coinBalance < _sealCost) {
-      _showBalanceDialog();
+  Future<void> _confirmSealing() async {
+    final spent = await confirmAndSpendMorrowlyCoins(
+      context,
+      cost: MorrowlyCoinCosts.sealCapsule,
+    );
+    if (!spent || !mounted) {
       return;
     }
-    showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.62),
-      builder: (context) => CapsuleConfirmDialog(
-        title: 'Please confirm',
-        message:
-            'The current operation will consume $_sealCost coins. Please confirm if you want to continue with the operation?',
-        actionLabel: 'Confirm',
-        onAction: () {
-          Navigator.of(context).pop();
-          _sealCapsule();
-        },
-      ),
-    );
-  }
-
-  void _showBalanceDialog() {
-    showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.62),
-      builder: (context) => CapsuleConfirmDialog(
-        title: 'Insufficient balance',
-        message:
-            'The current balance is insufficient. Please go to the wallet to recharge and continue the operation.',
-        actionLabel: 'Go immediately',
-        onAction: () => Navigator.of(context).pop(),
-      ),
-    );
+    _sealCapsule();
   }
 
   void _sealCapsule() {

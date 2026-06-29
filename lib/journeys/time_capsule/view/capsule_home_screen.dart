@@ -6,6 +6,8 @@ import 'package:morrowly/journeys/time_capsule/view/capsule_detail_screen.dart';
 import 'package:morrowly/journeys/time_capsule/view/my_capsules_screen.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:morrowly/shared/moderation/morrowly_moderation_store.dart';
 import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
@@ -31,18 +33,21 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
           .toList();
   final List<CapsuleSquareNote> _myCapsules = [];
   final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
-  int _coinBalance = 999;
+  final MorrowlyWalletStore _wallet = MorrowlyWalletStore.instance;
 
   @override
   void initState() {
     super.initState();
     _moderation.addListener(_refreshModeratedContent);
+    _wallet.addListener(_refreshModeratedContent);
     _moderation.load();
+    _wallet.load();
   }
 
   @override
   void dispose() {
     _moderation.removeListener(_refreshModeratedContent);
+    _wallet.removeListener(_refreshModeratedContent);
     super.dispose();
   }
 
@@ -85,7 +90,8 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _HomeHeader(
-                  coinBalance: _coinBalance,
+                  coinBalance: _wallet.balance,
+                  onWallet: _openWallet,
                   onMyCapsules: _openMyCapsules,
                 ),
                 const SizedBox(height: 8),
@@ -205,13 +211,8 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     final sealed = await Navigator.of(context).push<CapsuleSquareNote>(
       MaterialPageRoute(
         builder: (_) => CapsuleComposerScreen(
-          coinBalance: _coinBalance,
+          coinBalance: _wallet.balance,
           capsules: _myCapsules,
-          onCoinBalanceChanged: (value) {
-            if (mounted) {
-              setState(() => _coinBalance = value);
-            }
-          },
           onCapsulesChanged: (value) {
             if (mounted) {
               setState(() {
@@ -232,8 +233,13 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
       if (sealed.visibility == CapsuleVisibility.publicSquare) {
         _squareNotes.insert(0, sealed);
       }
-      _coinBalance = (_coinBalance - 50).clamp(0, 99999);
     });
+  }
+
+  Future<void> _openWallet() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const MorrowlyWalletScreen()),
+    );
   }
 
   Future<void> _openCapsuleDetail(
@@ -274,12 +280,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
       MaterialPageRoute(
         builder: (_) => MyCapsulesScreen(
           capsules: _myCapsules,
-          coinBalance: _coinBalance,
-          onCoinBalanceChanged: (value) {
-            if (mounted) {
-              setState(() => _coinBalance = value);
-            }
-          },
+          coinBalance: _wallet.balance,
           onCapsulesChanged: (value) {
             if (mounted) {
               setState(() {
@@ -321,9 +322,14 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.coinBalance, required this.onMyCapsules});
+  const _HomeHeader({
+    required this.coinBalance,
+    required this.onWallet,
+    required this.onMyCapsules,
+  });
 
   final int coinBalance;
+  final VoidCallback onWallet;
   final VoidCallback onMyCapsules;
 
   @override
@@ -346,7 +352,7 @@ class _HomeHeader extends StatelessWidget {
         ),
         GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: onMyCapsules,
+          onTap: onWallet,
           child: Container(
             height: 32,
             padding: const EdgeInsets.symmetric(horizontal: 9),

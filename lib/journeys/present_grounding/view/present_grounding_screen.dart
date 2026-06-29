@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:morrowly/journeys/memory_ribbon/view/memory_ribbon_screen.dart';
 import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
 import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_compose_screen.dart';
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_detail_screen.dart';
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
 
@@ -65,6 +67,7 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                             _LifeHeader(
                               currentUser: _store.currentUser,
                               onProfile: () => _openProfile(_store.currentUser),
+                              onWallet: _openWallet,
                             ),
                             const SizedBox(height: 16),
                             _FeedFilterBar(
@@ -151,10 +154,23 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
   }
 
   Future<void> _openProfile(LifeSnippetUser user) async {
+    if (user.isCurrentUser) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(builder: (_) => const MemoryRibbonScreen()),
+      );
+      return;
+    }
+
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => LifeSnippetProfileScreen(userKey: user.userKey),
       ),
+    );
+  }
+
+  Future<void> _openWallet() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const MorrowlyWalletScreen()),
     );
   }
 
@@ -187,10 +203,15 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
 }
 
 class _LifeHeader extends StatelessWidget {
-  const _LifeHeader({required this.currentUser, required this.onProfile});
+  const _LifeHeader({
+    required this.currentUser,
+    required this.onProfile,
+    required this.onWallet,
+  });
 
   final LifeSnippetUser currentUser;
   final VoidCallback onProfile;
+  final VoidCallback onWallet;
 
   @override
   Widget build(BuildContext context) {
@@ -208,32 +229,12 @@ class _LifeHeader extends StatelessWidget {
             ),
           ),
         ),
-        Container(
+        MorrowlyCoinBalancePill(
           height: 28,
-          padding: const EdgeInsets.symmetric(horizontal: 9),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.22),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Row(
-            children: [
-              Image.asset(
-                'assets/images/Capsule.png',
-                width: 15,
-                height: 15,
-                filterQuality: FilterQuality.high,
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                '123,45',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
+          iconSize: 15,
+          fontSize: 11,
+          horizontalPadding: 9,
+          onTap: onWallet,
         ),
         const SizedBox(width: 10),
         LifeAvatar(user: currentUser, radius: 18, onTap: onProfile),

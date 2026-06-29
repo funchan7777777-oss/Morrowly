@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
 import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
+import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -161,6 +163,14 @@ class _LifeSnippetComposeScreenState extends State<LifeSnippetComposeScreen> {
           ),
         ),
       );
+      return;
+    }
+
+    final canSpend = await confirmAndSpendMorrowlyCoins(
+      context,
+      cost: MorrowlyCoinCosts.releaseLifeSnippet,
+    );
+    if (!canSpend || !mounted) {
       return;
     }
 
