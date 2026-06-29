@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/memory_ribbon/view/memory_ribbon_screen.dart';
 import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
 import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
+import 'package:morrowly/journeys/present_grounding/view/life_snippet_chat_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
@@ -43,9 +44,13 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
             animation: _store,
             builder: (context, _) {
               final currentUser = _store.currentUser;
-              final threads = _mailThreads
-                  .where((thread) => !_store.isUserBlocked(thread.userKey))
-                  .toList();
+              final threads = [
+                for (final userKey in _store.chatThreadUserKeys)
+                  _MailThread(
+                    user: _store.userByKey(userKey),
+                    message: _store.chatMessagesFor(userKey).last,
+                  ),
+              ];
 
               return Stack(
                 children: [
@@ -95,11 +100,17 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
                               onGoCheck: widget.onGoCheckCapsules,
                             ),
                             const SizedBox(height: 20),
-                            for (final thread in threads) ...[
-                              _MailThreadTile(thread: thread),
-                              if (thread != threads.last)
-                                const _MailThreadDivider(),
-                            ],
+                            if (threads.isEmpty)
+                              const _EmptyMailThreads()
+                            else
+                              for (final thread in threads) ...[
+                                _MailThreadTile(
+                                  thread: thread,
+                                  onTap: () => _openChat(thread.user.userKey),
+                                ),
+                                if (thread != threads.last)
+                                  const _MailThreadDivider(),
+                              ],
                           ],
                         ),
                       );
@@ -122,6 +133,14 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
           onLoggedOut: widget.onLoggedOut,
           onAccountDeleted: widget.onAccountDeleted,
         ),
+      ),
+    );
+  }
+
+  Future<void> _openChat(String userKey) {
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LifeSnippetChatScreen(userKey: userKey),
       ),
     );
   }
@@ -210,7 +229,6 @@ class _MailShortcutRow extends StatelessWidget {
         _MailShortcut(
           asset: ProfileCenterAssets.messageStat,
           label: 'Comments',
-          badgeLabel: '12',
         ),
         _MailShortcut(asset: ProfileCenterAssets.likeStat, label: 'Likes'),
         _MailShortcut(asset: ProfileCenterAssets.fanStat, label: 'Add friend'),
@@ -329,95 +347,77 @@ class _CapsuleReminderCard extends StatelessWidget {
 }
 
 class _MailThreadTile extends StatelessWidget {
-  const _MailThreadTile({required this.thread});
+  const _MailThreadTile({required this.thread, required this.onTap});
 
   final _MailThread thread;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 66,
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: Colors.white.withValues(alpha: 0.18),
-            backgroundImage: AssetImage(thread.avatarAsset),
-          ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox(
+        height: 66,
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: Colors.white.withValues(alpha: 0.18),
+              backgroundImage: lifeAvatarProvider(thread.user),
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    thread.user.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      height: 1.1,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    thread.message.body,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.34),
+                      fontSize: 15,
+                      height: 1.1,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  thread.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    height: 1.1,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0,
-                  ),
-                ),
-                const SizedBox(height: 9),
-                Text(
-                  thread.preview,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  _clockLabel(thread.message.createdAt),
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.34),
-                    fontSize: 15,
-                    height: 1.1,
-                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.24),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     letterSpacing: 0,
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                thread.timeLabel,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.24),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                ),
-              ),
-              if (thread.unreadCount > 0) ...[
-                const SizedBox(height: 18),
-                Container(
-                  height: 20,
-                  constraints: const BoxConstraints(minWidth: 29),
-                  padding: const EdgeInsets.symmetric(horizontal: 7),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF373C),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '${thread.unreadCount}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      height: 1,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -440,51 +440,65 @@ class _MailThreadDivider extends StatelessWidget {
 }
 
 class _MailThread {
-  const _MailThread({
-    required this.userKey,
-    required this.name,
-    required this.avatarAsset,
-    required this.preview,
-    required this.timeLabel,
-    this.unreadCount = 0,
-  });
+  const _MailThread({required this.user, required this.message});
 
-  final String userKey;
-  final String name;
-  final String avatarAsset;
-  final String preview;
-  final String timeLabel;
-  final int unreadCount;
+  final LifeSnippetUser user;
+  final LifeChatMessage message;
 }
 
-const _mailThreads = [
-  _MailThread(
-    userKey: 'wayne-walters',
-    name: 'Wayne Walters',
-    avatarAsset: 'assets/images/head/bloom_cedar_terrace.jpg',
-    preview: 'Do you also love turning your thoughts into time capsules?',
-    timeLabel: '08:45',
-  ),
-  _MailThread(
-    userKey: 'bessie-parks',
-    name: 'Bessie Parks',
-    avatarAsset: 'assets/images/head/muse_highland_walk.jpg',
-    preview: "Let's wait for time.",
-    timeLabel: '08:45',
-    unreadCount: 3,
-  ),
-  _MailThread(
-    userKey: 'terry-reynolds',
-    name: 'Terry Reynolds',
-    avatarAsset: 'assets/images/head/muse_warm_wall.jpg',
-    preview: "That's exactly the charm of this time-capsule message.",
-    timeLabel: '08:45',
-  ),
-  _MailThread(
-    userKey: 'luella-welch',
-    name: 'Luella Welch',
-    avatarAsset: 'assets/images/head/muse_pavement_smile.jpg',
-    preview: 'Pictures with words will be precious years from now.',
-    timeLabel: '08:45',
-  ),
-];
+class _EmptyMailThreads extends StatelessWidget {
+  const _EmptyMailThreads();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
+      decoration: BoxDecoration(
+        color: lifePanel.withValues(alpha: 0.62),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
+      child: Column(
+        children: [
+          Image.asset(
+            ProfileCenterAssets.messageStat,
+            width: 58,
+            height: 58,
+            filterQuality: FilterQuality.high,
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'No conversations yet',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            'Real chats will appear here after you message someone.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+              height: 1.34,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _clockLabel(DateTime value) {
+  final hour = value.hour.toString().padLeft(2, '0');
+  final minute = value.minute.toString().padLeft(2, '0');
+  return '$hour:$minute';
+}

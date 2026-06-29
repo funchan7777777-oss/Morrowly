@@ -72,8 +72,8 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
                           side,
                           MorrowlyFrameGuard.topClearance(
                             context,
-                            minimum: 94,
-                            extra: 26,
+                            minimum: 92,
+                            extra: 30,
                           ),
                           side,
                           MorrowlyFrameGuard.bottomClearance(
@@ -83,6 +83,11 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
                           ),
                         ),
                         children: [
+                          _ChatContactCard(
+                            user: user,
+                            onVideoCall: _openVideoCall,
+                          ),
+                          const SizedBox(height: 26),
                           if (messages.isEmpty)
                             _EmptyChatPanel(user: user)
                           else
@@ -117,22 +122,13 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
                     title: user.displayName,
                     onBack: () => Navigator.of(context).pop(),
                     trailing: IconButton(
-                      onPressed: _openVideoCall,
+                      onPressed: () => _openProfile(user.userKey),
                       icon: const Icon(
-                        Icons.videocam_rounded,
+                        Icons.error_rounded,
                         color: Colors.white,
-                        size: 24,
+                        size: 23,
                       ),
-                      tooltip: 'Video call',
-                    ),
-                  ),
-                  Positioned(
-                    top: MorrowlyFrameGuard.topClearance(context, minimum: 53),
-                    left: 56,
-                    child: LifeAvatar(
-                      user: user,
-                      radius: 16,
-                      onTap: () => _openProfile(user.userKey),
+                      tooltip: 'User info',
                     ),
                   ),
                 ],
@@ -177,6 +173,94 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => LifeSnippetProfileScreen(userKey: userKey),
+      ),
+    );
+  }
+}
+
+class _ChatContactCard extends StatelessWidget {
+  const _ChatContactCard({required this.user, required this.onVideoCall});
+
+  final LifeSnippetUser user;
+  final VoidCallback onVideoCall;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 82,
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [Color(0xFFFFD9B1), Color(0xFFE55EFF), Color(0xFFC651F3)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2C1732).withValues(alpha: 0.18),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          LifeAvatar(user: user, radius: 29),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  user.signatureLine,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.72),
+                    fontSize: 12,
+                    height: 1.25,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onVideoCall,
+            child: Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.94),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Icon(
+                Icons.videocam_rounded,
+                color: lifePurple,
+                size: 30,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
