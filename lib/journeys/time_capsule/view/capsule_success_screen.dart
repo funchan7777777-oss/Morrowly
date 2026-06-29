@@ -5,6 +5,10 @@ import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
+const _sealedArtworkNaturalHeightRatio = 764 / 780;
+const _sealedArtworkVisibleHeightRatio = 0.72;
+const _capsuleButtonHeightRatio = 108 / 568;
+
 class CapsuleSuccessScreen extends StatelessWidget {
   const CapsuleSuccessScreen({super.key, required this.capsule});
 
@@ -18,81 +22,114 @@ class CapsuleSuccessScreen extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
+              final artworkWidth = MorrowlyFrameGuard.contentWidth(
+                width,
+                maxWidth: 430,
+                phoneGutter: 0,
+              );
+              final artworkHeight =
+                  artworkWidth * _sealedArtworkVisibleHeightRatio;
+              final artworkNaturalHeight =
+                  artworkWidth * _sealedArtworkNaturalHeightRatio;
               final contentWidth = MorrowlyFrameGuard.contentWidth(
                 width,
                 maxWidth: 430,
                 phoneGutter: 24,
               );
               final side = (width - contentWidth) / 2;
+              final buttonWidth = contentWidth * 0.84;
+              final buttonHeight = buttonWidth * _capsuleButtonHeightRatio;
               return Padding(
                 padding: EdgeInsets.fromLTRB(
-                  side,
+                  0,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 112,
-                    extra: 46,
+                    minimum: 106,
+                    extra: 40,
                   ),
-                  side,
+                  0,
                   MorrowlyFrameGuard.bottomClearance(
                     context,
-                    minimum: 30,
-                    extra: 18,
+                    minimum: 82,
+                    extra: 48,
                   ),
                 ),
                 child: Column(
                   children: [
-                    Image.asset(
-                      CapsuleArtwork.sealedPostcard,
-                      width: contentWidth * 0.78,
-                      height: contentWidth * 0.68,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    const SizedBox(height: 22),
-                    const Text(
-                      'The time capsule has been\nsuccessfully sealed!!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        height: 1.24,
-                        fontWeight: FontWeight.w900,
+                    SizedBox(
+                      width: artworkWidth,
+                      height: artworkHeight,
+                      child: ClipRect(
+                        child: OverflowBox(
+                          alignment: Alignment.topCenter,
+                          minWidth: artworkWidth,
+                          maxWidth: artworkWidth,
+                          minHeight: artworkNaturalHeight,
+                          maxHeight: artworkNaturalHeight,
+                          child: Image.asset(
+                            CapsuleArtwork.sealedPostcard,
+                            width: artworkWidth,
+                            height: artworkNaturalHeight,
+                            fit: BoxFit.fill,
+                            filterQuality: FilterQuality.high,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 22),
-                    Text(
-                      'It will automatically start at ${capsuleClockStamp(capsule.openingAt)} on ${capsuleDateStamp(capsule.openingAt)}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.36),
-                        fontSize: 13,
-                        height: 1.3,
-                        fontWeight: FontWeight.w700,
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        'The time capsule has been\nsuccessfully sealed!!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          height: 1.24,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 44),
-                    Text(
-                      'You can check it in [ My Capsules ]',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.34),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                    const SizedBox(height: 22),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: side),
+                      child: Text(
+                        'It will automatically start at ${capsuleClockStamp(capsule.openingAt)} on ${capsuleDateStamp(capsule.openingAt)}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.36),
+                          fontSize: 13,
+                          height: 1.3,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 48),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: side),
+                      child: Text(
+                        'You can check it in [ My Capsules ]',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.34),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const Spacer(),
                     CapsuleAssetTap(
                       assetName: CapsuleArtwork.viewCapsules,
-                      width: contentWidth * 0.76,
-                      height: 46,
+                      width: buttonWidth,
+                      height: buttonHeight,
                       semanticLabel: 'View my capsules',
                       onTap: () => Navigator.of(context).pop(capsule),
                     ),
                     const SizedBox(height: 14),
                     CapsuleAssetTap(
                       assetName: CapsuleArtwork.backHome,
-                      width: contentWidth * 0.84,
-                      height: 50,
+                      width: buttonWidth,
+                      height: buttonHeight,
                       semanticLabel: 'Back to Home',
                       onTap: () => Navigator.of(context).pop(capsule),
                     ),

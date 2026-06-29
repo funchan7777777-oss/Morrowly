@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_composer_screen.dart';
+import 'package:morrowly/journeys/time_capsule/view/capsule_detail_screen.dart';
 import 'package:morrowly/journeys/time_capsule/view/my_capsules_screen.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
@@ -23,7 +24,9 @@ class CapsuleHomeScreen extends StatefulWidget {
 
 class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
   late final List<CapsuleSquareNote> _squareNotes =
-      CapsuleSquareSeed.squareNotes();
+      CapsuleSquareSeed.squareNotes()
+          .where((note) => note.visibility == CapsuleVisibility.publicSquare)
+          .toList();
   final List<CapsuleSquareNote> _myCapsules = [];
   int _coinBalance = 999;
 
@@ -108,7 +111,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                 ),
                 const SizedBox(height: 18),
                 const Text(
-                  'Open Capsule Square',
+                  'Public Capsule Square',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 15,
@@ -119,8 +122,10 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                 for (final note in _squareNotes) ...[
                   _SquareNoteCard(
                     note: note,
+                    onOpen: () => _openCapsuleDetail(note),
                     onVisitors: () => _showVisitors(note.visitorTrail),
-                    onSay: () => _showSaySheet(note),
+                    onSay: () =>
+                        _openCapsuleDetail(note, focusComposer: true),
                   ),
                   const SizedBox(height: 14),
                 ],
@@ -160,8 +165,43 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     }
     setState(() {
       _myCapsules.insert(0, sealed);
-      _squareNotes.insert(0, sealed);
+      if (sealed.visibility == CapsuleVisibility.publicSquare) {
+        _squareNotes.insert(0, sealed);
+      }
       _coinBalance = (_coinBalance - 50).clamp(0, 99999);
+    });
+  }
+
+  Future<void> _openCapsuleDetail(
+    CapsuleSquareNote note, {
+    bool focusComposer = false,
+  }) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CapsuleDetailScreen(
+          note: note,
+          focusComposer: focusComposer,
+          onNoteChanged: _replaceCapsuleNote,
+        ),
+      ),
+    );
+  }
+
+  void _replaceCapsuleNote(CapsuleSquareNote updated) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      for (var index = 0; index < _squareNotes.length; index++) {
+        if (_squareNotes[index].noteKey == updated.noteKey) {
+          _squareNotes[index] = updated;
+        }
+      }
+      for (var index = 0; index < _myCapsules.length; index++) {
+        if (_myCapsules[index].noteKey == updated.noteKey) {
+          _myCapsules[index] = updated;
+        }
+      }
     });
   }
 
@@ -202,62 +242,6 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     );
   }
 
-  void _showSaySheet(CapsuleSquareNote note) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (context) {
-        final bottom = MorrowlyFrameGuard.bottomClearance(
-          context,
-          minimum: 24,
-          extra: 16,
-        );
-        return Padding(
-          padding: EdgeInsets.fromLTRB(18, 0, 18, bottom),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-            decoration: BoxDecoration(
-              color: const Color(0xFF4A3550),
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Leave a small echo for ${note.keeper.displayName}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Your words will wait beside this capsule until it opens.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.62),
-                    fontSize: 12,
-                    height: 1.35,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                CapsuleGlowButton(
-                  label: 'Send echo',
-                  width: double.infinity,
-                  icon: Icons.chat_bubble_outline_rounded,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
 
 class _HomeHeader extends StatelessWidget {
@@ -362,67 +346,212 @@ class _MakingCapsuleBanner extends StatelessWidget {
 class _SquareNoteCard extends StatelessWidget {
   const _SquareNoteCard({
     required this.note,
+    required this.onOpen,
     required this.onVisitors,
     required this.onSay,
   });
 
   final CapsuleSquareNote note;
+  final VoidCallback onOpen;
   final VoidCallback onVisitors;
   final VoidCallback onSay;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4E3D54).withValues(alpha: 0.94),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final previewSnap = note.mediaSnaps.isEmpty ? null : note.mediaSnaps.first;
+    final openingLabel = note.canOpenNow
+        ? 'Ready to open'
+        : 'Opens ${capsuleDateStamp(note.openingAt)}';
+
+    return Semantics(
+      button: true,
+      label: 'Open ${note.keeper.displayName} capsule detail',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onOpen,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4E3D54).withValues(alpha: 0.94),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 23,
-                backgroundImage: AssetImage(note.keeper.avatarAsset),
-              ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      note.keeper.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 23,
+                    backgroundImage: AssetImage(note.keeper.avatarAsset),
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset(
-                          note.keeper.signalBand == KeeperSignalBand.bloom
-                              ? CapsuleArtwork.bloomMark
-                              : CapsuleArtwork.museMark,
-                          width: 14,
-                          height: 14,
-                          filterQuality: FilterQuality.high,
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          '${note.keeper.ageLine}  · ${note.keeper.placeLine}',
+                          note.keeper.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: Color(0xFFBD88FF),
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Image.asset(
+                              note.keeper.signalBand == KeeperSignalBand.bloom
+                                  ? CapsuleArtwork.bloomMark
+                                  : CapsuleArtwork.museMark,
+                              width: 14,
+                              height: 14,
+                              filterQuality: FilterQuality.high,
+                            ),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                '${note.keeper.ageLine}  · ${note.keeper.placeLine}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFFBD88FF),
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
+                    ),
+                  ),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: const Icon(
+                      Icons.more_horiz_rounded,
+                      color: Color(0xFF55415A),
+                      size: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 13),
+              Text(
+                note.messageLine,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.86),
+                  fontSize: 13,
+                  height: 1.34,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 13),
+              if (previewSnap != null) ...[
+                _SquareMediaTile(snap: previewSnap),
+                const SizedBox(height: 10),
+              ],
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _SoftCapsuleChip(
+                    label: openingLabel,
+                    color: note.canOpenNow
+                        ? const Color(0xFFFF4747)
+                        : const Color(0xFFBBCDFF),
+                  ),
+                  _SoftCapsuleChip(
+                    label: 'Sealed ${capsuleDateStamp(note.sealedAt)}',
+                    color: const Color(0xFFD6B7FF),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onVisitors,
+                      child: _SquareVisitorSummary(note: note),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  CapsuleAssetTap(
+                    assetName: CapsuleArtwork.sayButton,
+                    width: 82,
+                    height: 33,
+                    semanticLabel: 'Say something',
+                    onTap: onSay,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SquareVisitorSummary extends StatelessWidget {
+  const _SquareVisitorSummary({required this.note});
+
+  final CapsuleSquareNote note;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleVisitors = note.visitorTrail.take(4).toList();
+    return Row(
+      children: [
+        SizedBox(
+          height: 30,
+          width: 82,
+          child: Stack(
+            children: [
+              for (var index = 0; index < visibleVisitors.length; index++)
+                Positioned(
+                  left: index * 17,
+                  child: CircleAvatar(
+                    radius: 15,
+                    backgroundColor: const Color(0xFF4E3D54),
+                    child: CircleAvatar(
+                      radius: 13.5,
+                      backgroundImage: AssetImage(
+                        visibleVisitors[index].avatarAsset,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            '${note.leftMessageCount} comments',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.52),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
                     ),
                   ],
                 ),
@@ -453,16 +582,10 @@ class _SquareNoteCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 13),
-          Row(
-            children: [
-              for (final snap in note.mediaSnaps.take(2)) ...[
-                Expanded(child: _SquareMediaTile(snap: snap)),
-                if (snap != note.mediaSnaps.take(2).last)
-                  const SizedBox(width: 8),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
+          if (previewSnap != null) ...[
+            _SquareMediaTile(snap: previewSnap),
+            const SizedBox(height: 10),
+          ],
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -545,7 +668,11 @@ class _SquareMediaTile extends StatelessWidget {
       aspectRatio: 1,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return CapsuleMediaTile(snap: snap, size: constraints.maxWidth);
+          return CapsuleMediaTile(
+            snap: snap,
+            size: constraints.maxWidth,
+            showMotionIndicator: false,
+          );
         },
       ),
     );

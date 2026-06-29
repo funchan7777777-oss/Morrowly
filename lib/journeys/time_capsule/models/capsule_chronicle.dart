@@ -54,6 +54,20 @@ class CapsuleOpeningPreset {
   final String? noteLine;
 }
 
+class CapsuleSquareComment {
+  const CapsuleSquareComment({
+    required this.commentKey,
+    required this.author,
+    required this.messageLine,
+    required this.timeAgoLine,
+  });
+
+  final String commentKey;
+  final CapsuleKeeper author;
+  final String messageLine;
+  final String timeAgoLine;
+}
+
 class CapsuleSquareNote {
   const CapsuleSquareNote({
     required this.noteKey,
@@ -65,6 +79,7 @@ class CapsuleSquareNote {
     required this.visibility,
     required this.visitorTrail,
     required this.leftMessageCount,
+    this.comments = const [],
     this.isLocalDraft = false,
   });
 
@@ -77,10 +92,39 @@ class CapsuleSquareNote {
   final CapsuleVisibility visibility;
   final List<CapsuleKeeper> visitorTrail;
   final int leftMessageCount;
+  final List<CapsuleSquareComment> comments;
   final bool isLocalDraft;
 
   bool get canOpenNow {
     return !DateTime.now().isBefore(openingAt);
+  }
+
+  CapsuleSquareNote copyWith({
+    String? noteKey,
+    CapsuleKeeper? keeper,
+    String? messageLine,
+    List<CapsuleMediaSnap>? mediaSnaps,
+    DateTime? sealedAt,
+    DateTime? openingAt,
+    CapsuleVisibility? visibility,
+    List<CapsuleKeeper>? visitorTrail,
+    int? leftMessageCount,
+    List<CapsuleSquareComment>? comments,
+    bool? isLocalDraft,
+  }) {
+    return CapsuleSquareNote(
+      noteKey: noteKey ?? this.noteKey,
+      keeper: keeper ?? this.keeper,
+      messageLine: messageLine ?? this.messageLine,
+      mediaSnaps: mediaSnaps ?? this.mediaSnaps,
+      sealedAt: sealedAt ?? this.sealedAt,
+      openingAt: openingAt ?? this.openingAt,
+      visibility: visibility ?? this.visibility,
+      visitorTrail: visitorTrail ?? this.visitorTrail,
+      leftMessageCount: leftMessageCount ?? this.leftMessageCount,
+      comments: comments ?? this.comments,
+      isLocalDraft: isLocalDraft ?? this.isLocalDraft,
+    );
   }
 }
 

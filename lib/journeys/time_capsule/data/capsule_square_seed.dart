@@ -551,6 +551,29 @@ abstract final class CapsuleSquareSeed {
         visibility: CapsuleVisibility.publicSquare,
         visitorTrail: keepers,
         leftMessageCount: 156,
+        comments: [
+          CapsuleSquareComment(
+            commentKey: 'rain-elara',
+            author: bloomKeepers[1],
+            messageLine:
+                'This feels like a promise made at sunset. I hope future you finds the same warmth again.',
+            timeAgoLine: '18 min ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'rain-kai',
+            author: museKeepers[6],
+            messageLine:
+                'The beach table makes the memory feel unhurried. Save that softness.',
+            timeAgoLine: '42 min ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'rain-talia',
+            author: bloomKeepers[11],
+            messageLine:
+                'Leaving a wish here: may the future version of this day still know how to laugh.',
+            timeAgoLine: '1h ago',
+          ),
+        ],
       ),
       CapsuleSquareNote(
         noteKey: 'square-window-return',
@@ -563,6 +586,29 @@ abstract final class CapsuleSquareSeed {
         visibility: CapsuleVisibility.publicSquare,
         visitorTrail: keepers.reversed.toList(),
         leftMessageCount: 92,
+        comments: [
+          CapsuleSquareComment(
+            commentKey: 'window-rory',
+            author: museKeepers[9],
+            messageLine:
+                'Quiet seasons count too. This one looks like it taught you how to breathe slower.',
+            timeAgoLine: '7 min ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'window-maren',
+            author: bloomKeepers[14],
+            messageLine:
+                'I like how ordinary this feels. Sometimes that is exactly the proof worth keeping.',
+            timeAgoLine: '33 min ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'window-luca',
+            author: museKeepers[5],
+            messageLine:
+                'When it opens, I hope the color comes back even brighter than you expected.',
+            timeAgoLine: '2h ago',
+          ),
+        ],
       ),
       CapsuleSquareNote(
         noteKey: 'square-coffee-letter',
@@ -587,6 +633,29 @@ abstract final class CapsuleSquareSeed {
         visibility: CapsuleVisibility.publicSquare,
         visitorTrail: keepers.sublist(10),
         leftMessageCount: 118,
+        comments: [
+          CapsuleSquareComment(
+            commentKey: 'harbor-noah',
+            author: museKeepers[18],
+            messageLine:
+                'Ordinary evenings are usually the ones that become landmarks later.',
+            timeAgoLine: '12 min ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'harbor-rhea',
+            author: bloomKeepers[12],
+            messageLine:
+                'This sounds like the kind of promise that grows quietly instead of loudly.',
+            timeAgoLine: '59 min ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'harbor-adam',
+            author: museKeepers[19],
+            messageLine:
+                'Leaving a marker here for the future: remember who made simple feel enough.',
+            timeAgoLine: '3h ago',
+          ),
+        ],
       ),
       CapsuleSquareNote(
         noteKey: 'square-arcade-morning',
@@ -623,6 +692,29 @@ abstract final class CapsuleSquareSeed {
         visibility: CapsuleVisibility.publicSquare,
         visitorTrail: keepers,
         leftMessageCount: 201,
+        comments: [
+          CapsuleSquareComment(
+            commentKey: 'valley-finn',
+            author: museKeepers[16],
+            messageLine:
+                'Borrowing quiet from a better day is such a gentle way to survive a loud year.',
+            timeAgoLine: '24 min ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'valley-sofia',
+            author: bloomKeepers[5],
+            messageLine:
+                'This capsule feels like shade after a long walk. I hope it still cools the future.',
+            timeAgoLine: '1h ago',
+          ),
+          CapsuleSquareComment(
+            commentKey: 'valley-jules',
+            author: museKeepers[4],
+            messageLine:
+                'Five years is far away, but this kind of calm usually knows how to wait.',
+            timeAgoLine: '4h ago',
+          ),
+        ],
       ),
     ];
   }

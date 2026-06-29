@@ -42,6 +42,26 @@ class LocalGateStore {
     return _preferences.getString(_profileNameKey) ?? '';
   }
 
+  String get savedHandle {
+    return _preferences.getString(_profileHandleKey) ?? '';
+  }
+
+  String get savedSignatureLine {
+    return _preferences.getString(_profileSignatureKey) ?? '';
+  }
+
+  String get savedAvatarPath {
+    return _preferences.getString(_profileAvatarPathKey) ?? '';
+  }
+
+  String get savedGender {
+    return _preferences.getString(_profileGenderKey) ?? '';
+  }
+
+  String get savedRegion {
+    return _preferences.getString(_profileRegionKey) ?? 'United States';
+  }
+
   Future<void> setLegalAgreementAccepted(bool accepted) async {
     await _preferences.setBool(_legalAgreementKey, accepted);
   }

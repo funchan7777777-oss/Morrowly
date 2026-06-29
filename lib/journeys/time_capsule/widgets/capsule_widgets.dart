@@ -179,11 +179,13 @@ class CapsuleMediaTile extends StatelessWidget {
     required this.snap,
     this.size = 86,
     this.onRemove,
+    this.showMotionIndicator = true,
   });
 
   final CapsuleMediaSnap snap;
   final double size;
   final VoidCallback? onRemove;
+  final bool showMotionIndicator;
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +201,7 @@ class CapsuleMediaTile extends StatelessWidget {
               child: _CapsuleMediaCover(snap: snap),
             ),
           ),
-          if (snap.kind == CapsuleMediaKind.motion)
+          if (showMotionIndicator && snap.kind == CapsuleMediaKind.motion)
             Center(
               child: Container(
                 width: 34,
