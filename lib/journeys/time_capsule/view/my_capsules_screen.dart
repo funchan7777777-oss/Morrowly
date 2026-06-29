@@ -205,7 +205,9 @@ class _MyCapsuleCard extends StatelessWidget {
             ),
           ),
           Text(
-            canOpen ? 'Can be opened' : 'Open in 1 year',
+            canOpen
+                ? 'Can be opened'
+                : 'Opens ${capsuleDateStamp(capsule.openingAt)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(

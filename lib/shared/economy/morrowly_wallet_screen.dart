@@ -313,9 +313,9 @@ Future<void> showMorrowlyInsufficientCoinsDialog(
     ),
   );
   if (goWallet == true && context.mounted) {
-    await Navigator.of(
-      context,
-    ).push<void>(MaterialPageRoute(builder: (_) => const MorrowlyWalletScreen()));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const MorrowlyWalletScreen()),
+    );
   }
 }
 

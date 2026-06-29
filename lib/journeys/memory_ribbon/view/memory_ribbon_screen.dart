@@ -1474,11 +1474,7 @@ class _ProfileStats extends StatelessWidget {
         _StatButton(value: user.followCount, label: 'Follow', onTap: onFollow),
         _StatButton(value: user.fansCount, label: 'Fans', onTap: onFans),
         _StatButton(value: user.likeCount, label: 'Get likes', onTap: onLikes),
-        _StatButton(
-          value: capsuleCount,
-          label: 'Capsule',
-          onTap: onCapsules,
-        ),
+        _StatButton(value: capsuleCount, label: 'Capsule', onTap: onCapsules),
       ],
     );
   }

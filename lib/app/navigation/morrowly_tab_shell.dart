@@ -96,7 +96,8 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
       return;
     }
     _welcomeGiftChecked = true;
-    final gifted = await MorrowlyWalletStore.instance.grantWelcomeGiftIfNeeded();
+    final gifted = await MorrowlyWalletStore.instance
+        .grantWelcomeGiftIfNeeded();
     if (!mounted || gifted <= 0) {
       return;
     }

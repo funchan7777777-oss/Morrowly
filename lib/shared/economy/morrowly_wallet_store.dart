@@ -100,11 +100,7 @@ abstract final class MorrowlyCoinCosts {
     amount: 50,
   );
 
-  static const paidFeatures = [
-    releaseLifeSnippet,
-    sealCapsule,
-    openCapsule,
-  ];
+  static const paidFeatures = [releaseLifeSnippet, sealCapsule, openCapsule];
 }
 
 enum MorrowlyPurchaseStartStatus {
