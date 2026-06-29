@@ -5,6 +5,7 @@ import 'package:morrowly/journeys/present_grounding/view/life_snippet_chat_scree
 import 'package:morrowly/journeys/present_grounding/view/life_snippet_detail_screen.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
 
 class LifeSnippetProfileScreen extends StatefulWidget {
   const LifeSnippetProfileScreen({super.key, required this.userKey});
@@ -26,6 +27,19 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
         animation: _store,
         builder: (context, _) {
           final user = _store.userByKey(widget.userKey);
+          final profileHidden =
+              !user.isCurrentUser && _store.shouldHideUserProfile(user.userKey);
+          if (profileHidden) {
+            return Stack(
+              children: [
+                const _HiddenProfilePanel(),
+                LifeTopBar(
+                  title: 'User home',
+                  onBack: () => Navigator.of(context).pop(),
+                ),
+              ],
+            );
+          }
           final posts = _store.postsForUser(user.userKey);
           return Stack(
             children: [
@@ -59,7 +73,8 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
                           user: user,
                           followStatus: _store.followStatusFor(user.userKey),
                           onFollow: () => _requestFollow(user.userKey),
-                          onChat: user.isCurrentUser
+                          onChat: user.isCurrentUser ||
+                                  _store.isUserBlocked(user.userKey)
                               ? null
                               : () => _openChat(user.userKey),
                         ),
@@ -152,11 +167,53 @@ class _LifeSnippetProfileScreenState extends State<LifeSnippetProfileScreen> {
     );
   }
 
-  Future<void> _showUserModeration(String userKey) {
-    return showLifeModerationSheet(
+  Future<void> _showUserModeration(String userKey) async {
+    final result = await showMorrowlyModerationFlow(
       context: context,
-      onReport: () => _store.reportUser(userKey),
+      target: _store.moderationTargetForUser(userKey),
+      onReport: (reason) => _store.reportUser(userKey, reason: reason),
       onBlock: () => _store.blockUser(userKey),
+    );
+    if (result == null || !mounted) {
+      return;
+    }
+    if (_store.shouldHideUserProfile(userKey)) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {});
+    }
+  }
+}
+
+class _HiddenProfilePanel extends StatelessWidget {
+  const _HiddenProfilePanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxWidth: 360),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+          decoration: BoxDecoration(
+            color: lifePanel.withValues(alpha: 0.86),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: Text(
+            'This profile is hidden on this device.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 13,
+              height: 1.34,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

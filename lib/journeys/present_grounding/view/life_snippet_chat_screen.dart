@@ -45,6 +45,17 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
             animation: _store,
             builder: (context, _) {
               final user = _store.userByKey(widget.userKey);
+              if (_store.isUserBlocked(widget.userKey)) {
+                return Stack(
+                  children: [
+                    const _HiddenChatPanel(),
+                    LifeTopBar(
+                      title: user.displayName,
+                      onBack: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                );
+              }
               final messages = _store.chatMessagesFor(widget.userKey);
               return Stack(
                 children: [
@@ -147,7 +158,8 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
   }
 
   Future<void> _openVideoCall() async {
-    if (!_store.isMutualFollow(widget.userKey)) {
+    if (_store.isUserBlocked(widget.userKey) ||
+        !_store.isMutualFollow(widget.userKey)) {
       await showLifeRelationshipGateDialog(context);
       return;
     }
@@ -165,6 +177,39 @@ class _LifeSnippetChatScreenState extends State<LifeSnippetChatScreen> {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => LifeSnippetProfileScreen(userKey: userKey),
+      ),
+    );
+  }
+}
+
+class _HiddenChatPanel extends StatelessWidget {
+  const _HiddenChatPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Container(
+          width: double.infinity,
+          constraints: const BoxConstraints(maxWidth: 360),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 22),
+          decoration: BoxDecoration(
+            color: lifePanel.withValues(alpha: 0.86),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: Text(
+            'This chat is hidden on this device.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 13,
+              height: 1.34,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
       ),
     );
   }
