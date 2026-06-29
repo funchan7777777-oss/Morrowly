@@ -75,7 +75,7 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                             ),
                             const SizedBox(height: 12),
                             if (posts.isEmpty)
-                              _EmptyFeedPanel(filter: _filter)
+                              const _EmptyFeedPanel()
                             else
                               for (final post in posts) ...[
                                 _LifePostCard(
@@ -531,55 +531,20 @@ class _CountAction extends StatelessWidget {
 }
 
 class _EmptyFeedPanel extends StatelessWidget {
-  const _EmptyFeedPanel({required this.filter});
-
-  final LifeSnippetFeedFilter filter;
+  const _EmptyFeedPanel();
 
   @override
   Widget build(BuildContext context) {
-    final followed = filter == LifeSnippetFeedFilter.followed;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
-      decoration: BoxDecoration(
-        color: lifePanel.withValues(alpha: 0.88),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        children: [
-          Image.asset(
-            followed ? LifeSnippetAssets.followIcon : LifeSnippetAssets.compose,
-            width: 62,
-            height: 62,
-            filterQuality: FilterQuality.high,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            followed
-                ? 'No approved follows yet'
-                : 'No visible snippets right now',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            followed
-                ? 'Follow requests wait for the other person to approve before their posts move here.'
-                : 'New posts appear only after moderation approves them.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.56),
-              fontSize: 12,
-              height: 1.35,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 28),
+      child: Center(
+        child: Image.asset(
+          LifeSnippetAssets.empty,
+          width: 188,
+          height: 214,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        ),
       ),
     );
   }

@@ -22,6 +22,7 @@ abstract final class LifeSnippetAssets {
   static const report = 'assets/images/Outbox.png';
   static const goNow = 'assets/images/Sundial.png';
   static const titleUnderline = 'assets/images/Thread.png';
+  static const empty = 'assets/images/Reminder.png';
 }
 
 const lifePurple = Color(0xFFB66DFF);
