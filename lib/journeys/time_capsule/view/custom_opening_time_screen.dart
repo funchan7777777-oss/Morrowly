@@ -37,10 +37,6 @@ class _CustomOpeningTimeScreenState extends State<CustomOpeningTimeScreen> {
     return CapsuleStage(
       child: Stack(
         children: [
-          CapsuleTopBar(
-            title: 'Custom Time',
-            onBack: () => Navigator.of(context).pop(),
-          ),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -55,8 +51,8 @@ class _CustomOpeningTimeScreenState extends State<CustomOpeningTimeScreen> {
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 118,
-                    extra: 48,
+                    minimum: 104,
+                    extra: 38,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -125,6 +121,10 @@ class _CustomOpeningTimeScreenState extends State<CustomOpeningTimeScreen> {
                 ),
               );
             },
+          ),
+          CapsuleTopBar(
+            title: 'Custom Time',
+            onBack: () => Navigator.of(context).pop(),
           ),
         ],
       ),

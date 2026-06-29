@@ -32,7 +32,7 @@ class CapsuleTopBar extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         18,
-        MorrowlyFrameGuard.topClearance(context, minimum: 58, extra: 10),
+        MorrowlyFrameGuard.topClearance(context, minimum: 48),
         18,
         0,
       ),

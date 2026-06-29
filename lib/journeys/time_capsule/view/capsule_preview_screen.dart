@@ -29,10 +29,6 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
     return CapsuleStage(
       child: Stack(
         children: [
-          CapsuleTopBar(
-            title: 'Preview Capsule',
-            onBack: () => Navigator.of(context).pop(),
-          ),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -48,8 +44,8 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 118,
-                    extra: 48,
+                    minimum: 104,
+                    extra: 38,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -145,6 +141,10 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
                 ),
               );
             },
+          ),
+          CapsuleTopBar(
+            title: 'Preview Capsule',
+            onBack: () => Navigator.of(context).pop(),
           ),
         ],
       ),

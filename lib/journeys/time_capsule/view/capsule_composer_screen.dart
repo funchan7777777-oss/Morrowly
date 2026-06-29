@@ -17,28 +17,6 @@ class CapsuleComposerScreen extends StatelessWidget {
     return CapsuleStage(
       child: Stack(
         children: [
-          CapsuleTopBar(
-            title: '',
-            onBack: () => Navigator.of(context).pop(),
-            trailing: CapsuleAssetTap(
-              assetName: CapsuleArtwork.myCapsulesSmall,
-              width: 112,
-              height: 40,
-              semanticLabel: 'My capsules',
-              onTap: () {
-                Navigator.of(context).push<void>(
-                  MaterialPageRoute(
-                    builder: (_) => MyCapsulesScreen(
-                      capsules: CapsuleSquareSeed.squareNotes()
-                          .take(4)
-                          .toList(),
-                      coinBalance: coinBalance,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -48,14 +26,19 @@ class CapsuleComposerScreen extends StatelessWidget {
                 phoneGutter: 24,
               );
               final side = (width - contentWidth) / 2;
+              final heroWidth = (width + 42).clamp(0.0, 448.0).toDouble();
+              final heroHeight = heroWidth / (780 / 764);
+              final heroStageHeight = (heroHeight - 78)
+                  .clamp(0.0, heroHeight)
+                  .toDouble();
 
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 116,
-                    extra: 48,
+                    minimum: 102,
+                    extra: 36,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -96,12 +79,22 @@ class CapsuleComposerScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 26),
                     Center(
-                      child: Image.asset(
-                        CapsuleArtwork.heroJar,
-                        width: contentWidth * 0.82,
-                        height: contentWidth * 0.66,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
+                      child: SizedBox(
+                        height: heroStageHeight,
+                        child: OverflowBox(
+                          alignment: Alignment.topCenter,
+                          minWidth: heroWidth,
+                          maxWidth: heroWidth,
+                          minHeight: heroHeight,
+                          maxHeight: heroHeight,
+                          child: Image.asset(
+                            CapsuleArtwork.heroJar,
+                            width: heroWidth,
+                            height: heroHeight,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.high,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -137,6 +130,28 @@ class CapsuleComposerScreen extends StatelessWidget {
                 ),
               );
             },
+          ),
+          CapsuleTopBar(
+            title: '',
+            onBack: () => Navigator.of(context).pop(),
+            trailing: CapsuleAssetTap(
+              assetName: CapsuleArtwork.myCapsulesSmall,
+              width: 120,
+              height: 34,
+              semanticLabel: 'My capsules',
+              onTap: () {
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => MyCapsulesScreen(
+                      capsules: CapsuleSquareSeed.squareNotes()
+                          .take(4)
+                          .toList(),
+                      coinBalance: coinBalance,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -174,50 +189,55 @@ class _CraftChoiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: const Color(0xFF54405A).withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Image.asset(
-              assetName,
-              width: 56,
-              height: 56,
-              filterQuality: FilterQuality.high,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.42),
-                      fontSize: 12,
-                      height: 1.28,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+    return Semantics(
+      label: title,
+      button: true,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: const Color(0xFF54405A).withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              Image.asset(
+                assetName,
+                width: 56,
+                height: 56,
+                filterQuality: FilterQuality.high,
               ),
-            ),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.42),
+                        fontSize: 12,
+                        height: 1.28,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

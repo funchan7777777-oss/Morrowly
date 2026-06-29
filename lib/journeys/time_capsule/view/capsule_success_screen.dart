@@ -15,10 +15,6 @@ class CapsuleSuccessScreen extends StatelessWidget {
     return CapsuleStage(
       child: Stack(
         children: [
-          CapsuleTopBar(
-            title: 'Sealed successfully',
-            onBack: () => Navigator.of(context).pop(capsule),
-          ),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -33,8 +29,8 @@ class CapsuleSuccessScreen extends StatelessWidget {
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 128,
-                    extra: 58,
+                    minimum: 112,
+                    extra: 46,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -104,6 +100,10 @@ class CapsuleSuccessScreen extends StatelessWidget {
                 ),
               );
             },
+          ),
+          CapsuleTopBar(
+            title: 'Sealed successfully',
+            onBack: () => Navigator.of(context).pop(capsule),
           ),
         ],
       ),

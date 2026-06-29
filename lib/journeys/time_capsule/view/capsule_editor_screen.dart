@@ -61,10 +61,6 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
       resizeForKeyboard: true,
       child: Stack(
         children: [
-          CapsuleTopBar(
-            title: 'Edit Capsule',
-            onBack: () => Navigator.of(context).pop(),
-          ),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -79,8 +75,8 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 116,
-                    extra: 48,
+                    minimum: 102,
+                    extra: 36,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -101,7 +97,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     _MessageField(
                       controller: _messageController,
                       onChanged: (value) {
@@ -110,7 +106,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     const Text(
                       'Add photos/videos (optional)',
                       style: TextStyle(
@@ -119,7 +115,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     _MediaStrip(
                       selected: _draft.mediaSnaps,
                       onAdd: _showMediaPicker,
@@ -134,7 +130,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     const Text(
                       'Select opening time',
                       style: TextStyle(
@@ -152,14 +148,14 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 14),
                     _PresetGrid(
                       selectedKey: _selectedPresetKey,
                       openingAt: _draft.openingAt,
                       onPreset: _selectPreset,
                       onCustom: _openCustomTime,
                     ),
-                    const SizedBox(height: 34),
+                    const SizedBox(height: 28),
                     Center(
                       child: CapsuleAssetTap(
                         assetName: CapsuleArtwork.sealedCapsules,
@@ -186,6 +182,10 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                 ),
               );
             },
+          ),
+          CapsuleTopBar(
+            title: 'Edit Capsule',
+            onBack: () => Navigator.of(context).pop(),
           ),
         ],
       ),
@@ -280,7 +280,7 @@ class _MessageField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 214,
+      height: 188,
       padding: const EdgeInsets.fromLTRB(18, 10, 18, 10),
       decoration: BoxDecoration(
         color: const Color(0xFF4E4053),
@@ -332,40 +332,42 @@ class _MediaStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const tileSize = 76.0;
     return SizedBox(
-      height: 92,
+      height: tileSize + 8,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
           for (final snap in selected) ...[
             CapsuleMediaTile(
               snap: snap,
-              size: 86,
+              size: tileSize,
               onRemove: () => onRemove(snap),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
           ],
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onAdd,
-            child: Container(
-              width: 86,
-              height: 86,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4D3A53),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.22),
-                  width: 1.2,
+          if (selected.length < 6)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onAdd,
+              child: Container(
+                width: tileSize,
+                height: tileSize,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4D3A53),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.22),
+                    width: 1.2,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: Color(0xFF8F7596),
+                  size: 34,
                 ),
               ),
-              child: const Icon(
-                Icons.add_rounded,
-                color: Color(0xFF8F7596),
-                size: 34,
-              ),
             ),
-          ),
         ],
       ),
     );
@@ -388,38 +390,76 @@ class _PresetGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final presets = CapsuleSquareSeed.openingPresets(DateTime.now());
-    return GridView.count(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: 1.16,
-      children: [
-        for (final preset in presets)
-          _PresetTile(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 10.0;
+        const tileHeight = 72.0;
+        final tileWidth = ((constraints.maxWidth - gap * 2) / 3)
+            .clamp(0.0, double.infinity)
+            .toDouble();
+        final customWidth = tileWidth * 2 + gap;
+
+        Widget presetTile(CapsuleOpeningPreset preset, {double? width}) {
+          return _PresetTile(
+            width: width ?? tileWidth,
+            height: tileHeight,
             title: preset.label,
             date: capsuleDateStamp(preset.openingAt),
             selected: selectedKey == preset.presetKey,
             onTap: () => onPreset(preset),
-          ),
-        _PresetTile(
-          title: 'Custom Time',
-          date: selectedKey == 'custom'
-              ? '${capsuleDateStamp(openingAt)} ${capsuleClockStamp(openingAt)}'
-              : 'Choose a specific time',
-          selected: selectedKey == 'custom',
-          onTap: onCustom,
-          customIcon: true,
-        ),
-      ],
+          );
+        }
+
+        return Column(
+          children: [
+            Row(
+              children: [
+                for (final preset in presets.take(3)) ...[
+                  presetTile(preset),
+                  if (preset != presets.take(3).last)
+                    const SizedBox(width: gap),
+                ],
+              ],
+            ),
+            const SizedBox(height: gap),
+            Row(
+              children: [
+                for (final preset in presets.skip(3).take(3)) ...[
+                  presetTile(preset),
+                  if (preset != presets.skip(3).take(3).last)
+                    const SizedBox(width: gap),
+                ],
+              ],
+            ),
+            const SizedBox(height: gap),
+            Row(
+              children: [
+                presetTile(presets[6]),
+                const SizedBox(width: gap),
+                _PresetTile(
+                  width: customWidth,
+                  height: tileHeight,
+                  title: 'Custom Time',
+                  date: selectedKey == 'custom'
+                      ? '${capsuleDateStamp(openingAt)} ${capsuleClockStamp(openingAt)}'
+                      : 'Choose a specific time',
+                  selected: selectedKey == 'custom',
+                  onTap: onCustom,
+                  customIcon: true,
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
 class _PresetTile extends StatelessWidget {
   const _PresetTile({
+    required this.width,
+    required this.height,
     required this.title,
     required this.date,
     required this.selected,
@@ -427,6 +467,8 @@ class _PresetTile extends StatelessWidget {
     this.customIcon = false,
   });
 
+  final double width;
+  final double height;
   final String title;
   final String date;
   final bool selected;
@@ -435,55 +477,63 @@ class _PresetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFBF73FF) : const Color(0xFF4C3752),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
+    return Semantics(
+      label: '$title $date',
+      button: true,
+      selected: selected,
+      excludeSemantics: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          width: width,
+          height: height,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFFBF73FF) : const Color(0xFF4C3752),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
-                ),
-                if (customIcon)
-                  Image.asset(
-                    CapsuleArtwork.customTimeGlyph,
-                    width: 18,
-                    height: 18,
-                    filterQuality: FilterQuality.high,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              date,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: selected ? 0.82 : 0.34),
-                fontSize: 11,
-                height: 1.2,
-                fontWeight: FontWeight.w700,
+                  if (customIcon)
+                    Image.asset(
+                      CapsuleArtwork.customTimeGlyph,
+                      width: 18,
+                      height: 18,
+                      filterQuality: FilterQuality.high,
+                    ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                date,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: selected ? 0.82 : 0.34),
+                  fontSize: 11,
+                  height: 1.2,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

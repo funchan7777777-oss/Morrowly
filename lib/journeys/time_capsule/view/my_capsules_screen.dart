@@ -33,11 +33,6 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
     return CapsuleStage(
       child: Stack(
         children: [
-          CapsuleTopBar(
-            title: 'My capsules',
-            onBack: () => Navigator.of(context).pop(),
-            trailing: CapsuleCoinAmount(amount: _coinBalance),
-          ),
           LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -52,8 +47,8 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
                   side,
                   MorrowlyFrameGuard.topClearance(
                     context,
-                    minimum: 118,
-                    extra: 48,
+                    minimum: 104,
+                    extra: 38,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
@@ -81,6 +76,11 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
                 },
               );
             },
+          ),
+          CapsuleTopBar(
+            title: 'My capsules',
+            onBack: () => Navigator.of(context).pop(),
+            trailing: CapsuleCoinAmount(amount: _coinBalance),
           ),
         ],
       ),
