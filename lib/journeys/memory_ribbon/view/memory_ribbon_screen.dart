@@ -15,6 +15,7 @@ import 'package:morrowly/journeys/tomorrow_compass/data/tomorrow_compass_store.d
 import 'package:morrowly/journeys/welcome_gate/data/local_gate_store.dart';
 import 'package:morrowly/journeys/welcome_gate/models/legal_document_marker.dart';
 import 'package:morrowly/journeys/welcome_gate/view/legal_document_viewer.dart';
+import 'package:morrowly/shared/data/morrowly_country_names.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
@@ -300,6 +301,7 @@ class ProfileSettingsScreen extends StatelessWidget {
         label: 'Deletion of account',
         asset: ProfileCenterAssets.settingsDelete,
         onTap: () => _confirmSignOut(context, deleteAccount: true),
+        isDestructive: true,
       ),
     ];
 
@@ -1068,38 +1070,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   Future<void> _chooseCountry() async {
-    final countries = ['United States', 'Australia', 'Canada', 'France'];
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return SafeArea(
-          child: Container(
-            margin: const EdgeInsets.all(18),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: lifePanel,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final country in countries)
-                  ListTile(
-                    title: Text(
-                      country,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    onTap: () => Navigator.of(context).pop(country),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
+      barrierColor: Colors.black.withValues(alpha: 0.58),
+      isScrollControlled: true,
+      builder: (context) => _CountrySelectionSheet(selectedCountry: _country),
     );
     if (selected != null) {
       setState(() => _country = selected);
@@ -1908,11 +1884,13 @@ class _SettingItem {
     required this.label,
     required this.asset,
     required this.onTap,
+    this.isDestructive = false,
   });
 
   final String label;
   final String asset;
   final VoidCallback onTap;
+  final bool isDestructive;
 }
 
 class _SettingCard extends StatelessWidget {
@@ -1922,16 +1900,53 @@ class _SettingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelColor = item.isDestructive
+        ? const Color(0xFFFF3A78)
+        : const Color(0xFFB9A8C0);
+
     return Semantics(
       label: item.label,
       button: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: item.onTap,
-        child: Image.asset(
-          item.asset,
-          fit: BoxFit.fill,
-          filterQuality: FilterQuality.high,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              item.asset,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.high,
+            ),
+            Align(
+              alignment: const Alignment(0, 0.36),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: labelColor,
+                      fontSize: 13,
+                      height: 1.08,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.24),
+                          blurRadius: 6,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -2617,6 +2632,146 @@ class _EditInput extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
+        ),
+      ),
+    );
+  }
+}
+
+class _CountrySelectionSheet extends StatefulWidget {
+  const _CountrySelectionSheet({required this.selectedCountry});
+
+  final String selectedCountry;
+
+  @override
+  State<_CountrySelectionSheet> createState() => _CountrySelectionSheetState();
+}
+
+class _CountrySelectionSheetState extends State<_CountrySelectionSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final normalizedQuery = _query.trim().toLowerCase();
+    final countries = normalizedQuery.isEmpty
+        ? morrowlyCountryNames
+        : morrowlyCountryNames
+              .where(
+                (country) => country.toLowerCase().contains(normalizedQuery),
+              )
+              .toList(growable: false);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SafeArea(
+        child: Container(
+          height: MediaQuery.sizeOf(context).height * 0.72,
+          margin: const EdgeInsets.all(18),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+          decoration: BoxDecoration(
+            color: lifePanel,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            children: [
+              Container(
+                height: 46,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  cursorColor: Colors.white,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    icon: Icon(
+                      Icons.search_rounded,
+                      color: Colors.white.withValues(alpha: 0.58),
+                    ),
+                    hintText: 'Search country',
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.46),
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: countries.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No country found',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.58),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        itemCount: countries.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 2),
+                        itemBuilder: (context, index) {
+                          final country = countries[index];
+                          final selected = country == widget.selectedCountry;
+                          return ListTile(
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            selected: selected,
+                            selectedTileColor: Colors.white.withValues(
+                              alpha: 0.08,
+                            ),
+                            title: Text(
+                              country,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: selected
+                                    ? FontWeight.w900
+                                    : FontWeight.w800,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                            trailing: selected
+                                ? const Icon(
+                                    Icons.check_circle_rounded,
+                                    color: lifePurple,
+                                    size: 20,
+                                  )
+                                : null,
+                            onTap: () => Navigator.of(context).pop(country),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
