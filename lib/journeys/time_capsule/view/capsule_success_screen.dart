@@ -45,11 +45,7 @@ class CapsuleSuccessScreen extends StatelessWidget {
               return Padding(
                 padding: EdgeInsets.fromLTRB(
                   0,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 106,
-                    extra: 40,
-                  ),
+                  MorrowlyFrameGuard.topBarContentClearance(context),
                   0,
                   MorrowlyFrameGuard.bottomClearance(
                     context,

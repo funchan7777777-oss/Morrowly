@@ -741,10 +741,10 @@ class _MailDetailScaffold extends StatelessWidget {
               return ListView(
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
+                  MorrowlyFrameGuard.topBarContentClearance(
                     context,
-                    minimum: 128,
-                    extra: 64,
+                    topMinimum: 58,
+                    topExtra: 10,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(

@@ -49,11 +49,7 @@ class _CustomOpeningTimeScreenState extends State<CustomOpeningTimeScreen> {
               return Padding(
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 104,
-                    extra: 38,
-                  ),
+                  MorrowlyFrameGuard.topBarContentClearance(context),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
                     context,

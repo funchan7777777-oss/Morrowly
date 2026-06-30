@@ -52,10 +52,11 @@ class _MemoryReleaseScreenState extends State<MemoryReleaseScreen> {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
+                  MorrowlyFrameGuard.topBarContentClearance(
                     context,
-                    minimum: 86,
-                    extra: 18,
+                    topMinimum: 42,
+                    topExtra: -10,
+                    gap: 20,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(

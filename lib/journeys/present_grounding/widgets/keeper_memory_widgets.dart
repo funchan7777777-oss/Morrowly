@@ -75,7 +75,7 @@ class MorrowlyMemoryTopBar extends StatelessWidget {
     this.onBack,
     this.trailing,
     this.topMinimum = 48,
-    this.topExtra = 0,
+    this.topExtra = -6,
   });
 
   final String title;

@@ -85,10 +85,12 @@ class _CapsuleDetailScreenState extends State<CapsuleDetailScreen> {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
+                  MorrowlyFrameGuard.topBarContentClearance(
                     context,
-                    minimum: 128,
-                    extra: 68,
+                    topMinimum: 38,
+                    topExtra: -16,
+                    topBarHeight: 42,
+                    gap: 24,
                   ),
                   side,
                   MorrowlyFrameGuard.bottomClearance(

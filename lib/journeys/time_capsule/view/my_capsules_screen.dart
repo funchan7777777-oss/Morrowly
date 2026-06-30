@@ -59,11 +59,7 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
               final side = (width - contentWidth) / 2;
               final contentPadding = EdgeInsets.fromLTRB(
                 side,
-                MorrowlyFrameGuard.topClearance(
-                  context,
-                  minimum: 104,
-                  extra: 38,
-                ),
+                MorrowlyFrameGuard.topBarContentClearance(context),
                 side,
                 MorrowlyFrameGuard.bottomClearance(
                   context,

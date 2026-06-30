@@ -76,10 +76,10 @@ class _KeeperLetterThreadScreenState extends State<KeeperLetterThreadScreen> {
                       return ListView(
                         padding: EdgeInsets.fromLTRB(
                           side,
-                          MorrowlyFrameGuard.topClearance(
+                          MorrowlyFrameGuard.topBarContentClearance(
                             context,
-                            minimum: 132,
-                            extra: 72,
+                            topMinimum: 58,
+                            topExtra: 10,
                           ),
                           side,
                           MorrowlyFrameGuard.bottomClearance(

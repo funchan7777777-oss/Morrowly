@@ -46,11 +46,7 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 104,
-                    extra: 38,
-                  ),
+                  MorrowlyFrameGuard.topBarContentClearance(context),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
                     context,

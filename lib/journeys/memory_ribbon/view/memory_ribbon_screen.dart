@@ -318,11 +318,7 @@ class ProfileSettingsScreen extends StatelessWidget {
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 102,
-                    extra: 34,
-                  ),
+                  MorrowlyFrameGuard.topBarContentClearance(context),
                   side,
                   34,
                 ),
@@ -500,11 +496,7 @@ class _ProfileBlacklistScreenState extends State<ProfileBlacklistScreen> {
                       return Padding(
                         padding: EdgeInsets.fromLTRB(
                           side,
-                          MorrowlyFrameGuard.topClearance(
-                            context,
-                            minimum: 102,
-                            extra: 34,
-                          ),
+                          MorrowlyFrameGuard.topBarContentClearance(context),
                           side,
                           34,
                         ),
@@ -582,11 +574,7 @@ class ProfileRelationshipListScreen extends StatelessWidget {
                   return Padding(
                     padding: EdgeInsets.fromLTRB(
                       side,
-                      MorrowlyFrameGuard.topClearance(
-                        context,
-                        minimum: 102,
-                        extra: 34,
-                      ),
+                      MorrowlyFrameGuard.topBarContentClearance(context),
                       side,
                       34,
                     ),
@@ -676,11 +664,7 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
                       return SingleChildScrollView(
                         padding: EdgeInsets.fromLTRB(
                           side,
-                          MorrowlyFrameGuard.topClearance(
-                            context,
-                            minimum: 104,
-                            extra: 36,
-                          ),
+                          MorrowlyFrameGuard.topBarContentClearance(context),
                           side,
                           32,
                         ),
@@ -843,11 +827,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: EdgeInsets.fromLTRB(
                     side,
-                    MorrowlyFrameGuard.topClearance(
-                      context,
-                      minimum: 98,
-                      extra: 30,
-                    ),
+                    MorrowlyFrameGuard.topBarContentClearance(context),
                     side,
                     34,
                   ),
@@ -1127,11 +1107,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
               return Padding(
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 104,
-                    extra: 36,
-                  ),
+                  MorrowlyFrameGuard.topBarContentClearance(context),
                   side,
                   34,
                 ),
@@ -1624,14 +1600,7 @@ class _MyPostsPanel extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Image.asset(
-            hasPending
-                ? ProfileCenterAssets.settingsGuide
-                : ProfileCenterAssets.message,
-            width: 58,
-            height: 58,
-            filterQuality: FilterQuality.high,
-          ),
+          _EmptyPostMark(hasPending: hasPending),
           const SizedBox(height: 10),
           Text(
             hasPending
@@ -1661,6 +1630,191 @@ class _MyPostsPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _EmptyPostMark extends StatelessWidget {
+  const _EmptyPostMark({required this.hasPending});
+
+  final bool hasPending;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 92,
+      height: 76,
+      child: CustomPaint(
+        painter: _EmptyPostMarkPainter(hasPending: hasPending),
+      ),
+    );
+  }
+}
+
+class _EmptyPostMarkPainter extends CustomPainter {
+  const _EmptyPostMarkPainter({required this.hasPending});
+
+  final bool hasPending;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final accent = hasPending
+        ? const Color(0xFFFFD97A)
+        : const Color(0xFFFF78C8);
+
+    final baseGlow = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          accent.withValues(alpha: 0.36),
+          const Color(0xFFB66DFF).withValues(alpha: 0.2),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromLTWH(w * 0.1, h * 0.04, w * 0.8, h * 0.86))
+      ..style = PaintingStyle.fill;
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(w * 0.5, h * 0.52),
+        width: w * 0.8,
+        height: h * 0.72,
+      ),
+      baseGlow,
+    );
+
+    final floorShadow = Paint()
+      ..color = const Color(0xFF2A1436).withValues(alpha: 0.22)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(w * 0.5, h * 0.76),
+        width: w * 0.54,
+        height: h * 0.12,
+      ),
+      floorShadow,
+    );
+
+    final backPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.16)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.22, h * 0.24, w * 0.48, h * 0.43),
+        Radius.circular(w * 0.08),
+      ),
+      backPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(w * 0.32, h * 0.18, w * 0.44, h * 0.48),
+        Radius.circular(w * 0.08),
+      ),
+      backPaint..color = Colors.white.withValues(alpha: 0.12),
+    );
+
+    final cardShadow = Paint()
+      ..color = const Color(0xFF3F2650).withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    final cardRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w * 0.3, h * 0.23, w * 0.42, h * 0.5),
+      Radius.circular(w * 0.07),
+    );
+    canvas.drawRRect(cardRect.shift(Offset(0, h * 0.035)), cardShadow);
+
+    final cardPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFFFFF), Color(0xFFEFE1FF)],
+      ).createShader(cardRect.outerRect);
+    canvas.drawRRect(cardRect, cardPaint);
+
+    final fold = Path()
+      ..moveTo(w * 0.62, h * 0.23)
+      ..lineTo(w * 0.72, h * 0.33)
+      ..lineTo(w * 0.62, h * 0.33)
+      ..close();
+    final foldPaint = Paint()
+      ..color = const Color(0xFFE9D5FF)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(fold, foldPaint);
+
+    final linePaint = Paint()
+      ..color = const Color(0xFF8754D5).withValues(alpha: 0.72)
+      ..strokeWidth = w * 0.032
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(w * 0.39, h * 0.44),
+      Offset(w * 0.58, h * 0.44),
+      linePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.39, h * 0.54),
+      Offset(w * 0.63, h * 0.54),
+      linePaint,
+    );
+
+    final badgeCenter = Offset(w * 0.68, h * 0.64);
+    final badgeRadius = w * 0.135;
+    final badgePaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: hasPending
+            ? const [Color(0xFFFFEF9E), Color(0xFFFF907A)]
+            : const [Color(0xFFFF91D3), Color(0xFFFF4F9D)],
+      ).createShader(Rect.fromCircle(center: badgeCenter, radius: badgeRadius));
+    canvas.drawCircle(badgeCenter, badgeRadius, badgePaint);
+
+    final badgeStroke = Paint()
+      ..color = Colors.white.withValues(alpha: 0.95)
+      ..strokeWidth = w * 0.032
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+    if (hasPending) {
+      canvas.drawCircle(badgeCenter, badgeRadius * 0.55, badgeStroke);
+      canvas.drawLine(
+        badgeCenter,
+        Offset(badgeCenter.dx, badgeCenter.dy - badgeRadius * 0.35),
+        badgeStroke,
+      );
+      canvas.drawLine(
+        badgeCenter,
+        Offset(badgeCenter.dx + badgeRadius * 0.34, badgeCenter.dy),
+        badgeStroke,
+      );
+    } else {
+      final check = Path()
+        ..moveTo(w * 0.61, h * 0.64)
+        ..lineTo(w * 0.67, h * 0.7)
+        ..lineTo(w * 0.76, h * 0.58);
+      canvas.drawPath(check, badgeStroke);
+    }
+
+    final sparklePaint = Paint()
+      ..color = accent.withValues(alpha: 0.74)
+      ..strokeWidth = w * 0.018
+      ..strokeCap = StrokeCap.round;
+    _drawSpark(canvas, Offset(w * 0.22, h * 0.32), w * 0.044, sparklePaint);
+    _drawSpark(canvas, Offset(w * 0.78, h * 0.24), w * 0.034, sparklePaint);
+  }
+
+  void _drawSpark(Canvas canvas, Offset center, double radius, Paint paint) {
+    canvas.drawLine(
+      Offset(center.dx - radius, center.dy),
+      Offset(center.dx + radius, center.dy),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy - radius),
+      Offset(center.dx, center.dy + radius),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _EmptyPostMarkPainter oldDelegate) {
+    return oldDelegate.hasPending != hasPending;
   }
 }
 

@@ -61,7 +61,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
         onPrivacyPolicy: () =>
             _openLegalDocument(LegalDocumentMarker.privacyPolicy),
         onAgreementMissing: _showAgreementPrompt,
-        onApplePath: _beginAppleProfilePath,
+        onApplePath: _beginAppleSignIn,
         onCredentialPath: _openLogin,
       ),
       WelcomeGateScene.signInLedger => CredentialPanelScreen(
@@ -129,7 +129,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
     setState(() => _scene = WelcomeGateScene.newAccountLedger);
   }
 
-  Future<void> _beginAppleProfilePath() async {
+  Future<void> _beginAppleSignIn() async {
     if (!_agreementAccepted) {
       _showAgreementPrompt();
       return;
@@ -165,7 +165,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
       if (!mounted) {
         return;
       }
-      setState(() => _scene = WelcomeGateScene.profileIntake);
+      await _completeAppleSignIn();
     } on SignInWithAppleAuthorizationException catch (error) {
       if (error.code == AuthorizationErrorCode.canceled) {
         return;
@@ -227,6 +227,15 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
     }
 
     setState(() => _scene = WelcomeGateScene.daybookHome);
+  }
+
+  Future<void> _completeAppleSignIn() async {
+    final seededName = _pendingSeed.profileName.trim().isEmpty
+        ? 'New Timekeeper'
+        : _pendingSeed.profileName.trim();
+    await _completeProfile(
+      ProfileIntakeDraft(keeperName: seededName, chosenHandle: seededName),
+    );
   }
 
   Future<LocalGateStore> _ensureStore() async {

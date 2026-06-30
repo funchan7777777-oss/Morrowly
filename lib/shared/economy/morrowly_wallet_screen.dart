@@ -133,11 +133,7 @@ class _MorrowlyWalletScreenState extends State<MorrowlyWalletScreen> {
                       return SingleChildScrollView(
                         padding: EdgeInsets.fromLTRB(
                           side,
-                          MorrowlyFrameGuard.topClearance(
-                            context,
-                            minimum: 112,
-                            extra: 38,
-                          ),
+                          MorrowlyFrameGuard.topBarContentClearance(context),
                           side,
                           34,
                         ),

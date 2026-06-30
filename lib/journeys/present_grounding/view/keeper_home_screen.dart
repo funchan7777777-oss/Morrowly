@@ -56,10 +56,11 @@ class _KeeperHomeScreenState extends State<KeeperHomeScreen> {
                   return SingleChildScrollView(
                     padding: EdgeInsets.fromLTRB(
                       side,
-                      MorrowlyFrameGuard.topClearance(
+                      MorrowlyFrameGuard.topBarContentClearance(
                         context,
-                        minimum: 94,
-                        extra: 26,
+                        topMinimum: 40,
+                        topExtra: -8,
+                        gap: 20,
                       ),
                       side,
                       MorrowlyFrameGuard.bottomClearance(

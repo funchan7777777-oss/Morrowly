@@ -44,11 +44,7 @@ class CapsuleComposerScreen extends StatelessWidget {
               return SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
                   side,
-                  MorrowlyFrameGuard.topClearance(
-                    context,
-                    minimum: 102,
-                    extra: 36,
-                  ),
+                  MorrowlyFrameGuard.topBarContentClearance(context),
                   side,
                   MorrowlyFrameGuard.bottomClearance(
                     context,

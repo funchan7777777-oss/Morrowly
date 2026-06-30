@@ -69,7 +69,7 @@ class CapsuleTopBar extends StatelessWidget {
     this.trailing,
     this.onBack,
     this.topMinimum = 48,
-    this.topExtra = 0,
+    this.topExtra = -6,
     this.height = 44,
   });
 

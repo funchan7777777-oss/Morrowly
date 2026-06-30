@@ -12,6 +12,18 @@ abstract final class MorrowlyFrameGuard {
     return math.max(minimum, topInset + extra);
   }
 
+  static double topBarContentClearance(
+    BuildContext context, {
+    double topMinimum = 48,
+    double topExtra = -6,
+    double topBarHeight = 44,
+    double gap = 22,
+  }) {
+    return topClearance(context, minimum: topMinimum, extra: topExtra) +
+        topBarHeight +
+        gap;
+  }
+
   static double bottomClearance(
     BuildContext context, {
     double minimum = 28,

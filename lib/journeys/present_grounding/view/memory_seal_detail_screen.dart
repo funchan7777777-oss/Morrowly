@@ -81,10 +81,12 @@ class _MemorySealDetailScreenState extends State<MemorySealDetailScreen> {
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: EdgeInsets.fromLTRB(
                       side,
-                      MorrowlyFrameGuard.topClearance(
+                      MorrowlyFrameGuard.topBarContentClearance(
                         context,
-                        minimum: 128,
-                        extra: 72,
+                        topMinimum: 50,
+                        topExtra: 4,
+                        topBarHeight: 52,
+                        gap: 20,
                       ),
                       side,
                       MorrowlyFrameGuard.bottomClearance(

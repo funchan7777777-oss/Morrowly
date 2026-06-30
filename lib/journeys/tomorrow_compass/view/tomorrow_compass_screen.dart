@@ -74,11 +74,7 @@ class _TomorrowCompassScreenState extends State<TomorrowCompassScreen> {
                             ScrollViewKeyboardDismissBehavior.onDrag,
                         padding: EdgeInsets.fromLTRB(
                           side,
-                          MorrowlyFrameGuard.topClearance(
-                            context,
-                            minimum: 102,
-                            extra: 28,
-                          ),
+                          MorrowlyFrameGuard.topBarContentClearance(context),
                           side,
                           MorrowlyFrameGuard.bottomClearance(
                             context,
@@ -114,8 +110,6 @@ class _TomorrowCompassScreenState extends State<TomorrowCompassScreen> {
                   ),
                   MorrowlyMemoryTopBar(
                     title: 'Tomorrow Compass',
-                    topMinimum: 52,
-                    topExtra: 2,
                     onBack: () => Navigator.of(context).pop(),
                     trailing: MorrowlyCoinBalancePill(
                       height: 28,
