@@ -5,7 +5,7 @@ class GateNoticeDialog extends StatelessWidget {
     super.key,
     required this.title,
     required this.message,
-    this.actionLabel = 'Got it',
+    this.actionLabel = 'Return to Morrowly',
     this.icon = Icons.info_outline,
   });
 

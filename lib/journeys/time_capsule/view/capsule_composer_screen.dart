@@ -17,9 +17,9 @@ class CapsuleComposerScreen extends StatelessWidget {
   });
 
   final int coinBalance;
-  final List<CapsuleSquareNote> capsules;
+  final List<PublicCapsuleSeal> capsules;
   final ValueChanged<int>? onCoinBalanceChanged;
-  final ValueChanged<List<CapsuleSquareNote>>? onCapsulesChanged;
+  final ValueChanged<List<PublicCapsuleSeal>>? onCapsulesChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +112,7 @@ class CapsuleComposerScreen extends StatelessWidget {
                       title: 'Picture Text Capsule',
                       subtitle: 'Write a letter to your future self or others.',
                       onTap: () =>
-                          _openEditor(context, CapsuleCraftKind.pictureLetter),
+                          _openEditor(context, CapsuleSealFormat.pictureLetter),
                     ),
                     const SizedBox(height: 16),
                     _CraftChoiceCard(
@@ -120,7 +120,7 @@ class CapsuleComposerScreen extends StatelessWidget {
                       title: 'Video capsule',
                       subtitle: 'Seal the movement and sound of this moment.',
                       onTap: () =>
-                          _openEditor(context, CapsuleCraftKind.videoMemory),
+                          _openEditor(context, CapsuleSealFormat.videoMemory),
                     ),
                     const SizedBox(height: 24),
                     Center(
@@ -169,12 +169,14 @@ class CapsuleComposerScreen extends StatelessWidget {
 
   Future<void> _openEditor(
     BuildContext context,
-    CapsuleCraftKind craftKind,
+    CapsuleSealFormat sealFormat,
   ) async {
-    final result = await Navigator.of(context).push<CapsuleSquareNote>(
+    final result = await Navigator.of(context).push<PublicCapsuleSeal>(
       MaterialPageRoute(
-        builder: (_) =>
-            CapsuleEditorScreen(craftKind: craftKind, coinBalance: coinBalance),
+        builder: (_) => CapsuleEditorScreen(
+          sealFormat: sealFormat,
+          coinBalance: coinBalance,
+        ),
       ),
     );
     if (result != null && context.mounted) {

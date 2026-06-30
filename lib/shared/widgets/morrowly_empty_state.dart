@@ -10,7 +10,7 @@ class MorrowlyEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Image.asset(
-        'assets/images/empty.png',
+        'assets/morrowly_art/ui/morrowly_ui_empty_state.png',
         width: width,
         height: height,
         fit: BoxFit.contain,

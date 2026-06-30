@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/memory_ribbon/view/memory_ribbon_screen.dart';
-import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
-import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_compose_screen.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_detail_screen.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
-import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/journeys/present_grounding/data/keeper_memory_store.dart';
+import 'package:morrowly/journeys/present_grounding/models/keeper_memory_thread.dart';
+import 'package:morrowly/journeys/present_grounding/view/memory_release_screen.dart';
+import 'package:morrowly/journeys/present_grounding/view/memory_seal_detail_screen.dart';
+import 'package:morrowly/journeys/present_grounding/view/keeper_home_screen.dart';
+import 'package:morrowly/journeys/present_grounding/widgets/keeper_memory_widgets.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
@@ -18,13 +18,13 @@ class PresentGroundingScreen extends StatefulWidget {
 }
 
 class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
-  final LifeSnippetStore _store = LifeSnippetStore.instance;
+  final KeeperMemoryStore _store = KeeperMemoryStore.instance;
   late final Future<void> _loadFuture = _store.load();
-  LifeSnippetFeedFilter _filter = LifeSnippetFeedFilter.popular;
+  MemoryShelfFilter _filter = MemoryShelfFilter.popular;
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -64,9 +64,10 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _LifeHeader(
-                              currentUser: _store.currentUser,
-                              onProfile: () => _openProfile(_store.currentUser),
+                            _MemorySquareHeader(
+                              signedInKeeper: _store.signedInKeeper,
+                              onProfile: () =>
+                                  _openProfile(_store.signedInKeeper),
                               onWallet: _openWallet,
                             ),
                             const SizedBox(height: 16),
@@ -81,24 +82,24 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                               const _EmptyFeedPanel()
                             else
                               for (final post in posts) ...[
-                                _LifePostCard(
+                                _MemorySealCard(
                                   post: post,
-                                  author: _store.userByKey(post.authorKey),
-                                  liked: _store.isPostLiked(post.postKey),
-                                  likeCount: _store.visibleLikeCount(post),
-                                  commentCount: _store.visibleCommentCount(
-                                    post,
+                                  author: _store.keeperById(
+                                    post.authorKeeperId,
                                   ),
+                                  liked: _store.isPostLiked(post.sealId),
+                                  glowCount: _store.visibleLikeCount(post),
+                                  replyCount: _store.visibleReplyCount(post),
                                   followStatus: _store.followStatusFor(
-                                    post.authorKey,
+                                    post.authorKeeperId,
                                   ),
                                   onOpen: () => _openPost(post),
                                   onAuthor: () => _openProfile(
-                                    _store.userByKey(post.authorKey),
+                                    _store.keeperById(post.authorKeeperId),
                                   ),
                                   onFollow: () =>
-                                      _requestFollow(post.authorKey),
-                                  onLike: () => _store.toggleLike(post.postKey),
+                                      _requestFollow(post.authorKeeperId),
+                                  onLike: () => _store.toggleLike(post.sealId),
                                   onComments: () =>
                                       _openPost(post, focusComposer: true),
                                   onMore: () => _showPostModeration(post),
@@ -117,7 +118,7 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                       behavior: HitTestBehavior.opaque,
                       onTap: _openCompose,
                       child: Image.asset(
-                        LifeSnippetAssets.compose,
+                        MorrowlyAssetKit.compose,
                         width: 58,
                         height: 58,
                         filterQuality: FilterQuality.high,
@@ -135,26 +136,23 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
 
   Future<void> _openCompose() async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const LifeSnippetComposeScreen()),
+      MaterialPageRoute(builder: (_) => const MemoryReleaseScreen()),
     );
   }
 
-  Future<void> _openPost(
-    LifeSnippetPost post, {
-    bool focusComposer = false,
-  }) async {
+  Future<void> _openPost(MemorySeal post, {bool focusComposer = false}) async {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => LifeSnippetDetailScreen(
-          postKey: post.postKey,
+        builder: (_) => MemorySealDetailScreen(
+          sealId: post.sealId,
           focusComposer: focusComposer,
         ),
       ),
     );
   }
 
-  Future<void> _openProfile(LifeSnippetUser user) async {
-    if (user.isCurrentUser) {
+  Future<void> _openProfile(KeeperProfile user) async {
+    if (user.belongsToSignedInKeeper) {
       await Navigator.of(context).push<void>(
         MaterialPageRoute(builder: (_) => const MemoryRibbonScreen()),
       );
@@ -163,7 +161,7 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
 
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => LifeSnippetProfileScreen(userKey: user.userKey),
+        builder: (_) => KeeperHomeScreen(keeperId: user.keeperId),
       ),
     );
   }
@@ -174,8 +172,8 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
     );
   }
 
-  Future<void> _requestFollow(String userKey) async {
-    await _store.requestFollow(userKey);
+  Future<void> _requestFollow(String keeperId) async {
+    await _store.requestFollow(keeperId);
     if (!mounted) {
       return;
     }
@@ -189,12 +187,12 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
     );
   }
 
-  Future<void> _showPostModeration(LifeSnippetPost post) async {
+  Future<void> _showPostModeration(MemorySeal post) async {
     final result = await showMorrowlyModerationFlow(
       context: context,
       target: _store.moderationTargetForPost(post),
       onReport: (reason) => _store.reportPost(post, reason: reason),
-      onBlock: () => _store.blockUser(post.authorKey),
+      onBlock: () => _store.blockUser(post.authorKeeperId),
     );
     if (result != null && mounted) {
       setState(() {});
@@ -202,14 +200,14 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
   }
 }
 
-class _LifeHeader extends StatelessWidget {
-  const _LifeHeader({
-    required this.currentUser,
+class _MemorySquareHeader extends StatelessWidget {
+  const _MemorySquareHeader({
+    required this.signedInKeeper,
     required this.onProfile,
     required this.onWallet,
   });
 
-  final LifeSnippetUser currentUser;
+  final KeeperProfile signedInKeeper;
   final VoidCallback onProfile;
   final VoidCallback onWallet;
 
@@ -221,7 +219,7 @@ class _LifeHeader extends StatelessWidget {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Image.asset(
-              'assets/images/Dam.png',
+              'assets/morrowly_art/ui/morrowly_ui_dam.png',
               width: 117,
               height: 37,
               fit: BoxFit.fill,
@@ -237,7 +235,7 @@ class _LifeHeader extends StatelessWidget {
           onTap: onWallet,
         ),
         const SizedBox(width: 10),
-        LifeAvatar(user: currentUser, radius: 18, onTap: onProfile),
+        KeeperAvatar(user: signedInKeeper, radius: 18, onTap: onProfile),
       ],
     );
   }
@@ -246,8 +244,8 @@ class _LifeHeader extends StatelessWidget {
 class _FeedFilterBar extends StatelessWidget {
   const _FeedFilterBar({required this.value, required this.onChanged});
 
-  final LifeSnippetFeedFilter value;
-  final ValueChanged<LifeSnippetFeedFilter> onChanged;
+  final MemoryShelfFilter value;
+  final ValueChanged<MemoryShelfFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -267,16 +265,16 @@ class _FeedFilterBar extends StatelessWidget {
               Expanded(
                 child: _FilterPill(
                   label: 'Popular',
-                  selected: value == LifeSnippetFeedFilter.popular,
-                  onTap: () => onChanged(LifeSnippetFeedFilter.popular),
+                  selected: value == MemoryShelfFilter.popular,
+                  onTap: () => onChanged(MemoryShelfFilter.popular),
                 ),
               ),
               const SizedBox(width: 4),
               Expanded(
                 child: _FilterPill(
                   label: 'Followed',
-                  selected: value == LifeSnippetFeedFilter.followed,
-                  onTap: () => onChanged(LifeSnippetFeedFilter.followed),
+                  selected: value == MemoryShelfFilter.followed,
+                  onTap: () => onChanged(MemoryShelfFilter.followed),
                 ),
               ),
             ],
@@ -344,13 +342,13 @@ class _FilterPill extends StatelessWidget {
   }
 }
 
-class _LifePostCard extends StatelessWidget {
-  const _LifePostCard({
+class _MemorySealCard extends StatelessWidget {
+  const _MemorySealCard({
     required this.post,
     required this.author,
     required this.liked,
-    required this.likeCount,
-    required this.commentCount,
+    required this.glowCount,
+    required this.replyCount,
     required this.followStatus,
     required this.onOpen,
     required this.onAuthor,
@@ -360,12 +358,12 @@ class _LifePostCard extends StatelessWidget {
     required this.onMore,
   });
 
-  final LifeSnippetPost post;
-  final LifeSnippetUser author;
+  final MemorySeal post;
+  final KeeperProfile author;
   final bool liked;
-  final int likeCount;
-  final int commentCount;
-  final LifeFollowStatus followStatus;
+  final int glowCount;
+  final int replyCount;
+  final KeeperLinkState followStatus;
   final VoidCallback onOpen;
   final VoidCallback onAuthor;
   final VoidCallback onFollow;
@@ -390,7 +388,7 @@ class _LifePostCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                LifeAvatar(user: author, radius: 23, onTap: onAuthor),
+                KeeperAvatar(user: author, radius: 23, onTap: onAuthor),
                 const SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
@@ -400,7 +398,7 @@ class _LifePostCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          author.displayName,
+                          author.publicName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -411,7 +409,7 @@ class _LifePostCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          author.regionLine,
+                          author.profileTrail,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -424,13 +422,13 @@ class _LifePostCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (!author.isCurrentUser)
-                  LifeFollowButton(status: followStatus, onPressed: onFollow),
+                if (!author.belongsToSignedInKeeper)
+                  KeeperLinkButton(status: followStatus, onPressed: onFollow),
               ],
             ),
             const SizedBox(height: 14),
             Text(
-              post.body,
+              post.noteLine,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.84),
                 fontSize: 13,
@@ -438,29 +436,29 @@ class _LifePostCard extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (post.media.isNotEmpty) ...[
+            if (post.attachments.isNotEmpty) ...[
               const SizedBox(height: 12),
-              _PostMediaGrid(media: post.media),
+              _PostMediaGrid(attachments: post.attachments),
             ],
             const SizedBox(height: 11),
             Row(
               children: [
                 _CountAction(
-                  asset: LifeSnippetAssets.comment,
-                  count: commentCount,
+                  asset: MorrowlyAssetKit.comment,
+                  count: replyCount,
                   onTap: onComments,
                 ),
                 const SizedBox(width: 24),
                 _CountAction(
                   asset: liked
-                      ? LifeSnippetAssets.likeFilled
-                      : LifeSnippetAssets.likeOutline,
-                  count: likeCount,
+                      ? MorrowlyAssetKit.likeFilled
+                      : MorrowlyAssetKit.likeOutline,
+                  count: glowCount,
                   onTap: onLike,
                 ),
                 const Spacer(),
-                LifeIconAssetButton(
-                  asset: LifeSnippetAssets.more,
+                MemoryGlyphButton(
+                  asset: MorrowlyAssetKit.more,
                   onTap: onMore,
                   semanticLabel: 'Post actions',
                   size: 22,
@@ -475,9 +473,9 @@ class _LifePostCard extends StatelessWidget {
 }
 
 class _PostMediaGrid extends StatelessWidget {
-  const _PostMediaGrid({required this.media});
+  const _PostMediaGrid({required this.attachments});
 
-  final List<LifeSnippetMedia> media;
+  final List<MemoryAttachment> attachments;
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +483,7 @@ class _PostMediaGrid extends StatelessWidget {
       aspectRatio: 1.28,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: LifeMediaImage(media: media.first),
+        child: MemoryAttachmentImage(attachment: attachments.first),
       ),
     );
   }
@@ -540,7 +538,7 @@ class _EmptyFeedPanel extends StatelessWidget {
       padding: const EdgeInsets.only(top: 28),
       child: Center(
         child: Image.asset(
-          LifeSnippetAssets.empty,
+          MorrowlyAssetKit.empty,
           width: 188,
           height: 214,
           fit: BoxFit.contain,

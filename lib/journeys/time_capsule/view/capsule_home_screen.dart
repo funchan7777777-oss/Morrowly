@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
-import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
-import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/journeys/present_grounding/data/keeper_memory_store.dart';
+import 'package:morrowly/journeys/present_grounding/models/keeper_memory_thread.dart';
+import 'package:morrowly/journeys/present_grounding/widgets/keeper_memory_widgets.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/data/local_capsule_store.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
@@ -12,11 +12,14 @@ import 'package:morrowly/journeys/time_capsule/view/capsule_detail_screen.dart';
 import 'package:morrowly/journeys/time_capsule/view/my_capsules_screen.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
+import 'package:morrowly/journeys/tomorrow_compass/view/tomorrow_compass_screen.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
 import 'package:morrowly/shared/moderation/morrowly_moderation_store.dart';
 import 'package:morrowly/shared/widgets/morrowly_moderation_dialog.dart';
+import 'package:morrowly/shared/widgets/morrowly_safety_notice.dart';
 
 const _designCanvasWidth = 375.0;
 const _homeHorizontalInset = 18.0;
@@ -33,14 +36,14 @@ class CapsuleHomeScreen extends StatefulWidget {
 }
 
 class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
-  late final List<CapsuleSquareNote> _squareNotes =
+  late final List<PublicCapsuleSeal> _squareNotes =
       CapsuleSquareSeed.squareNotes()
-          .where((note) => note.visibility == CapsuleVisibility.publicSquare)
+          .where((note) => note.shelfScope == CapsuleShelfScope.publicSquare)
           .toList();
   final MorrowlyModerationStore _moderation = MorrowlyModerationStore.instance;
   final MorrowlyWalletStore _wallet = MorrowlyWalletStore.instance;
   final LocalCapsuleStore _capsules = LocalCapsuleStore.instance;
-  final LifeSnippetStore _lifeStore = LifeSnippetStore.instance;
+  final KeeperMemoryStore _lifeStore = KeeperMemoryStore.instance;
 
   @override
   void initState() {
@@ -104,7 +107,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
               children: [
                 _HomeHeader(
                   coinBalance: _wallet.balance,
-                  currentUser: _lifeStore.currentUser,
+                  signedInKeeper: _lifeStore.signedInKeeper,
                   onWallet: _openWallet,
                   onMyCapsules: _openMyCapsules,
                 ),
@@ -147,6 +150,8 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
+                _CompassEntryCard(onTap: _openTomorrowCompass),
+                const SizedBox(height: 18),
                 const Text(
                   'Public Capsule Square',
                   style: TextStyle(
@@ -182,42 +187,42 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     );
   }
 
-  List<CapsuleSquareNote> get _visibleSquareNotes {
+  List<PublicCapsuleSeal> get _visibleSquareNotes {
     return [
       for (final note in _capsules.publicCapsules)
         if (!_moderation.shouldHide(
-          contentKey: note.noteKey,
-          authorKey: note.keeper.keeperKey,
+          contentKey: note.sealId,
+          authorKeeperId: note.keeper.keeperId,
         ))
           note.copyWith(
             visitorTrail: [
               for (final keeper in note.visitorTrail)
-                if (!_moderation.isAuthorBlocked(keeper.keeperKey)) keeper,
+                if (!_moderation.isKeeperBlocked(keeper.keeperId)) keeper,
             ],
-            comments: [
-              for (final comment in note.comments)
+            replies: [
+              for (final comment in note.replies)
                 if (!_moderation.shouldHide(
-                  contentKey: comment.commentKey,
-                  authorKey: comment.author.keeperKey,
+                  contentKey: comment.replyId,
+                  authorKeeperId: comment.author.keeperId,
                 ))
                   comment,
             ],
           ),
       for (final note in _squareNotes)
         if (!_moderation.shouldHide(
-          contentKey: note.noteKey,
-          authorKey: note.keeper.keeperKey,
+          contentKey: note.sealId,
+          authorKeeperId: note.keeper.keeperId,
         ))
           note.copyWith(
             visitorTrail: [
               for (final keeper in note.visitorTrail)
-                if (!_moderation.isAuthorBlocked(keeper.keeperKey)) keeper,
+                if (!_moderation.isKeeperBlocked(keeper.keeperId)) keeper,
             ],
-            comments: [
-              for (final comment in note.comments)
+            replies: [
+              for (final comment in note.replies)
                 if (!_moderation.shouldHide(
-                  contentKey: comment.commentKey,
-                  authorKey: comment.author.keeperKey,
+                  contentKey: comment.replyId,
+                  authorKeeperId: comment.author.keeperId,
                 ))
                   comment,
             ],
@@ -225,14 +230,14 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     ];
   }
 
-  CapsuleSquareNote _sourceNoteFor(CapsuleSquareNote visibleNote) {
+  PublicCapsuleSeal _sourceNoteFor(PublicCapsuleSeal visibleNote) {
     for (final note in _capsules.capsules) {
-      if (note.noteKey == visibleNote.noteKey) {
+      if (note.sealId == visibleNote.sealId) {
         return note;
       }
     }
     for (final note in _squareNotes) {
-      if (note.noteKey == visibleNote.noteKey) {
+      if (note.sealId == visibleNote.sealId) {
         return note;
       }
     }
@@ -246,7 +251,7 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
   }
 
   Future<void> _openComposer() async {
-    final sealed = await Navigator.of(context).push<CapsuleSquareNote>(
+    final sealed = await Navigator.of(context).push<PublicCapsuleSeal>(
       MaterialPageRoute(
         builder: (_) => CapsuleComposerScreen(
           coinBalance: _wallet.balance,
@@ -260,7 +265,13 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     if (sealed == null || !mounted) {
       return;
     }
-    await _capsules.add(sealed);
+    try {
+      await _capsules.add(sealed);
+    } on MorrowlyContentSafetyException catch (issue) {
+      if (mounted) {
+        await showMorrowlySafetyNotice(context, issue);
+      }
+    }
   }
 
   Future<void> _openWallet() async {
@@ -269,8 +280,14 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     );
   }
 
+  Future<void> _openTomorrowCompass() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const TomorrowCompassScreen()),
+    );
+  }
+
   Future<void> _openCapsuleDetail(
-    CapsuleSquareNote note, {
+    PublicCapsuleSeal note, {
     bool focusComposer = false,
   }) async {
     await Navigator.of(context).push<void>(
@@ -284,13 +301,13 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     );
   }
 
-  void _replaceCapsuleNote(CapsuleSquareNote updated) {
+  void _replaceCapsuleNote(PublicCapsuleSeal updated) {
     if (!mounted) {
       return;
     }
     setState(() {
       for (var index = 0; index < _squareNotes.length; index++) {
-        if (_squareNotes[index].noteKey == updated.noteKey) {
+        if (_squareNotes[index].sealId == updated.sealId) {
           _squareNotes[index] = updated;
           return;
         }
@@ -325,15 +342,15 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
     );
   }
 
-  Future<void> _showNoteModeration(CapsuleSquareNote note) async {
+  Future<void> _showNoteModeration(PublicCapsuleSeal note) async {
     await showMorrowlyModerationFlow(
       context: context,
       store: _moderation,
       target: MorrowlyModerationTarget(
-        contentKey: note.noteKey,
-        authorKey: note.keeper.keeperKey,
-        authorName: note.keeper.displayName,
-        kind: MorrowlyModerationKind.capsule,
+        contentKey: note.sealId,
+        authorKeeperId: note.keeper.keeperId,
+        authorName: note.keeper.publicName,
+        sourceKind: MorrowlyModerationKind.capsule,
       ),
     );
   }
@@ -342,13 +359,13 @@ class _CapsuleHomeScreenState extends State<CapsuleHomeScreen> {
 class _HomeHeader extends StatelessWidget {
   const _HomeHeader({
     required this.coinBalance,
-    required this.currentUser,
+    required this.signedInKeeper,
     required this.onWallet,
     required this.onMyCapsules,
   });
 
   final int coinBalance;
-  final LifeSnippetUser currentUser;
+  final KeeperProfile signedInKeeper;
   final VoidCallback onWallet;
   final VoidCallback onMyCapsules;
 
@@ -387,7 +404,7 @@ class _HomeHeader extends StatelessWidget {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onMyCapsules,
-          child: LifeAvatar(user: currentUser, radius: 18),
+          child: KeeperAvatar(user: signedInKeeper, radius: 18),
         ),
       ],
     );
@@ -439,6 +456,104 @@ class _MakingCapsuleBanner extends StatelessWidget {
   }
 }
 
+class _CompassEntryCard extends StatelessWidget {
+  const _CompassEntryCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Open Tomorrow Compass',
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4E3D54).withValues(alpha: 0.76),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 22,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Image.asset(
+                    'assets/morrowly_art/ui/morrowly_ui_compass.png',
+                    filterQuality: FilterQuality.high,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Tomorrow Compass',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Write tomorrow\'s anchor. Save drafts free, seal a guide for ${MorrowlyCoinCosts.sealTomorrowCompass.amount} coins.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.58),
+                        fontSize: 11,
+                        height: 1.25,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: lifePurple.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white,
+                  size: 25,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SquareNoteCard extends StatelessWidget {
   const _SquareNoteCard({
     required this.note,
@@ -448,7 +563,7 @@ class _SquareNoteCard extends StatelessWidget {
     this.onModerate,
   });
 
-  final CapsuleSquareNote note;
+  final PublicCapsuleSeal note;
   final VoidCallback onOpen;
   final VoidCallback onVisitors;
   final VoidCallback onSay;
@@ -456,14 +571,16 @@ class _SquareNoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final previewSnap = note.mediaSnaps.isEmpty ? null : note.mediaSnaps.first;
+    final previewSnap = note.memoryFragments.isEmpty
+        ? null
+        : note.memoryFragments.first;
     final openingLabel = note.canOpenNow
         ? 'Ready to open'
-        : 'Opens ${capsuleDateStamp(note.openingAt)}';
+        : 'Opens ${capsuleDateStamp(note.unlocksAt)}';
 
     return Semantics(
       button: true,
-      label: 'Open ${note.keeper.displayName} capsule detail',
+      label: 'Open ${note.keeper.publicName} capsule detail',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onOpen,
@@ -478,17 +595,14 @@ class _SquareNoteCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 23,
-                    backgroundImage: capsuleKeeperAvatarProvider(note.keeper),
-                  ),
+                  CapsuleKeeperAvatar(keeper: note.keeper, radius: 23),
                   const SizedBox(width: 11),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          note.keeper.displayName,
+                          note.keeper.publicName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -511,7 +625,7 @@ class _SquareNoteCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Flexible(
                               child: Text(
-                                '${note.keeper.ageLine}  · ${note.keeper.placeLine}',
+                                '${note.keeper.ageMark}  · ${note.keeper.homeRegion}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -548,7 +662,7 @@ class _SquareNoteCard extends StatelessWidget {
               ),
               const SizedBox(height: 13),
               Text(
-                note.messageLine,
+                note.sealedMessage,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.86),
                   fontSize: 13,
@@ -609,7 +723,7 @@ class _SquareNoteCard extends StatelessWidget {
 class _SquareVisitorSummary extends StatelessWidget {
   const _SquareVisitorSummary({required this.note});
 
-  final CapsuleSquareNote note;
+  final PublicCapsuleSeal note;
 
   @override
   Widget build(BuildContext context) {
@@ -627,11 +741,9 @@ class _SquareVisitorSummary extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 15,
                     backgroundColor: const Color(0xFF4E3D54),
-                    child: CircleAvatar(
+                    child: CapsuleKeeperAvatar(
+                      keeper: visibleVisitors[index],
                       radius: 13.5,
-                      backgroundImage: capsuleKeeperAvatarProvider(
-                        visibleVisitors[index],
-                      ),
                     ),
                   ),
                 ),
@@ -641,7 +753,7 @@ class _SquareVisitorSummary extends StatelessWidget {
         const SizedBox(width: 6),
         Expanded(
           child: Text(
-            '${note.leftMessageCount} comments',
+            '${note.replyTrailCount} comments',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -711,7 +823,7 @@ class _ModeratedEmptyState extends StatelessWidget {
 class _SquareMediaTile extends StatelessWidget {
   const _SquareMediaTile({required this.snap});
 
-  final CapsuleMediaSnap snap;
+  final CapsuleMemoryFragment snap;
 
   @override
   Widget build(BuildContext context) {
@@ -818,13 +930,10 @@ class _VisitorsSheet extends StatelessWidget {
                     final keeper = keepers[index];
                     return Column(
                       children: [
-                        CircleAvatar(
-                          radius: 31,
-                          backgroundImage: capsuleKeeperAvatarProvider(keeper),
-                        ),
+                        CapsuleKeeperAvatar(keeper: keeper, radius: 31),
                         const SizedBox(height: 6),
                         Text(
-                          keeper.displayName.split(' ').first,
+                          keeper.publicName.split(' ').first,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

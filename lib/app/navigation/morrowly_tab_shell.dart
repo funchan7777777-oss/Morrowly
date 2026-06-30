@@ -40,20 +40,20 @@ class _MorrowlyTabShellState extends State<MorrowlyTabShell> {
     final harbors = [
       const _MorrowlyHarbor(
         voiceLabel: 'Tomorrow home',
-        restingAsset: 'assets/images/Letter.png',
-        litAsset: 'assets/images/Nostalgia.png',
+        restingAsset: 'assets/morrowly_art/ui/morrowly_ui_letter.png',
+        litAsset: 'assets/morrowly_art/ui/morrowly_ui_nostalgia.png',
         screen: CapsuleHomeScreen(),
       ),
       const _MorrowlyHarbor(
         voiceLabel: 'Now signal',
-        restingAsset: 'assets/images/Journey.png',
-        litAsset: 'assets/images/Sealed.png',
+        restingAsset: 'assets/morrowly_art/ui/morrowly_ui_journey.png',
+        litAsset: 'assets/morrowly_art/ui/morrowly_ui_sealed.png',
         screen: PresentGroundingScreen(),
       ),
       _MorrowlyHarbor(
         voiceLabel: 'Time mail',
-        restingAsset: 'assets/images/Milestone.png',
-        litAsset: 'assets/images/Anniversary.png',
+        restingAsset: 'assets/morrowly_art/ui/morrowly_ui_milestone.png',
+        litAsset: 'assets/morrowly_art/ui/morrowly_ui_anniversary.png',
         screen: TimeMailScreen(
           onGoCheckCapsules: () => setState(() => _selectedHarborIndex = 0),
           onSignedOut: widget.onSignedOut,

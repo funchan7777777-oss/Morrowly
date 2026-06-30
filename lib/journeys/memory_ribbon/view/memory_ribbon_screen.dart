@@ -3,54 +3,68 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
-import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_compose_screen.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
-import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/journeys/present_grounding/data/keeper_memory_store.dart';
+import 'package:morrowly/journeys/present_grounding/models/keeper_memory_thread.dart';
+import 'package:morrowly/journeys/present_grounding/view/memory_release_screen.dart';
+import 'package:morrowly/journeys/present_grounding/view/keeper_home_screen.dart';
+import 'package:morrowly/journeys/present_grounding/widgets/keeper_memory_widgets.dart';
 import 'package:morrowly/journeys/time_capsule/data/local_capsule_store.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
+import 'package:morrowly/journeys/tomorrow_compass/data/tomorrow_compass_store.dart';
 import 'package:morrowly/journeys/welcome_gate/data/local_gate_store.dart';
 import 'package:morrowly/journeys/welcome_gate/models/legal_document_marker.dart';
 import 'package:morrowly/journeys/welcome_gate/view/legal_document_viewer.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
+import 'package:morrowly/shared/widgets/morrowly_avatar_placeholder.dart';
+import 'package:morrowly/shared/widgets/morrowly_safety_notice.dart';
 import 'package:path_provider/path_provider.dart';
 
 abstract final class ProfileCenterAssets {
-  static const backgroundWash = 'assets/images/Shareable.png';
-  static const coin = 'assets/images/Timelock.png';
-  static const panel = 'assets/images/Cradle.png';
-  static const blacklistTile = 'assets/images/Serendipity.png';
-  static const underline = 'assets/images/Tether.png';
-  static const follow = 'assets/images/Together.png';
-  static const logOut = 'assets/images/Affinity.png';
-  static const save = 'assets/images/Pledge.png';
-  static const followStat = 'assets/images/Fellowship.png';
-  static const messageStat = 'assets/images/Journal.png';
-  static const fanStat = 'assets/images/Entrust.png';
-  static const likeStat = 'assets/images/Dispatch.png';
-  static const placeholderAvatar = 'assets/images/Memoir.png';
-  static const deleteWide = 'assets/images/Storyline.png';
-  static const deleteCompact = 'assets/images/Sunrise.png';
-  static const goCheck = 'assets/images/Interval.png';
-  static const edit = 'assets/images/Messenger.png';
-  static const camera = 'assets/images/Continuum.png';
-  static const message = 'assets/images/Awakening.png';
-  static const send = 'assets/images/Compass.png';
-  static const settingsDelete = 'assets/images/Recollection.png';
-  static const settingsDoc = 'assets/images/Moonrise.png';
-  static const settingsGuide = 'assets/images/Resonance.png';
-  static const settingsPrivacy = 'assets/images/Remnant.png';
-  static const capsuleBanner = 'assets/images/Heritage.png';
-  static const countdown = 'assets/images/Countdown.png';
-  static const capsuleArchived = 'assets/images/Encounter.png';
-  static const capsuleOpening = 'assets/images/Evergreen.png';
-  static const capsuleUnlocked = 'assets/images/Foreword.png';
-  static const empty = 'assets/images/Reminder.png';
-  static const phone = 'assets/images/Lantern.png';
+  static const backgroundWash =
+      'assets/morrowly_art/ui/morrowly_ui_shareable.png';
+  static const coin = 'assets/morrowly_art/ui/morrowly_ui_timelock.png';
+  static const panel = 'assets/morrowly_art/ui/morrowly_ui_cradle.png';
+  static const blacklistTile =
+      'assets/morrowly_art/ui/morrowly_ui_serendipity.png';
+  static const underline = 'assets/morrowly_art/ui/morrowly_ui_tether.png';
+  static const follow = 'assets/morrowly_art/ui/morrowly_ui_together.png';
+  static const logOut = 'assets/morrowly_art/ui/morrowly_ui_affinity.png';
+  static const save = 'assets/morrowly_art/ui/morrowly_ui_pledge.png';
+  static const followStat = 'assets/morrowly_art/ui/morrowly_ui_fellowship.png';
+  static const messageStat = 'assets/morrowly_art/ui/morrowly_ui_journal.png';
+  static const fanStat = 'assets/morrowly_art/ui/morrowly_ui_entrust.png';
+  static const likeStat = 'assets/morrowly_art/ui/morrowly_ui_dispatch.png';
+  static const placeholderAvatar =
+      'assets/morrowly_art/ui/morrowly_ui_memoir.png';
+  static const deleteWide = 'assets/morrowly_art/ui/morrowly_ui_storyline.png';
+  static const deleteCompact = 'assets/morrowly_art/ui/morrowly_ui_sunrise.png';
+  static const goCheck = 'assets/morrowly_art/ui/morrowly_ui_interval.png';
+  static const edit = 'assets/morrowly_art/ui/morrowly_ui_messenger.png';
+  static const camera = 'assets/morrowly_art/ui/morrowly_ui_continuum.png';
+  static const message = 'assets/morrowly_art/ui/morrowly_ui_awakening.png';
+  static const send = 'assets/morrowly_art/ui/morrowly_ui_compass.png';
+  static const settingsDelete =
+      'assets/morrowly_art/ui/morrowly_ui_recollection.png';
+  static const settingsDoc = 'assets/morrowly_art/ui/morrowly_ui_moonrise.png';
+  static const settingsGuide =
+      'assets/morrowly_art/ui/morrowly_ui_resonance.png';
+  static const settingsPrivacy =
+      'assets/morrowly_art/ui/morrowly_ui_remnant.png';
+  static const capsuleBanner =
+      'assets/morrowly_art/ui/morrowly_ui_heritage.png';
+  static const countdown = 'assets/morrowly_art/ui/morrowly_ui_countdown.png';
+  static const capsuleArchived =
+      'assets/morrowly_art/ui/morrowly_ui_encounter.png';
+  static const capsuleOpening =
+      'assets/morrowly_art/ui/morrowly_ui_evergreen.png';
+  static const capsuleUnlocked =
+      'assets/morrowly_art/ui/morrowly_ui_foreword.png';
+  static const empty = 'assets/morrowly_art/ui/morrowly_ui_reminder.png';
+  static const phone = 'assets/morrowly_art/ui/morrowly_ui_lantern.png';
 }
 
 class MemoryRibbonScreen extends StatefulWidget {
@@ -70,7 +84,7 @@ class MemoryRibbonScreen extends StatefulWidget {
 }
 
 class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
-  final LifeSnippetStore _store = LifeSnippetStore.instance;
+  final KeeperMemoryStore _store = KeeperMemoryStore.instance;
   final LocalCapsuleStore _capsules = LocalCapsuleStore.instance;
   late final Future<void> _loadFuture = Future.wait([
     _store.load(),
@@ -80,7 +94,7 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -92,8 +106,8 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
           return AnimatedBuilder(
             animation: Listenable.merge([_store, _capsules]),
             builder: (context, _) {
-              final user = _store.currentUser;
-              final approvedPosts = _store.postsForUser(user.userKey);
+              final user = _store.signedInKeeper;
+              final approvedPosts = _store.postsForUser(user.keeperId);
               return Stack(
                 children: [
                   Positioned.fill(
@@ -143,7 +157,7 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
                             const SizedBox(height: 30),
                             _ProfileStats(
                               user: user,
-                              capsuleCount: _capsules.archivedCount,
+                              keptCapsuleCount: _capsules.archivedCount,
                               onFollow: () => _openRelationshipList(true),
                               onFans: () => _openRelationshipList(false),
                               onLikes: _openWallet,
@@ -167,7 +181,7 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
                             _MyPostsPanel(
                               user: user,
                               posts: approvedPosts,
-                              pendingCount: _store.pendingReviewPosts.length,
+                              pendingCount: _store.reviewQueueSeals.length,
                               onCompose: _openCompose,
                               onDelete: _deletePost,
                             ),
@@ -232,11 +246,11 @@ class _MemoryRibbonScreenState extends State<MemoryRibbonScreen> {
 
   Future<void> _openCompose() {
     return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const LifeSnippetComposeScreen()),
+      MaterialPageRoute(builder: (_) => const MemoryReleaseScreen()),
     );
   }
 
-  Future<void> _deletePost(LifeSnippetPost post) async {
+  Future<void> _deletePost(MemorySeal post) async {
     await _store.deleteOwnPostLocally(post);
   }
 }
@@ -285,12 +299,11 @@ class ProfileSettingsScreen extends StatelessWidget {
       _SettingItem(
         label: 'Deletion of account',
         asset: ProfileCenterAssets.settingsDelete,
-        destructive: true,
         onTap: () => _confirmSignOut(context, deleteAccount: true),
       ),
     ];
 
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: Stack(
         children: [
           LayoutBuilder(
@@ -342,7 +355,7 @@ class ProfileSettingsScreen extends StatelessWidget {
               );
             },
           ),
-          LifeTopBar(
+          MorrowlyMemoryTopBar(
             title: 'Setting',
             onBack: () => Navigator.of(context).pop(),
           ),
@@ -416,8 +429,9 @@ class ProfileSettingsScreen extends StatelessWidget {
     await Future<void>.delayed(const Duration(milliseconds: 520));
     final gateStore = await LocalGateStore.open();
     if (deleteAccount) {
-      await LifeSnippetStore.instance.clearLocalAccountData();
+      await KeeperMemoryStore.instance.clearLocalAccountData();
       await LocalCapsuleStore.instance.clear();
+      await TomorrowCompassStore.instance.clear();
       await MorrowlyWalletStore.instance.clearLocalWallet();
       await gateStore.deleteLocalAccount();
     } else {
@@ -454,12 +468,12 @@ class ProfileBlacklistScreen extends StatefulWidget {
 }
 
 class _ProfileBlacklistScreenState extends State<ProfileBlacklistScreen> {
-  final LifeSnippetStore _store = LifeSnippetStore.instance;
+  final KeeperMemoryStore _store = KeeperMemoryStore.instance;
   late final Future<void> _loadFuture = _store.load();
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -513,7 +527,7 @@ class _ProfileBlacklistScreenState extends State<ProfileBlacklistScreen> {
                       );
                     },
                   ),
-                  LifeTopBar(
+                  MorrowlyMemoryTopBar(
                     title: 'Blacklist',
                     onBack: () => Navigator.of(context).pop(),
                   ),
@@ -526,14 +540,14 @@ class _ProfileBlacklistScreenState extends State<ProfileBlacklistScreen> {
     );
   }
 
-  Future<void> _unblockUser(LifeSnippetUser user) async {
-    await _store.unblockUser(user.userKey);
+  Future<void> _unblockUser(KeeperProfile user) async {
+    await _store.unblockUser(user.keeperId);
     if (!mounted) {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${user.displayName} has been removed from blacklist.'),
+        content: Text('${user.publicName} has been removed from blacklist.'),
         backgroundColor: lifePanel,
         behavior: SnackBarBehavior.floating,
       ),
@@ -548,8 +562,8 @@ class ProfileRelationshipListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = LifeSnippetStore.instance;
-    return LifeSnippetStage(
+    final store = KeeperMemoryStore.instance;
+    return MorrowlyMemoryStage(
       child: AnimatedBuilder(
         animation: store,
         builder: (context, _) {
@@ -585,15 +599,15 @@ class ProfileRelationshipListScreen extends StatelessWidget {
                             itemBuilder: (context, index) {
                               final user = users[index];
                               final status = store.followStatusFor(
-                                user.userKey,
+                                user.keeperId,
                               );
                               return _RelationshipRow(
                                 user: user,
-                                trailing: status == LifeFollowStatus.requested
+                                trailing: status == KeeperLinkState.requested
                                     ? const _RequestedBadge()
                                     : Image.asset(
-                                        status == LifeFollowStatus.following
-                                            ? LifeSnippetAssets.followed
+                                        status == KeeperLinkState.following
+                                            ? MorrowlyAssetKit.followed
                                             : ProfileCenterAssets.follow,
                                         width: 92,
                                         height: 36,
@@ -606,7 +620,7 @@ class ProfileRelationshipListScreen extends StatelessWidget {
                   );
                 },
               ),
-              LifeTopBar(
+              MorrowlyMemoryTopBar(
                 title: showFollow ? 'Follow' : 'Fans',
                 onBack: () => Navigator.of(context).pop(),
               ),
@@ -632,7 +646,7 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -702,7 +716,7 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
                                     onDelete: () {
                                       unawaited(
                                         _store.remove(
-                                          capsule.sourceNote.noteKey,
+                                          capsule.sourceNote.sealId,
                                         ),
                                       );
                                     },
@@ -715,7 +729,7 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
                       );
                     },
                   ),
-                  LifeTopBar(
+                  MorrowlyMemoryTopBar(
                     title: 'My capsules',
                     onBack: () => Navigator.of(context).pop(),
                   ),
@@ -728,7 +742,7 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
     );
   }
 
-  List<CapsuleSquareNote> get _filteredCapsules {
+  List<PublicCapsuleSeal> get _filteredCapsules {
     return switch (_selectedIndex) {
       1 => _store.capsules.where((capsule) => !capsule.canOpenNow).toList(),
       2 => _store.capsules.where((capsule) => capsule.canOpenNow).toList(),
@@ -736,16 +750,16 @@ class _ProfileCapsulesScreenState extends State<ProfileCapsulesScreen> {
     };
   }
 
-  _ProfileCapsule _profileCapsuleFromNote(CapsuleSquareNote note) {
+  _ProfileCapsule _profileCapsuleFromNote(PublicCapsuleSeal note) {
     final status = note.canOpenNow
         ? _CapsuleProfileStatus.unlocked
         : _CapsuleProfileStatus.opening;
     return _ProfileCapsule(
       title: note.canOpenNow
           ? 'Can be opened'
-          : 'Opens ${capsuleDateStamp(note.openingAt)}',
+          : 'Opens ${capsuleDateStamp(note.unlocksAt)}',
       status: status,
-      visibility: note.visibility == CapsuleVisibility.publicSquare
+      shelfScope: note.shelfScope == CapsuleShelfScope.publicSquare
           ? 'Public'
           : 'Private',
       asset: note.canOpenNow
@@ -808,7 +822,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       resizeForKeyboard: true,
       child: Stack(
         children: [
@@ -865,35 +879,45 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              CircleAvatar(
-                                radius: 70,
-                                backgroundColor: Colors.white,
-                                backgroundImage: _avatarPath.isEmpty
-                                    ? null
-                                    : FileImage(File(_avatarPath)),
-                                child: _avatarPath.isEmpty
-                                    ? Image.asset(
-                                        ProfileCenterAssets.camera,
-                                        width: 78,
-                                        height: 78,
-                                        filterQuality: FilterQuality.high,
-                                      )
-                                    : null,
-                              ),
+                              _avatarPath.isEmpty
+                                  ? MorrowlyAvatarPlaceholder(
+                                      radius: 70,
+                                      label: _nameController.text,
+                                    )
+                                  : CircleAvatar(
+                                      radius: 70,
+                                      backgroundColor: Colors.white,
+                                      backgroundImage: FileImage(
+                                        File(_avatarPath),
+                                      ),
+                                    ),
                               Positioned(
-                                top: 6,
                                 right: 8,
+                                bottom: 8,
                                 child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFFF8F8F),
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFB66DFF),
                                     shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.18,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
                                   ),
                                   child: const Icon(
-                                    Icons.close_rounded,
+                                    Icons.photo_camera_rounded,
                                     color: Colors.white,
-                                    size: 15,
+                                    size: 18,
                                   ),
                                 ),
                               ),
@@ -905,7 +929,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       _EditLabel('Nickname'),
                       _EditInput(
                         controller: _nameController,
-                        hint: 'Please enter...',
+                        hint: 'Name shown on your capsules',
                       ),
                       _EditLabel('Date of Birth'),
                       _EditInput(
@@ -942,7 +966,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       _EditLabel('Signature'),
                       _EditInput(
                         controller: _signatureController,
-                        hint: 'Please enter...',
+                        hint: 'A quiet line for future you',
                         minLines: 3,
                         maxLines: 4,
                       ),
@@ -969,7 +993,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 );
               },
             ),
-          LifeTopBar(title: '', onBack: () => Navigator.of(context).pop()),
+          MorrowlyMemoryTopBar(
+            title: '',
+            onBack: () => Navigator.of(context).pop(),
+          ),
         ],
       ),
     );
@@ -981,7 +1008,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       return;
     }
     setState(() {
-      _nameController.text = gateStore.savedDisplayName;
+      _nameController.text = gateStore.savedKeeperName;
       _signatureController.text = gateStore.savedSignatureLine;
       _birthController.text = gateStore.savedBirthDate;
       _avatarPath = gateStore.savedAvatarPath;
@@ -1081,16 +1108,24 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _saveProfile() async {
     setState(() => _saving = true);
-    await LifeSnippetStore.instance.updateCurrentUserProfile(
-      displayName: _nameController.text.trim().isEmpty
-          ? 'Morrowly friend'
-          : _nameController.text,
-      signatureLine: _signatureController.text,
-      avatarLocalPath: _avatarPath,
-      gender: _gender,
-      region: _country,
-      birthDate: _birthController.text,
-    );
+    try {
+      await KeeperMemoryStore.instance.updateCurrentUserProfile(
+        publicName: _nameController.text.trim().isEmpty
+            ? 'New Timekeeper'
+            : _nameController.text,
+        morrowLine: _signatureController.text,
+        localPortraitPath: _avatarPath,
+        gender: _gender,
+        region: _country,
+        birthDate: _birthController.text,
+      );
+    } on MorrowlyContentSafetyException catch (issue) {
+      if (mounted) {
+        setState(() => _saving = false);
+        await showMorrowlySafetyNotice(context, issue);
+      }
+      return;
+    }
     if (!mounted) {
       return;
     }
@@ -1103,7 +1138,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: Stack(
         children: [
           LayoutBuilder(
@@ -1148,7 +1183,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
                     _GuidelineSection(
                       title: 'Report and block',
                       body:
-                          'Use Report on unsafe posts or comments. Use Block when you do not want another person to appear in your experience. Reported comments and blocked users are hidden locally right away while the safety record is saved on this device.',
+                          'Use Report on unsafe posts, comments, profiles, or chats. Use Block when you do not want another person to appear in your experience. Reported content and blocked users are hidden locally right away while the safety record is saved on this device.',
                     ),
                     _GuidelineSection(
                       title: 'Respect future recipients',
@@ -1158,14 +1193,14 @@ class CommunityGuidelinesScreen extends StatelessWidget {
                     _GuidelineSection(
                       title: 'Enforcement',
                       body:
-                          'Morrowly may hide reported content, restrict chat actions, remove abusive posts after review, or require account changes when a profile or post violates these rules. For safety support, use the support contact published on the app listing.',
+                          'Morrowly may hide reported content, restrict chat actions, remove abusive posts after review, or require account changes when a profile or post violates these rules. Safety concerns should be handled promptly through the app support contact configured on the App Store listing.',
                     ),
                   ],
                 ),
               );
             },
           ),
-          LifeTopBar(
+          MorrowlyMemoryTopBar(
             title: 'Community guidelines',
             onBack: () => Navigator.of(context).pop(),
           ),
@@ -1211,7 +1246,7 @@ class _GuidelineHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'These rules keep Life Snippets, capsules, comments, and mutual-follow chat safe for real people.',
+                  'These rules keep memory seals, capsules, comments, and mutual-follow chat safe for real people.',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.62),
                     fontSize: 12,
@@ -1349,7 +1384,7 @@ class _ProfileCoinPill extends StatelessWidget {
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader({required this.user, required this.onEdit});
 
-  final LifeSnippetUser user;
+  final KeeperProfile user;
   final VoidCallback onEdit;
 
   @override
@@ -1357,7 +1392,7 @@ class _ProfileHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LifeAvatar(user: user, radius: 34),
+        KeeperAvatar(user: user, radius: 34),
         const SizedBox(width: 14),
         Expanded(
           child: Column(
@@ -1367,7 +1402,7 @@ class _ProfileHeader extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      user.displayName,
+                      user.publicName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -1403,7 +1438,7 @@ class _ProfileHeader extends StatelessWidget {
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(
-                      user.regionLine,
+                      user.profileTrail,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -1419,7 +1454,7 @@ class _ProfileHeader extends StatelessWidget {
               ),
               const SizedBox(height: 11),
               Text(
-                user.signatureLine,
+                user.morrowLine,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -1441,15 +1476,15 @@ class _ProfileHeader extends StatelessWidget {
 class _ProfileStats extends StatelessWidget {
   const _ProfileStats({
     required this.user,
-    required this.capsuleCount,
+    required this.keptCapsuleCount,
     required this.onFollow,
     required this.onFans,
     required this.onLikes,
     required this.onCapsules,
   });
 
-  final LifeSnippetUser user;
-  final int capsuleCount;
+  final KeeperProfile user;
+  final int keptCapsuleCount;
   final VoidCallback onFollow;
   final VoidCallback onFans;
   final VoidCallback onLikes;
@@ -1460,10 +1495,18 @@ class _ProfileStats extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _StatButton(value: user.followCount, label: 'Follow', onTap: onFollow),
-        _StatButton(value: user.fansCount, label: 'Fans', onTap: onFans),
-        _StatButton(value: user.likeCount, label: 'Get likes', onTap: onLikes),
-        _StatButton(value: capsuleCount, label: 'Capsule', onTap: onCapsules),
+        _StatButton(
+          value: user.followingCount,
+          label: 'Follow',
+          onTap: onFollow,
+        ),
+        _StatButton(value: user.followerCount, label: 'Fans', onTap: onFans),
+        _StatButton(value: user.glowCount, label: 'Get likes', onTap: onLikes),
+        _StatButton(
+          value: keptCapsuleCount,
+          label: 'Capsule',
+          onTap: onCapsules,
+        ),
       ],
     );
   }
@@ -1573,11 +1616,11 @@ class _MyPostsPanel extends StatelessWidget {
     required this.onDelete,
   });
 
-  final LifeSnippetUser user;
-  final List<LifeSnippetPost> posts;
+  final KeeperProfile user;
+  final List<MemorySeal> posts;
   final int pendingCount;
   final VoidCallback onCompose;
-  final ValueChanged<LifeSnippetPost> onDelete;
+  final ValueChanged<MemorySeal> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -1617,7 +1660,7 @@ class _MyPostsPanel extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             hasPending
-                ? '$pendingCount snippet${pendingCount == 1 ? '' : 's'} waiting for review. It will appear here only after approval.'
+                ? '$pendingCount memory seal${pendingCount == 1 ? '' : 's'} waiting for review. It will appear here only after approval.'
                 : 'No approved posts yet. New posts wait for moderation.',
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -1633,7 +1676,7 @@ class _MyPostsPanel extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: onCompose,
             child: Image.asset(
-              LifeSnippetAssets.release,
+              MorrowlyAssetKit.release,
               width: 176,
               height: 34,
               fit: BoxFit.fill,
@@ -1653,8 +1696,8 @@ class _ProfilePostCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  final LifeSnippetUser user;
-  final LifeSnippetPost post;
+  final KeeperProfile user;
+  final MemorySeal post;
   final VoidCallback onDelete;
 
   @override
@@ -1671,14 +1714,14 @@ class _ProfilePostCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              LifeAvatar(user: user, radius: 24),
+              KeeperAvatar(user: user, radius: 24),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user.displayName,
+                      user.publicName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -1700,7 +1743,7 @@ class _ProfilePostCard extends StatelessWidget {
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
-                            user.regionLine,
+                            user.profileTrail,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -1721,10 +1764,10 @@ class _ProfilePostCard extends StatelessWidget {
               _DeletePostPill(onTap: onDelete),
             ],
           ),
-          if (post.body.trim().isNotEmpty) ...[
+          if (post.noteLine.trim().isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              post.body,
+              post.noteLine,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -1736,25 +1779,25 @@ class _ProfilePostCard extends StatelessWidget {
               ),
             ),
           ],
-          if (post.media.isNotEmpty) ...[
+          if (post.attachments.isNotEmpty) ...[
             const SizedBox(height: 11),
-            _ProfilePostMediaGrid(media: post.media),
+            _ProfilePostMediaGrid(attachments: post.attachments),
           ],
           const SizedBox(height: 10),
           Row(
             children: [
               _ProfilePostCount(
-                asset: LifeSnippetAssets.comment,
-                count: post.commentCount,
+                asset: MorrowlyAssetKit.comment,
+                count: post.replyCount,
               ),
               const SizedBox(width: 28),
               _ProfilePostCount(
-                asset: LifeSnippetAssets.likeOutline,
-                count: post.likeCount,
+                asset: MorrowlyAssetKit.likeOutline,
+                count: post.glowCount,
               ),
               const Spacer(),
               Image.asset(
-                LifeSnippetAssets.more,
+                MorrowlyAssetKit.more,
                 width: 19,
                 height: 19,
                 color: Colors.white.withValues(alpha: 0.24),
@@ -1790,19 +1833,19 @@ class _DeletePostPill extends StatelessWidget {
 }
 
 class _ProfilePostMediaGrid extends StatelessWidget {
-  const _ProfilePostMediaGrid({required this.media});
+  const _ProfilePostMediaGrid({required this.attachments});
 
-  final List<LifeSnippetMedia> media;
+  final List<MemoryAttachment> attachments;
 
   @override
   Widget build(BuildContext context) {
-    final visible = media.take(2).toList();
+    final visible = attachments.take(2).toList();
     if (visible.length == 1) {
       return AspectRatio(
         aspectRatio: 1.62,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: LifeMediaImage(media: visible.first),
+          child: MemoryAttachmentImage(attachment: visible.first),
         ),
       );
     }
@@ -1815,7 +1858,7 @@ class _ProfilePostMediaGrid extends StatelessWidget {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: LifeMediaImage(media: visible[index]),
+                child: MemoryAttachmentImage(attachment: visible[index]),
               ),
             ),
             if (index != visible.length - 1) const SizedBox(width: 5),
@@ -1865,13 +1908,11 @@ class _SettingItem {
     required this.label,
     required this.asset,
     required this.onTap,
-    this.destructive = false,
   });
 
   final String label;
   final String asset;
   final VoidCallback onTap;
-  final bool destructive;
 }
 
 class _SettingCard extends StatelessWidget {
@@ -1881,48 +1922,16 @@ class _SettingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: item.onTap,
-      child: Container(
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(
-          color: const Color(0xFF4C2A60).withValues(alpha: 0.78),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(
-              ProfileCenterAssets.panel,
-              fit: BoxFit.cover,
-              opacity: const AlwaysStoppedAnimation(0.26),
-              filterQuality: FilterQuality.high,
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  item.asset,
-                  width: 64,
-                  height: 64,
-                  filterQuality: FilterQuality.high,
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  item.label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: item.destructive
-                        ? const Color(0xFFFF4E80)
-                        : Colors.white.withValues(alpha: 0.3),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ],
+    return Semantics(
+      label: item.label,
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: item.onTap,
+        child: Image.asset(
+          item.asset,
+          fit: BoxFit.fill,
+          filterQuality: FilterQuality.high,
         ),
       ),
     );
@@ -1972,7 +1981,7 @@ class _UnblockButton extends StatelessWidget {
 class _RelationshipRow extends StatelessWidget {
   const _RelationshipRow({required this.user, required this.trailing});
 
-  final LifeSnippetUser user;
+  final KeeperProfile user;
   final Widget trailing;
 
   @override
@@ -1986,15 +1995,13 @@ class _RelationshipRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LifeAvatar(
+          KeeperAvatar(
             user: user,
             radius: 28,
             onTap: () {
               Navigator.of(context).push<void>(
                 MaterialPageRoute(
-                  builder: (_) => LifeSnippetProfileScreen(
-                    userKey: user.userKey,
-                  ),
+                  builder: (_) => KeeperHomeScreen(keeperId: user.keeperId),
                 ),
               );
             },
@@ -2005,7 +2012,7 @@ class _RelationshipRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.displayName,
+                  user.publicName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -2016,7 +2023,7 @@ class _RelationshipRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  user.regionLine,
+                  user.profileTrail,
                   style: const TextStyle(
                     color: Color(0xFFBD78FF),
                     fontSize: 12,
@@ -2025,7 +2032,7 @@ class _RelationshipRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  user.signatureLine,
+                  user.morrowLine,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -2088,7 +2095,7 @@ class _EmptyCenterPanel extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'No content',
+            'Nothing sealed here yet',
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.3),
               fontSize: 13,
@@ -2166,13 +2173,13 @@ class _CapsuleSummaryCard extends StatelessWidget {
   }
 }
 
-enum _CapsuleProfileStatus { archived, opening, unlocked }
+enum _CapsuleProfileStatus { opening, unlocked }
 
 class _ProfileCapsule {
   const _ProfileCapsule({
     required this.title,
     required this.status,
-    required this.visibility,
+    required this.shelfScope,
     required this.asset,
     required this.date,
     required this.sourceNote,
@@ -2180,10 +2187,10 @@ class _ProfileCapsule {
 
   final String title;
   final _CapsuleProfileStatus status;
-  final String visibility;
+  final String shelfScope;
   final String asset;
   final String date;
-  final CapsuleSquareNote sourceNote;
+  final PublicCapsuleSeal sourceNote;
 }
 
 class _CapsuleSegmentedControl extends StatelessWidget {
@@ -2268,13 +2275,13 @@ class _CapsuleTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(
-              color: capsule.visibility == 'Public'
+              color: capsule.shelfScope == 'Public'
                   ? const Color(0xFFC5CBFF)
                   : const Color(0xFFE7BCFF),
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              capsule.visibility,
+              capsule.shelfScope,
               style: const TextStyle(
                 color: Color(0xFF7A5CA4),
                 fontSize: 10,

@@ -1,493 +1,562 @@
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 
 abstract final class CapsuleArtwork {
-  static const threadUnderline = 'assets/images/Thread.png';
-  static const actionOrbit = 'assets/images/Orbit.png';
-  static const actionFeather = 'assets/images/Nova.png';
-  static const capsuleCoin = 'assets/images/Capsule.png';
-  static const heroJar = 'assets/images/Dream.png';
-  static const previewWash = 'assets/images/Recall.png';
-  static const sealedPostcard = 'assets/images/Postcard.png';
-  static const dialogPrelude = 'assets/images/Prelude.png';
-  static const capsuleTypeLetter = 'assets/images/Glimpse.png';
-  static const capsuleTypeVideo = 'assets/images/Reminisce.png';
-  static const customTimeGlyph = 'assets/images/Memento.png';
-  static const bloomMark = 'assets/images/Bloom.png';
-  static const museMark = 'assets/images/Muse.png';
-  static const sayButton = 'assets/images/Spark.png';
-  static const myCapsulesSmall = 'assets/images/Reunion.png';
-  static const viewCapsules = 'assets/images/Locket.png';
-  static const confirmSeal = 'assets/images/Heartbeat.png';
-  static const sealedCapsules = 'assets/images/Yesterday.png';
-  static const confirmButton = 'assets/images/Duskfall.png';
-  static const backHome = 'assets/images/Presence.png';
-  static const publicChip = 'assets/images/Evermore.png';
-  static const privateChip = 'assets/images/Anchor.png';
-  static const checkChip = 'assets/images/Gather.png';
-  static const deleteChip = 'assets/images/Bond.png';
+  static const threadUnderline =
+      'assets/morrowly_art/ui/morrowly_ui_thread.png';
+  static const actionOrbit = 'assets/morrowly_art/ui/morrowly_ui_orbit.png';
+  static const actionFeather = 'assets/morrowly_art/ui/morrowly_ui_nova.png';
+  static const capsuleCoin = 'assets/morrowly_art/ui/morrowly_ui_capsule.png';
+  static const heroJar = 'assets/morrowly_art/ui/morrowly_ui_dream.png';
+  static const previewWash = 'assets/morrowly_art/ui/morrowly_ui_recall.png';
+  static const sealedPostcard =
+      'assets/morrowly_art/ui/morrowly_ui_postcard.png';
+  static const dialogPrelude = 'assets/morrowly_art/ui/morrowly_ui_prelude.png';
+  static const capsuleTypeLetter =
+      'assets/morrowly_art/ui/morrowly_ui_glimpse.png';
+  static const capsuleTypeVideo =
+      'assets/morrowly_art/ui/morrowly_ui_reminisce.png';
+  static const customTimeGlyph =
+      'assets/morrowly_art/ui/morrowly_ui_memento.png';
+  static const bloomMark = 'assets/morrowly_art/ui/morrowly_ui_bloom.png';
+  static const museMark = 'assets/morrowly_art/ui/morrowly_ui_muse.png';
+  static const sayButton = 'assets/morrowly_art/ui/morrowly_ui_spark.png';
+  static const myCapsulesSmall =
+      'assets/morrowly_art/ui/morrowly_ui_reunion.png';
+  static const viewCapsules = 'assets/morrowly_art/ui/morrowly_ui_locket.png';
+  static const confirmSeal = 'assets/morrowly_art/ui/morrowly_ui_heartbeat.png';
+  static const sealedCapsules =
+      'assets/morrowly_art/ui/morrowly_ui_yesterday.png';
+  static const confirmButton =
+      'assets/morrowly_art/ui/morrowly_ui_duskfall.png';
+  static const backHome = 'assets/morrowly_art/ui/morrowly_ui_presence.png';
+  static const publicChip = 'assets/morrowly_art/ui/morrowly_ui_evermore.png';
+  static const privateChip = 'assets/morrowly_art/ui/morrowly_ui_anchor.png';
+  static const checkChip = 'assets/morrowly_art/ui/morrowly_ui_gather.png';
+  static const deleteChip = 'assets/morrowly_art/ui/morrowly_ui_bond.png';
 }
 
 abstract final class CapsuleSquareSeed {
   static const currentKeeper = CapsuleKeeper(
-    keeperKey: 'self-rainlit-room',
-    displayName: 'Mira Vale',
-    ageLine: '24',
-    placeLine: 'United States',
+    keeperId: 'self-rainlit-room',
+    publicName: 'Mira Vale',
+    ageMark: '24',
+    homeRegion: 'United States',
     signalBand: KeeperSignalBand.bloom,
-    avatarAsset: 'assets/images/Memoir.png',
+    portraitAsset: '',
   );
 
   static const bloomKeepers = [
     CapsuleKeeper(
-      keeperKey: 'bloom-arch-window',
-      displayName: 'Carolyn Massey',
-      ageLine: '23',
-      placeLine: 'Australia',
+      keeperId: 'bloom-arch-window',
+      publicName: 'Carolyn Massey',
+      ageMark: '23',
+      homeRegion: 'Australia',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_arch_window.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_arch_window.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-cedar-terrace',
-      displayName: 'Elara Finch',
-      ageLine: '22',
-      placeLine: 'Canada',
+      keeperId: 'bloom-cedar-terrace',
+      publicName: 'Elara Finch',
+      ageMark: '22',
+      homeRegion: 'Canada',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_cedar_terrace.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_cedar_terrace.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-sunlit-step',
-      displayName: 'Nora Wells',
-      ageLine: '25',
-      placeLine: 'Ireland',
+      keeperId: 'bloom-sunlit-step',
+      publicName: 'Nora Wells',
+      ageMark: '25',
+      homeRegion: 'Ireland',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_sunlit_step.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_sunlit_step.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-hill-path',
-      displayName: 'Livia Rowe',
-      ageLine: '21',
-      placeLine: 'New Zealand',
+      keeperId: 'bloom-hill-path',
+      publicName: 'Livia Rowe',
+      ageMark: '21',
+      homeRegion: 'New Zealand',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_hill_path.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_hill_path.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-morning-arch',
-      displayName: 'Arielle Knox',
-      ageLine: '24',
-      placeLine: 'France',
+      keeperId: 'bloom-morning-arch',
+      publicName: 'Arielle Knox',
+      ageMark: '24',
+      homeRegion: 'France',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_morning_arch.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_morning_arch.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-campus-courtyard',
-      displayName: 'Sofia Marin',
-      ageLine: '20',
-      placeLine: 'Spain',
+      keeperId: 'bloom-campus-courtyard',
+      publicName: 'Sofia Marin',
+      ageMark: '20',
+      homeRegion: 'Spain',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_campus_courtyard.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_campus_courtyard.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-evening-room',
-      displayName: 'Maya Sterling',
-      ageLine: '26',
-      placeLine: 'United States',
+      keeperId: 'bloom-evening-room',
+      publicName: 'Maya Sterling',
+      ageMark: '26',
+      homeRegion: 'United States',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_evening_room.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_evening_room.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-cafe-awning',
-      displayName: 'Kira Ashby',
-      ageLine: '23',
-      placeLine: 'Italy',
+      keeperId: 'bloom-cafe-awning',
+      publicName: 'Kira Ashby',
+      ageMark: '23',
+      homeRegion: 'Italy',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_cafe_awning.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_cafe_awning.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-soft-corner',
-      displayName: 'Ivy Monroe',
-      ageLine: '22',
-      placeLine: 'Netherlands',
+      keeperId: 'bloom-soft-corner',
+      publicName: 'Ivy Monroe',
+      ageMark: '22',
+      homeRegion: 'Netherlands',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_soft_corner.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_soft_corner.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-gold-room',
-      displayName: 'June Calder',
-      ageLine: '24',
-      placeLine: 'United Kingdom',
+      keeperId: 'bloom-gold-room',
+      publicName: 'June Calder',
+      ageMark: '24',
+      homeRegion: 'United Kingdom',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_gold_room.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_gold_room.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-clear-window',
-      displayName: 'Sienna Vale',
-      ageLine: '25',
-      placeLine: 'Sweden',
+      keeperId: 'bloom-clear-window',
+      publicName: 'Sienna Vale',
+      ageMark: '25',
+      homeRegion: 'Sweden',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_clear_window.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_clear_window.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-lake-glow',
-      displayName: 'Talia Arden',
-      ageLine: '21',
-      placeLine: 'Switzerland',
+      keeperId: 'bloom-lake-glow',
+      publicName: 'Talia Arden',
+      ageMark: '21',
+      homeRegion: 'Switzerland',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_lake_glow.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_lake_glow.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-blonde-lane',
-      displayName: 'Rhea Collins',
-      ageLine: '24',
-      placeLine: 'Denmark',
+      keeperId: 'bloom-blonde-lane',
+      publicName: 'Rhea Collins',
+      ageMark: '24',
+      homeRegion: 'Denmark',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_blonde_lane.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_blonde_lane.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-pine-light',
-      displayName: 'Lena Solis',
-      ageLine: '23',
-      placeLine: 'Austria',
+      keeperId: 'bloom-pine-light',
+      publicName: 'Lena Solis',
+      ageMark: '23',
+      homeRegion: 'Austria',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_pine_light.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_pine_light.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-studio-glance',
-      displayName: 'Maren Lee',
-      ageLine: '22',
-      placeLine: 'Korea',
+      keeperId: 'bloom-studio-glance',
+      publicName: 'Maren Lee',
+      ageMark: '22',
+      homeRegion: 'Korea',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_studio_glance.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_studio_glance.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-rooftop-note',
-      displayName: 'Anya Reed',
-      ageLine: '20',
-      placeLine: 'Portugal',
+      keeperId: 'bloom-rooftop-note',
+      publicName: 'Anya Reed',
+      ageMark: '20',
+      homeRegion: 'Portugal',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_rooftop_note.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_rooftop_note.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-market-sun',
-      displayName: 'Celia Grant',
-      ageLine: '25',
-      placeLine: 'Belgium',
+      keeperId: 'bloom-market-sun',
+      publicName: 'Celia Grant',
+      ageMark: '25',
+      homeRegion: 'Belgium',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_market_sun.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_market_sun.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-tennis-shade',
-      displayName: 'Avery Lane',
-      ageLine: '23',
-      placeLine: 'United States',
+      keeperId: 'bloom-tennis-shade',
+      publicName: 'Avery Lane',
+      ageMark: '23',
+      homeRegion: 'United States',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_tennis_shade.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_tennis_shade.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-winter-bank',
-      displayName: 'Noemi Hart',
-      ageLine: '26',
-      placeLine: 'Norway',
+      keeperId: 'bloom-winter-bank',
+      publicName: 'Noemi Hart',
+      ageMark: '26',
+      homeRegion: 'Norway',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_winter_bank.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_winter_bank.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'bloom-stair-light',
-      displayName: 'Freya Stone',
-      ageLine: '22',
-      placeLine: 'Iceland',
+      keeperId: 'bloom-stair-light',
+      publicName: 'Freya Stone',
+      ageMark: '22',
+      homeRegion: 'Iceland',
       signalBand: KeeperSignalBand.bloom,
-      avatarAsset: 'assets/images/head/bloom_stair_light.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_bloom_stair_light.jpg',
     ),
   ];
 
   static const museKeepers = [
     CapsuleKeeper(
-      keeperKey: 'muse-garden-path',
-      displayName: 'Evan Hale',
-      ageLine: '24',
-      placeLine: 'Canada',
+      keeperId: 'muse-garden-path',
+      publicName: 'Evan Hale',
+      ageMark: '24',
+      homeRegion: 'Canada',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_garden_path.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_garden_path.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-warm-wall',
-      displayName: 'Theo Mercer',
-      ageLine: '22',
-      placeLine: 'United States',
+      keeperId: 'muse-warm-wall',
+      publicName: 'Theo Mercer',
+      ageMark: '22',
+      homeRegion: 'United States',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_warm_wall.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_warm_wall.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-black-room',
-      displayName: 'Milo Quinn',
-      ageLine: '23',
-      placeLine: 'United Kingdom',
+      keeperId: 'muse-black-room',
+      publicName: 'Milo Quinn',
+      ageMark: '23',
+      homeRegion: 'United Kingdom',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_black_room.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_black_room.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-highland-walk',
-      displayName: 'Arlo Finch',
-      ageLine: '26',
-      placeLine: 'New Zealand',
+      keeperId: 'muse-highland-walk',
+      publicName: 'Arlo Finch',
+      ageMark: '26',
+      homeRegion: 'New Zealand',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_highland_walk.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_highland_walk.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-pavement-smile',
-      displayName: 'Jules Ward',
-      ageLine: '25',
-      placeLine: 'France',
+      keeperId: 'muse-pavement-smile',
+      publicName: 'Jules Ward',
+      ageMark: '25',
+      homeRegion: 'France',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_pavement_smile.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_pavement_smile.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-stone-courtyard',
-      displayName: 'Luca Bennett',
-      ageLine: '23',
-      placeLine: 'Italy',
+      keeperId: 'muse-stone-courtyard',
+      publicName: 'Luca Bennett',
+      ageMark: '23',
+      homeRegion: 'Italy',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_stone_courtyard.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_stone_courtyard.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-sea-rooftop',
-      displayName: 'Kai Morgan',
-      ageLine: '21',
-      placeLine: 'Australia',
+      keeperId: 'muse-sea-rooftop',
+      publicName: 'Kai Morgan',
+      ageMark: '21',
+      homeRegion: 'Australia',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_sea_rooftop.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_sea_rooftop.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-cafe-shadow',
-      displayName: 'Nico Reyes',
-      ageLine: '24',
-      placeLine: 'Spain',
+      keeperId: 'muse-cafe-shadow',
+      publicName: 'Nico Reyes',
+      ageMark: '24',
+      homeRegion: 'Spain',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_cafe_shadow.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_cafe_shadow.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-neutral-portrait',
-      displayName: 'Oscar Venn',
-      ageLine: '20',
-      placeLine: 'Ireland',
+      keeperId: 'muse-neutral-portrait',
+      publicName: 'Oscar Venn',
+      ageMark: '20',
+      homeRegion: 'Ireland',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_neutral_portrait.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_neutral_portrait.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-bright-wall',
-      displayName: 'Rory Ellis',
-      ageLine: '22',
-      placeLine: 'Denmark',
+      keeperId: 'muse-bright-wall',
+      publicName: 'Rory Ellis',
+      ageMark: '22',
+      homeRegion: 'Denmark',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_bright_wall.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_bright_wall.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-city-bench',
-      displayName: 'Max Orlan',
-      ageLine: '25',
-      placeLine: 'Germany',
+      keeperId: 'muse-city-bench',
+      publicName: 'Max Orlan',
+      ageMark: '25',
+      homeRegion: 'Germany',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_city_bench.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_city_bench.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-dark-room',
-      displayName: 'Dane Carter',
-      ageLine: '24',
-      placeLine: 'Netherlands',
+      keeperId: 'muse-dark-room',
+      publicName: 'Dane Carter',
+      ageMark: '24',
+      homeRegion: 'Netherlands',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_dark_room.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_dark_room.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-car-window',
-      displayName: 'Caleb North',
-      ageLine: '27',
-      placeLine: 'United States',
+      keeperId: 'muse-car-window',
+      publicName: 'Caleb North',
+      ageMark: '27',
+      homeRegion: 'United States',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_car_window.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_car_window.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-balcony-light',
-      displayName: 'Silas Brooks',
-      ageLine: '23',
-      placeLine: 'Austria',
+      keeperId: 'muse-balcony-light',
+      publicName: 'Silas Brooks',
+      ageMark: '23',
+      homeRegion: 'Austria',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_balcony_light.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_balcony_light.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-ink-studio',
-      displayName: 'Eli Porter',
-      ageLine: '22',
-      placeLine: 'Belgium',
+      keeperId: 'muse-ink-studio',
+      publicName: 'Eli Porter',
+      ageMark: '22',
+      homeRegion: 'Belgium',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_ink_studio.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_ink_studio.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-rooftop-edge',
-      displayName: 'Rowan Miles',
-      ageLine: '21',
-      placeLine: 'Portugal',
+      keeperId: 'muse-rooftop-edge',
+      publicName: 'Rowan Miles',
+      ageMark: '21',
+      homeRegion: 'Portugal',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_rooftop_edge.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_rooftop_edge.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-sunlit-selfie',
-      displayName: 'Finn Hayes',
-      ageLine: '23',
-      placeLine: 'Sweden',
+      keeperId: 'muse-sunlit-selfie',
+      publicName: 'Finn Hayes',
+      ageMark: '23',
+      homeRegion: 'Sweden',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_sunlit_selfie.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_sunlit_selfie.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-marble-colonnade',
-      displayName: 'Julian Cross',
-      ageLine: '26',
-      placeLine: 'Greece',
+      keeperId: 'muse-marble-colonnade',
+      publicName: 'Julian Cross',
+      ageMark: '26',
+      homeRegion: 'Greece',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_marble_colonnade.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_marble_colonnade.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-window-table',
-      displayName: 'Noah Briar',
-      ageLine: '24',
-      placeLine: 'Norway',
+      keeperId: 'muse-window-table',
+      publicName: 'Noah Briar',
+      ageMark: '24',
+      homeRegion: 'Norway',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_window_table.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_window_table.jpg',
     ),
     CapsuleKeeper(
-      keeperKey: 'muse-travel-strap',
-      displayName: 'Adam Vale',
-      ageLine: '22',
-      placeLine: 'Switzerland',
+      keeperId: 'muse-travel-strap',
+      publicName: 'Adam Vale',
+      ageMark: '22',
+      homeRegion: 'Switzerland',
       signalBand: KeeperSignalBand.muse,
-      avatarAsset: 'assets/images/head/muse_travel_strap.jpg',
+      portraitAsset:
+          'assets/morrowly_art/keepers/morrowly_keeper_muse_travel_strap.jpg',
     ),
   ];
 
   static const memorySnaps = [
-    CapsuleMediaSnap(
-      snapKey: 'memory-garden-portrait',
-      assetPath: 'assets/images/post/memory_garden_portrait.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-garden-portrait',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_garden_portrait.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Garden light',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-amber-room-table',
-      assetPath: 'assets/images/post/memory_amber_room_table.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-amber-room-table',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_amber_room_table.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Amber table',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-dusk-window-note',
-      assetPath: 'assets/images/post/memory_dusk_window_note.jpg',
-      kind: CapsuleMediaKind.motion,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-dusk-window-note',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_dusk_window_note.jpg',
+      fragmentKind: MemoryFragmentKind.motion,
       captionTrace: 'Dusk window',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-palm-street-walk',
-      assetPath: 'assets/images/post/memory_palm_street_walk.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-palm-street-walk',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_palm_street_walk.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Palm street',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-lemonade-arcade',
-      assetPath: 'assets/images/post/memory_lemonade_arcade.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-lemonade-arcade',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_lemonade_arcade.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Lemonade stop',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-cathedral-morning',
-      assetPath: 'assets/images/post/memory_cathedral_morning.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-cathedral-morning',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_cathedral_morning.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Cathedral morning',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-quiet-stair-wait',
-      assetPath: 'assets/images/post/memory_quiet_stair_wait.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-quiet-stair-wait',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_quiet_stair_wait.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Quiet stair',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-poolside-wings',
-      assetPath: 'assets/images/post/memory_poolside_wings.jpg',
-      kind: CapsuleMediaKind.motion,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-poolside-wings',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_poolside_wings.jpg',
+      fragmentKind: MemoryFragmentKind.motion,
       captionTrace: 'Poolside wings',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-car-window-drive',
-      assetPath: 'assets/images/post/memory_car_window_drive.jpg',
-      kind: CapsuleMediaKind.motion,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-car-window-drive',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_car_window_drive.jpg',
+      fragmentKind: MemoryFragmentKind.motion,
       captionTrace: 'Window drive',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-paper-wall-pause',
-      assetPath: 'assets/images/post/memory_paper_wall_pause.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-paper-wall-pause',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_paper_wall_pause.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Paper wall',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-handheld-game-rest',
-      assetPath: 'assets/images/post/memory_handheld_game_rest.jpg',
-      kind: CapsuleMediaKind.motion,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-handheld-game-rest',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_handheld_game_rest.jpg',
+      fragmentKind: MemoryFragmentKind.motion,
       captionTrace: 'Game rest',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-green-path-turn',
-      assetPath: 'assets/images/post/memory_green_path_turn.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-green-path-turn',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_green_path_turn.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Green path',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-coffee-letter-table',
-      assetPath: 'assets/images/post/memory_coffee_letter_table.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-coffee-letter-table',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_coffee_letter_table.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Coffee letter',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-harbor-supper-sunset',
-      assetPath: 'assets/images/post/memory_harbor_supper_sunset.jpg',
-      kind: CapsuleMediaKind.motion,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-harbor-supper-sunset',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_harbor_supper_sunset.jpg',
+      fragmentKind: MemoryFragmentKind.motion,
       captionTrace: 'Harbor supper',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-resort-pool-still',
-      assetPath: 'assets/images/post/memory_resort_pool_still.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-resort-pool-still',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_resort_pool_still.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Pool still',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-cafe-companion-table',
-      assetPath: 'assets/images/post/memory_cafe_companion_table.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-cafe-companion-table',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_cafe_companion_table.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Cafe companion',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-flower-market-smile',
-      assetPath: 'assets/images/post/memory_flower_market_smile.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-flower-market-smile',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_flower_market_smile.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Flower market',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-lake-cocktail-view',
-      assetPath: 'assets/images/post/memory_lake_cocktail_view.jpg',
-      kind: CapsuleMediaKind.motion,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-lake-cocktail-view',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_lake_cocktail_view.jpg',
+      fragmentKind: MemoryFragmentKind.motion,
       captionTrace: 'Lake table',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-hammock-valley-rest',
-      assetPath: 'assets/images/post/memory_hammock_valley_rest.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-hammock-valley-rest',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_hammock_valley_rest.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Valley rest',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-beach-mat-memory',
-      assetPath: 'assets/images/post/memory_beach_mat_memory.jpg',
-      kind: CapsuleMediaKind.motion,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-beach-mat-memory',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_beach_mat_memory.jpg',
+      fragmentKind: MemoryFragmentKind.motion,
       captionTrace: 'Beach memory',
     ),
-    CapsuleMediaSnap(
-      snapKey: 'memory-travel-mirror-lane',
-      assetPath: 'assets/images/post/memory_travel_mirror_lane.jpg',
-      kind: CapsuleMediaKind.still,
+    CapsuleMemoryFragment(
+      fragmentId: 'memory-travel-mirror-lane',
+      sourcePath:
+          'assets/morrowly_art/moments/morrowly_moment_travel_mirror_lane.jpg',
+      fragmentKind: MemoryFragmentKind.still,
       captionTrace: 'Travel mirror',
     ),
   ];
@@ -500,186 +569,186 @@ abstract final class CapsuleSquareSeed {
   static List<CapsuleOpeningPreset> openingPresets(DateTime anchor) {
     return [
       CapsuleOpeningPreset(
-        presetKey: 'one-month',
+        presetId: 'one-month',
         label: 'One month',
-        openingAt: DateTime(anchor.year, anchor.month + 1, anchor.day, 10, 30),
+        unlocksAt: DateTime(anchor.year, anchor.month + 1, anchor.day, 10, 30),
       ),
       CapsuleOpeningPreset(
-        presetKey: 'three-months',
+        presetId: 'three-months',
         label: 'Three months',
-        openingAt: DateTime(anchor.year, anchor.month + 3, anchor.day, 10, 30),
+        unlocksAt: DateTime(anchor.year, anchor.month + 3, anchor.day, 10, 30),
       ),
       CapsuleOpeningPreset(
-        presetKey: 'six-months',
+        presetId: 'six-months',
         label: 'Six months',
-        openingAt: DateTime(anchor.year, anchor.month + 6, anchor.day, 10, 30),
+        unlocksAt: DateTime(anchor.year, anchor.month + 6, anchor.day, 10, 30),
       ),
       CapsuleOpeningPreset(
-        presetKey: 'one-year',
+        presetId: 'one-year',
         label: 'One year',
-        openingAt: DateTime(anchor.year + 1, anchor.month, anchor.day, 10, 30),
+        unlocksAt: DateTime(anchor.year + 1, anchor.month, anchor.day, 10, 30),
       ),
       CapsuleOpeningPreset(
-        presetKey: 'three-years',
+        presetId: 'three-years',
         label: 'Three years',
-        openingAt: DateTime(anchor.year + 3, anchor.month, anchor.day, 10, 30),
+        unlocksAt: DateTime(anchor.year + 3, anchor.month, anchor.day, 10, 30),
       ),
       CapsuleOpeningPreset(
-        presetKey: 'five-years',
+        presetId: 'five-years',
         label: 'Five years',
-        openingAt: DateTime(anchor.year + 5, anchor.month, anchor.day, 10, 30),
+        unlocksAt: DateTime(anchor.year + 5, anchor.month, anchor.day, 10, 30),
       ),
       CapsuleOpeningPreset(
-        presetKey: 'ten-years',
+        presetId: 'ten-years',
         label: 'Ten years',
-        openingAt: DateTime(anchor.year + 10, anchor.month, anchor.day, 10, 30),
+        unlocksAt: DateTime(anchor.year + 10, anchor.month, anchor.day, 10, 30),
       ),
     ];
   }
 
-  static List<CapsuleSquareNote> squareNotes() {
+  static List<PublicCapsuleSeal> squareNotes() {
     final keepers = allKeepers;
     return [
-      CapsuleSquareNote(
-        noteKey: 'square-rain-romance',
+      PublicCapsuleSeal(
+        sealId: 'square-rain-romance',
         keeper: bloomKeepers[0],
-        messageLine:
-            'I hope scattered life can also have passionate romance. You must be happy in the future!',
-        mediaSnaps: [memorySnaps[13], memorySnaps[19]],
+        sealedMessage:
+            'Sealing this lake light for a later morning, when I need proof that quiet days can still glow.',
+        memoryFragments: [memorySnaps[13], memorySnaps[19]],
         sealedAt: DateTime(2025, 2, 25, 21, 10),
-        openingAt: DateTime(2027, 6, 29, 10, 30),
-        visibility: CapsuleVisibility.publicSquare,
+        unlocksAt: DateTime(2027, 6, 29, 10, 30),
+        shelfScope: CapsuleShelfScope.publicSquare,
         visitorTrail: keepers,
-        leftMessageCount: 156,
-        comments: [
-          CapsuleSquareComment(
-            commentKey: 'rain-elara',
+        replyTrailCount: 156,
+        replies: [
+          CapsuleReply(
+            replyId: 'rain-elara',
             author: bloomKeepers[1],
-            messageLine:
-                'This feels like a promise made at sunset. I hope future you finds the same warmth again.',
-            timeAgoLine: '18 min ago',
+            sealedMessage:
+                'This feels like a promise made at sunset. I hope future you recognizes the warmth right away.',
+            arrivalLabel: '18 min ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'rain-kai',
+          CapsuleReply(
+            replyId: 'rain-kai',
             author: museKeepers[6],
-            messageLine:
+            sealedMessage:
                 'The beach table makes the memory feel unhurried. Save that softness.',
-            timeAgoLine: '42 min ago',
+            arrivalLabel: '42 min ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'rain-talia',
+          CapsuleReply(
+            replyId: 'rain-talia',
             author: bloomKeepers[11],
-            messageLine:
+            sealedMessage:
                 'Leaving a wish here: may the future version of this day still know how to laugh.',
-            timeAgoLine: '1h ago',
+            arrivalLabel: '1h ago',
           ),
         ],
       ),
-      CapsuleSquareNote(
-        noteKey: 'square-window-return',
+      PublicCapsuleSeal(
+        sealId: 'square-window-return',
         keeper: museKeepers[7],
-        messageLine:
+        sealedMessage:
             'Leaving a little evidence that this quiet season still had color.',
-        mediaSnaps: [memorySnaps[2], memorySnaps[8], memorySnaps[11]],
+        memoryFragments: [memorySnaps[2], memorySnaps[8], memorySnaps[11]],
         sealedAt: DateTime(2025, 4, 16, 18, 40),
-        openingAt: DateTime(2026, 6, 1, 9, 0),
-        visibility: CapsuleVisibility.publicSquare,
+        unlocksAt: DateTime(2026, 6, 1, 9, 0),
+        shelfScope: CapsuleShelfScope.publicSquare,
         visitorTrail: keepers.reversed.toList(),
-        leftMessageCount: 92,
-        comments: [
-          CapsuleSquareComment(
-            commentKey: 'window-rory',
+        replyTrailCount: 92,
+        replies: [
+          CapsuleReply(
+            replyId: 'window-rory',
             author: museKeepers[9],
-            messageLine:
+            sealedMessage:
                 'Quiet seasons count too. This one looks like it taught you how to breathe slower.',
-            timeAgoLine: '7 min ago',
+            arrivalLabel: '7 min ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'window-maren',
+          CapsuleReply(
+            replyId: 'window-maren',
             author: bloomKeepers[14],
-            messageLine:
+            sealedMessage:
                 'I like how ordinary this feels. Sometimes that is exactly the proof worth keeping.',
-            timeAgoLine: '33 min ago',
+            arrivalLabel: '33 min ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'window-luca',
+          CapsuleReply(
+            replyId: 'window-luca',
             author: museKeepers[5],
-            messageLine:
+            sealedMessage:
                 'When it opens, I hope the color comes back even brighter than you expected.',
-            timeAgoLine: '2h ago',
+            arrivalLabel: '2h ago',
           ),
         ],
       ),
-      CapsuleSquareNote(
-        noteKey: 'square-coffee-letter',
+      PublicCapsuleSeal(
+        sealId: 'square-coffee-letter',
         keeper: bloomKeepers[12],
-        messageLine:
+        sealedMessage:
             'If you are reading this, remember the table where the decision finally felt small enough.',
-        mediaSnaps: [memorySnaps[12], memorySnaps[15]],
+        memoryFragments: [memorySnaps[12], memorySnaps[15]],
         sealedAt: DateTime(2025, 8, 3, 16, 12),
-        openingAt: DateTime(2026, 12, 26, 10, 30),
-        visibility: CapsuleVisibility.privateShelf,
+        unlocksAt: DateTime(2026, 12, 26, 10, 30),
+        shelfScope: CapsuleShelfScope.privateShelf,
         visitorTrail: keepers.sublist(4, 26),
-        leftMessageCount: 47,
+        replyTrailCount: 47,
       ),
-      CapsuleSquareNote(
-        noteKey: 'square-harbor-promise',
+      PublicCapsuleSeal(
+        sealId: 'square-harbor-promise',
         keeper: museKeepers[18],
-        messageLine:
+        sealedMessage:
             'The evening was ordinary, which is why I want to keep it sealed.',
-        mediaSnaps: [memorySnaps[0], memorySnaps[1], memorySnaps[3]],
+        memoryFragments: [memorySnaps[0], memorySnaps[1], memorySnaps[3]],
         sealedAt: DateTime(2025, 9, 12, 20, 5),
-        openingAt: DateTime(2028, 1, 7, 11, 0),
-        visibility: CapsuleVisibility.publicSquare,
+        unlocksAt: DateTime(2028, 1, 7, 11, 0),
+        shelfScope: CapsuleShelfScope.publicSquare,
         visitorTrail: keepers.sublist(10),
-        leftMessageCount: 118,
-        comments: [
-          CapsuleSquareComment(
-            commentKey: 'harbor-noah',
+        replyTrailCount: 118,
+        replies: [
+          CapsuleReply(
+            replyId: 'harbor-noah',
             author: museKeepers[18],
-            messageLine:
+            sealedMessage:
                 'Ordinary evenings are usually the ones that become landmarks later.',
-            timeAgoLine: '12 min ago',
+            arrivalLabel: '12 min ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'harbor-rhea',
+          CapsuleReply(
+            replyId: 'harbor-rhea',
             author: bloomKeepers[12],
-            messageLine:
-                'This sounds like the kind of promise that grows quietly instead of loudly.',
-            timeAgoLine: '59 min ago',
+            sealedMessage:
+                'This sounds like the kind of promise that grows quietly in the background.',
+            arrivalLabel: '59 min ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'harbor-adam',
+          CapsuleReply(
+            replyId: 'harbor-adam',
             author: museKeepers[19],
-            messageLine:
+            sealedMessage:
                 'Leaving a marker here for the future: remember who made simple feel enough.',
-            timeAgoLine: '3h ago',
+            arrivalLabel: '3h ago',
           ),
         ],
       ),
-      CapsuleSquareNote(
-        noteKey: 'square-arcade-morning',
+      PublicCapsuleSeal(
+        sealId: 'square-arcade-morning',
         keeper: bloomKeepers[4],
-        messageLine:
+        sealedMessage:
             'A tiny note for the version of me who forgot how bright this day felt.',
-        mediaSnaps: [
+        memoryFragments: [
           memorySnaps[4],
           memorySnaps[5],
           memorySnaps[6],
           memorySnaps[7],
         ],
         sealedAt: DateTime(2026, 1, 18, 12, 4),
-        openingAt: DateTime(2026, 6, 29, 9, 30),
-        visibility: CapsuleVisibility.privateShelf,
+        unlocksAt: DateTime(2026, 6, 29, 9, 30),
+        shelfScope: CapsuleShelfScope.privateShelf,
         visitorTrail: keepers.sublist(0, 18),
-        leftMessageCount: 63,
+        replyTrailCount: 63,
       ),
-      CapsuleSquareNote(
-        noteKey: 'square-valley-afterlight',
+      PublicCapsuleSeal(
+        sealId: 'square-valley-afterlight',
         keeper: museKeepers[16],
-        messageLine:
-            'When the year gets loud again, open this and borrow the quiet.',
-        mediaSnaps: [
+        sealedMessage:
+            'When the year gets crowded again, open this and borrow the quiet.',
+        memoryFragments: [
           memorySnaps[9],
           memorySnaps[10],
           memorySnaps[16],
@@ -688,31 +757,31 @@ abstract final class CapsuleSquareSeed {
           memorySnaps[20],
         ],
         sealedAt: DateTime(2026, 2, 11, 15, 30),
-        openingAt: DateTime(2031, 6, 29, 10, 30),
-        visibility: CapsuleVisibility.publicSquare,
+        unlocksAt: DateTime(2031, 6, 29, 10, 30),
+        shelfScope: CapsuleShelfScope.publicSquare,
         visitorTrail: keepers,
-        leftMessageCount: 201,
-        comments: [
-          CapsuleSquareComment(
-            commentKey: 'valley-finn',
+        replyTrailCount: 201,
+        replies: [
+          CapsuleReply(
+            replyId: 'valley-finn',
             author: museKeepers[16],
-            messageLine:
-                'Borrowing quiet from a better day is such a gentle way to survive a loud year.',
-            timeAgoLine: '24 min ago',
+            sealedMessage:
+                'Borrowing quiet from a better day is a gentle way to carry a crowded year.',
+            arrivalLabel: '24 min ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'valley-sofia',
+          CapsuleReply(
+            replyId: 'valley-sofia',
             author: bloomKeepers[5],
-            messageLine:
+            sealedMessage:
                 'This capsule feels like shade after a long walk. I hope it still cools the future.',
-            timeAgoLine: '1h ago',
+            arrivalLabel: '1h ago',
           ),
-          CapsuleSquareComment(
-            commentKey: 'valley-jules',
+          CapsuleReply(
+            replyId: 'valley-jules',
             author: museKeepers[4],
-            messageLine:
+            sealedMessage:
                 'Five years is far away, but this kind of calm usually knows how to wait.',
-            timeAgoLine: '4h ago',
+            arrivalLabel: '4h ago',
           ),
         ],
       ),

@@ -92,7 +92,7 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
                       const SizedBox(height: 22),
                       SoftEntryField(
                         label: 'Email Address',
-                        placeholder: 'Please enter...',
+                        placeholder: 'name@example.com',
                         controller: _emailController,
                         trailingKind: FieldTrailingKind.clear,
                         keyboardType: TextInputType.emailAddress,
@@ -101,7 +101,7 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
                       const SizedBox(height: 18),
                       SoftEntryField(
                         label: 'Password',
-                        placeholder: 'Please enter...',
+                        placeholder: 'Private key for your capsule',
                         controller: _passwordController,
                         trailingKind: FieldTrailingKind.eye,
                         textInputAction: TextInputAction.done,
@@ -165,7 +165,7 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
       builder: (_) => const GateNoticeDialog(
         title: 'A little more detail',
         message:
-            'Please enter both your email address and password to continue.',
+            'Add the email and private key that will open your Morrowly shelf.',
       ),
     );
   }
@@ -188,7 +188,7 @@ class _CredentialPanelScreenState extends State<CredentialPanelScreen> {
       barrierColor: Colors.black.withValues(alpha: 0.48),
       builder: (_) => const GateNoticeDialog(
         title: 'Password too short',
-        message: 'Please use at least six characters before moving forward.',
+        message: 'Use at least six characters for this private capsule key.',
       ),
     );
   }

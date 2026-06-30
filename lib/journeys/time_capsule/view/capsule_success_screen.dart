@@ -12,10 +12,13 @@ const _capsuleButtonHeightRatio = 108 / 568;
 class CapsuleSuccessScreen extends StatelessWidget {
   const CapsuleSuccessScreen({super.key, required this.capsule});
 
-  final CapsuleSquareNote capsule;
+  final PublicCapsuleSeal capsule;
 
   @override
   Widget build(BuildContext context) {
+    final waitsForPublicReview =
+        capsule.shelfScope == CapsuleShelfScope.publicSquare &&
+        capsule.isLocalDraft;
     return CapsuleStage(
       child: Stack(
         children: [
@@ -77,12 +80,14 @@ class CapsuleSuccessScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 22),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                        'The time capsule has been\nsuccessfully sealed!!',
+                        waitsForPublicReview
+                            ? 'The time capsule has been\nsealed for review.'
+                            : 'The time capsule has been\nsuccessfully sealed!!',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 22,
                           height: 1.24,
@@ -94,7 +99,9 @@ class CapsuleSuccessScreen extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: side),
                       child: Text(
-                        'It will automatically start at ${capsuleClockStamp(capsule.openingAt)} on ${capsuleDateStamp(capsule.openingAt)}',
+                        waitsForPublicReview
+                            ? 'It is saved in My Capsules. Public display waits for review before it can appear in the square.'
+                            : 'It will automatically start at ${capsuleClockStamp(capsule.unlocksAt)} on ${capsuleDateStamp(capsule.unlocksAt)}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.36),

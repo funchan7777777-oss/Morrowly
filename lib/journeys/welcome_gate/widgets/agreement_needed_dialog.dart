@@ -62,7 +62,7 @@ class AgreementNeededDialog extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                'Please read and agree to the User Agreement and Privacy Policy before continuing.',
+                'Read and agree to the User Agreement and Privacy Policy before opening your shelf.',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.72),
                   fontSize: 14,

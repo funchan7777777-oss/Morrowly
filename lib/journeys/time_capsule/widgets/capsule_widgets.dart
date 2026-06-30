@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/widgets/morrowly_avatar_placeholder.dart';
 
 String capsuleDateStamp(DateTime value) {
   final month = value.month.toString().padLeft(2, '0');
@@ -18,14 +19,47 @@ String capsuleClockStamp(DateTime value) {
 }
 
 ImageProvider<Object> capsuleKeeperAvatarProvider(CapsuleKeeper keeper) {
-  if (keeper.avatarLocalPath.isNotEmpty) {
-    return FileImage(File(keeper.avatarLocalPath));
+  if (keeper.localPortraitPath.isNotEmpty) {
+    return FileImage(File(keeper.localPortraitPath));
   }
   return AssetImage(
-    keeper.avatarAsset.isEmpty
-        ? 'assets/images/Memoir.png'
-        : keeper.avatarAsset,
+    keeper.portraitAsset.isEmpty
+        ? 'assets/morrowly_art/ui/morrowly_ui_memoir.png'
+        : keeper.portraitAsset,
   );
+}
+
+bool capsuleKeeperUsesGeneratedAvatar(CapsuleKeeper keeper) {
+  return keeper.localPortraitPath.isEmpty &&
+      (keeper.portraitAsset.isEmpty ||
+          keeper.portraitAsset ==
+              'assets/morrowly_art/ui/morrowly_ui_memoir.png');
+}
+
+class CapsuleKeeperAvatar extends StatelessWidget {
+  const CapsuleKeeperAvatar({
+    super.key,
+    required this.keeper,
+    required this.radius,
+  });
+
+  final CapsuleKeeper keeper;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    if (capsuleKeeperUsesGeneratedAvatar(keeper)) {
+      return MorrowlyAvatarPlaceholder(
+        radius: radius,
+        label: keeper.publicName,
+      );
+    }
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.white.withValues(alpha: 0.16),
+      backgroundImage: capsuleKeeperAvatarProvider(keeper),
+    );
+  }
 }
 
 class CapsuleTopBar extends StatelessWidget {
@@ -34,23 +68,33 @@ class CapsuleTopBar extends StatelessWidget {
     required this.title,
     this.trailing,
     this.onBack,
+    this.topMinimum = 48,
+    this.topExtra = 0,
+    this.height = 44,
   });
 
   final String title;
   final Widget? trailing;
   final VoidCallback? onBack;
+  final double topMinimum;
+  final double topExtra;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         18,
-        MorrowlyFrameGuard.topClearance(context, minimum: 48),
+        MorrowlyFrameGuard.topClearance(
+          context,
+          minimum: topMinimum,
+          extra: topExtra,
+        ),
         18,
         0,
       ),
       child: SizedBox(
-        height: 44,
+        height: height,
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -193,7 +237,7 @@ class CapsuleMediaTile extends StatelessWidget {
     this.showMotionIndicator = true,
   });
 
-  final CapsuleMediaSnap snap;
+  final CapsuleMemoryFragment snap;
   final double size;
   final VoidCallback? onRemove;
   final bool showMotionIndicator;
@@ -212,7 +256,8 @@ class CapsuleMediaTile extends StatelessWidget {
               child: _CapsuleMediaCover(snap: snap),
             ),
           ),
-          if (showMotionIndicator && snap.kind == CapsuleMediaKind.motion)
+          if (showMotionIndicator &&
+              snap.fragmentKind == MemoryFragmentKind.motion)
             Center(
               child: Container(
                 width: 34,
@@ -259,24 +304,24 @@ class CapsuleMediaTile extends StatelessWidget {
 class _CapsuleMediaCover extends StatelessWidget {
   const _CapsuleMediaCover({required this.snap});
 
-  final CapsuleMediaSnap snap;
+  final CapsuleMemoryFragment snap;
 
   @override
   Widget build(BuildContext context) {
     if (!snap.isLocalFile) {
       return Image.asset(
-        snap.assetPath,
+        snap.sourcePath,
         fit: BoxFit.cover,
         filterQuality: FilterQuality.high,
       );
     }
 
-    if (snap.kind == CapsuleMediaKind.motion) {
+    if (snap.fragmentKind == MemoryFragmentKind.motion) {
       return const ColoredBox(color: Color(0xFF47334E));
     }
 
     return Image.file(
-      File(snap.assetPath),
+      File(snap.sourcePath),
       fit: BoxFit.cover,
       filterQuality: FilterQuality.high,
       errorBuilder: (context, error, stackTrace) {

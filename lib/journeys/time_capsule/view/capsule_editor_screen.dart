@@ -9,16 +9,18 @@ import 'package:morrowly/journeys/time_capsule/view/custom_opening_time_screen.d
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
+import 'package:morrowly/shared/widgets/morrowly_safety_notice.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CapsuleEditorScreen extends StatefulWidget {
   const CapsuleEditorScreen({
     super.key,
-    required this.craftKind,
+    required this.sealFormat,
     required this.coinBalance,
   });
 
-  final CapsuleCraftKind craftKind;
+  final CapsuleSealFormat sealFormat;
   final int coinBalance;
 
   @override
@@ -37,11 +39,11 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
     super.initState();
     final presets = CapsuleSquareSeed.openingPresets(DateTime.now());
     _draft = CapsuleDraftLedger(
-      craftKind: widget.craftKind,
-      messageLine: '',
-      mediaSnaps: const [],
-      openingAt: presets[3].openingAt,
-      visibility: CapsuleVisibility.publicSquare,
+      sealFormat: widget.sealFormat,
+      sealedMessage: '',
+      memoryFragments: const [],
+      unlocksAt: presets[3].unlocksAt,
+      shelfScope: CapsuleShelfScope.publicSquare,
     );
   }
 
@@ -98,7 +100,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                       controller: _messageController,
                       onChanged: (value) {
                         setState(() {
-                          _draft = _draft.copyWith(messageLine: value);
+                          _draft = _draft.copyWith(sealedMessage: value);
                         });
                       },
                     ),
@@ -113,15 +115,15 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                     ),
                     const SizedBox(height: 12),
                     _MediaStrip(
-                      selected: _draft.mediaSnaps,
+                      selected: _draft.memoryFragments,
                       picking: _pickingMedia,
                       onAdd: _showMediaPicker,
                       onRemove: (snap) {
                         setState(() {
                           _draft = _draft.copyWith(
-                            mediaSnaps: [
-                              for (final item in _draft.mediaSnaps)
-                                if (item.snapKey != snap.snapKey) item,
+                            memoryFragments: [
+                              for (final item in _draft.memoryFragments)
+                                if (item.fragmentId != snap.fragmentId) item,
                             ],
                           );
                         });
@@ -148,7 +150,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
                     const SizedBox(height: 14),
                     _PresetGrid(
                       selectedKey: _selectedPresetKey,
-                      openingAt: _draft.openingAt,
+                      unlocksAt: _draft.unlocksAt,
                       onPreset: _selectPreset,
                       onCustom: _openCustomTime,
                     ),
@@ -191,15 +193,15 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
 
   void _selectPreset(CapsuleOpeningPreset preset) {
     setState(() {
-      _selectedPresetKey = preset.presetKey;
-      _draft = _draft.copyWith(openingAt: preset.openingAt);
+      _selectedPresetKey = preset.presetId;
+      _draft = _draft.copyWith(unlocksAt: preset.unlocksAt);
     });
   }
 
   Future<void> _openCustomTime() async {
     final selected = await Navigator.of(context).push<DateTime>(
       MaterialPageRoute(
-        builder: (_) => CustomOpeningTimeScreen(initialTime: _draft.openingAt),
+        builder: (_) => CustomOpeningTimeScreen(initialTime: _draft.unlocksAt),
       ),
     );
     if (selected == null || !mounted) {
@@ -207,12 +209,12 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
     }
     setState(() {
       _selectedPresetKey = 'custom';
-      _draft = _draft.copyWith(openingAt: selected);
+      _draft = _draft.copyWith(unlocksAt: selected);
     });
   }
 
   Future<void> _showMediaPicker() async {
-    if (_pickingMedia || _draft.mediaSnaps.length >= 6) {
+    if (_pickingMedia || _draft.memoryFragments.length >= 6) {
       return;
     }
 
@@ -223,7 +225,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.52),
       builder: (context) =>
-          _MediaPickerSheet(remainingSlots: 6 - _draft.mediaSnaps.length),
+          _MediaPickerSheet(remainingSlots: 6 - _draft.memoryFragments.length),
     );
     if (action == null || !mounted) {
       return;
@@ -233,7 +235,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
   }
 
   Future<void> _pickMedia(_MediaPickAction action) async {
-    final remainingSlots = 6 - _draft.mediaSnaps.length;
+    final remainingSlots = 6 - _draft.memoryFragments.length;
     if (remainingSlots <= 0) {
       return;
     }
@@ -246,19 +248,19 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
       }
 
       final kind = _kindForAction(action);
-      final snaps = <CapsuleMediaSnap>[];
+      final snaps = <CapsuleMemoryFragment>[];
       for (final pickedFile in pickedFiles.take(remainingSlots)) {
         final savedPath = await _copyMediaIntoLocalShelf(
           sourcePath: pickedFile.path,
-          kind: kind,
+          fragmentKind: kind,
         );
         final stamp = DateTime.now().microsecondsSinceEpoch;
         snaps.add(
-          CapsuleMediaSnap(
-            snapKey: 'local-${kind.name}-$stamp-${snaps.length}',
-            assetPath: savedPath,
-            kind: kind,
-            captionTrace: kind == CapsuleMediaKind.motion
+          CapsuleMemoryFragment(
+            fragmentId: 'local-${kind.name}-$stamp-${snaps.length}',
+            sourcePath: savedPath,
+            fragmentKind: kind,
+            captionTrace: kind == MemoryFragmentKind.motion
                 ? 'Local video'
                 : 'Local photo',
             isLocalFile: true,
@@ -271,7 +273,10 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
       }
       setState(() {
         _draft = _draft.copyWith(
-          mediaSnaps: [..._draft.mediaSnaps, ...snaps].take(6).toList(),
+          memoryFragments: [
+            ..._draft.memoryFragments,
+            ...snaps,
+          ].take(6).toList(),
         );
       });
     } catch (_) {
@@ -281,7 +286,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
       _showNotice(
         title: 'Media unavailable',
         message:
-            'Morrowly could not open this media source. Please check photo, camera, or microphone permission and try again.',
+            'Morrowly could not open this photo/video source. Check photo, camera, or microphone access, then try again.',
       );
     } finally {
       if (mounted) {
@@ -319,44 +324,48 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
     }
   }
 
-  CapsuleMediaKind _kindForAction(_MediaPickAction action) {
+  MemoryFragmentKind _kindForAction(_MediaPickAction action) {
     switch (action) {
       case _MediaPickAction.galleryPhotos:
       case _MediaPickAction.cameraPhoto:
-        return CapsuleMediaKind.still;
+        return MemoryFragmentKind.still;
       case _MediaPickAction.galleryVideos:
       case _MediaPickAction.cameraVideo:
-        return CapsuleMediaKind.motion;
+        return MemoryFragmentKind.motion;
     }
   }
 
   Future<String> _copyMediaIntoLocalShelf({
     required String sourcePath,
-    required CapsuleMediaKind kind,
+    required MemoryFragmentKind fragmentKind,
   }) async {
     final directory = await getApplicationSupportDirectory();
-    final mediaShelf = Directory('${directory.path}/morrowly_capsule_media');
-    if (!mediaShelf.existsSync()) {
-      mediaShelf.createSync(recursive: true);
+    final fragmentShelf = Directory(
+      '${directory.path}/morrowly_capsule_fragments',
+    );
+    if (!fragmentShelf.existsSync()) {
+      fragmentShelf.createSync(recursive: true);
     }
 
-    final extension = _extensionFor(sourcePath, kind);
-    final prefix = kind == CapsuleMediaKind.motion ? 'video' : 'photo';
+    final extension = _extensionFor(sourcePath, fragmentKind);
+    final prefix = fragmentKind == MemoryFragmentKind.motion
+        ? 'video'
+        : 'photo';
     final filename =
         'morrowly_capsule_${prefix}_${DateTime.now().microsecondsSinceEpoch}.$extension';
     final copiedFile = await File(
       sourcePath,
-    ).copy('${mediaShelf.path}/$filename');
+    ).copy('${fragmentShelf.path}/$filename');
     return copiedFile.path;
   }
 
-  String _extensionFor(String sourcePath, CapsuleMediaKind kind) {
+  String _extensionFor(String sourcePath, MemoryFragmentKind kind) {
     final filename = sourcePath.split(Platform.pathSeparator).last;
     final dotIndex = filename.lastIndexOf('.');
     if (dotIndex >= 0 && dotIndex < filename.length - 1) {
       return filename.substring(dotIndex + 1).toLowerCase();
     }
-    return kind == CapsuleMediaKind.motion ? 'mov' : 'jpg';
+    return kind == MemoryFragmentKind.motion ? 'mov' : 'jpg';
   }
 
   Future<void> _openPreview() async {
@@ -368,10 +377,22 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
       );
       return;
     }
-    final result = await Navigator.of(context).push<CapsuleSquareNote>(
+    try {
+      MorrowlyContentSafety.ensureText(
+        message,
+        surface: MorrowlySafetySurface.publicCapsule,
+      );
+    } on MorrowlyContentSafetyException catch (issue) {
+      await showMorrowlySafetyNotice(context, issue);
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    final result = await Navigator.of(context).push<PublicCapsuleSeal>(
       MaterialPageRoute(
         builder: (_) => CapsulePreviewScreen(
-          draft: _draft.copyWith(messageLine: message),
+          draft: _draft.copyWith(sealedMessage: message),
           coinBalance: widget.coinBalance,
         ),
       ),
@@ -388,7 +409,7 @@ class _CapsuleEditorScreenState extends State<CapsuleEditorScreen> {
       builder: (context) => CapsuleConfirmDialog(
         title: title,
         message: message,
-        actionLabel: 'Got it',
+        actionLabel: 'Keep editing',
         onAction: () => Navigator.of(context).pop(),
       ),
     );
@@ -428,7 +449,7 @@ class _MessageField extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
         decoration: InputDecoration(
-          hintText: 'Please enter',
+          hintText: 'Write the line future you should find',
           hintStyle: TextStyle(
             color: Colors.white.withValues(alpha: 0.3),
             fontSize: 15,
@@ -453,10 +474,10 @@ class _MediaStrip extends StatelessWidget {
     required this.onRemove,
   });
 
-  final List<CapsuleMediaSnap> selected;
+  final List<CapsuleMemoryFragment> selected;
   final bool picking;
   final VoidCallback onAdd;
-  final ValueChanged<CapsuleMediaSnap> onRemove;
+  final ValueChanged<CapsuleMemoryFragment> onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -516,13 +537,13 @@ class _MediaStrip extends StatelessWidget {
 class _PresetGrid extends StatelessWidget {
   const _PresetGrid({
     required this.selectedKey,
-    required this.openingAt,
+    required this.unlocksAt,
     required this.onPreset,
     required this.onCustom,
   });
 
   final String selectedKey;
-  final DateTime openingAt;
+  final DateTime unlocksAt;
   final ValueChanged<CapsuleOpeningPreset> onPreset;
   final VoidCallback onCustom;
 
@@ -543,8 +564,8 @@ class _PresetGrid extends StatelessWidget {
             width: width ?? tileWidth,
             height: tileHeight,
             title: preset.label,
-            date: capsuleDateStamp(preset.openingAt),
-            selected: selectedKey == preset.presetKey,
+            date: capsuleDateStamp(preset.unlocksAt),
+            selected: selectedKey == preset.presetId,
             onTap: () => onPreset(preset),
           );
         }
@@ -580,7 +601,7 @@ class _PresetGrid extends StatelessWidget {
                   height: tileHeight,
                   title: 'Custom Time',
                   date: selectedKey == 'custom'
-                      ? '${capsuleDateStamp(openingAt)} ${capsuleClockStamp(openingAt)}'
+                      ? '${capsuleDateStamp(unlocksAt)} ${capsuleClockStamp(unlocksAt)}'
                       : 'Choose a specific time',
                   selected: selectedKey == 'custom',
                   onTap: onCustom,

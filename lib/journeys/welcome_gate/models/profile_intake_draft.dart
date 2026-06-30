@@ -2,35 +2,35 @@ enum SocialSignalChoice { female, male }
 
 class ProfileIntakeDraft {
   const ProfileIntakeDraft({
-    this.displayName = '',
+    this.keeperName = '',
     this.chosenHandle = '',
     this.regionLedgerLabel = 'United States',
-    this.signatureLine = '',
-    this.avatarLocalPath = '',
+    this.morrowLine = '',
+    this.localPortraitPath = '',
     this.socialSignalChoice = SocialSignalChoice.female,
   });
 
-  final String displayName;
+  final String keeperName;
   final String chosenHandle;
   final String regionLedgerLabel;
-  final String signatureLine;
-  final String avatarLocalPath;
+  final String morrowLine;
+  final String localPortraitPath;
   final SocialSignalChoice socialSignalChoice;
 
   ProfileIntakeDraft copyWith({
-    String? displayName,
+    String? keeperName,
     String? chosenHandle,
     String? regionLedgerLabel,
-    String? signatureLine,
-    String? avatarLocalPath,
+    String? morrowLine,
+    String? localPortraitPath,
     SocialSignalChoice? socialSignalChoice,
   }) {
     return ProfileIntakeDraft(
-      displayName: displayName ?? this.displayName,
+      keeperName: keeperName ?? this.keeperName,
       chosenHandle: chosenHandle ?? this.chosenHandle,
       regionLedgerLabel: regionLedgerLabel ?? this.regionLedgerLabel,
-      signatureLine: signatureLine ?? this.signatureLine,
-      avatarLocalPath: avatarLocalPath ?? this.avatarLocalPath,
+      morrowLine: morrowLine ?? this.morrowLine,
+      localPortraitPath: localPortraitPath ?? this.localPortraitPath,
       socialSignalChoice: socialSignalChoice ?? this.socialSignalChoice,
     );
   }

@@ -16,6 +16,7 @@ import 'package:morrowly/journeys/welcome_gate/view/profile_intake_screen.dart';
 import 'package:morrowly/journeys/welcome_gate/view/startup_loading_screen.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/agreement_needed_dialog.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/gate_notice_dialog.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class WelcomeGateHost extends StatefulWidget {
@@ -140,7 +141,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
         _showNotice(
           title: 'Apple sign in unavailable',
           message:
-              'Sign in with Apple is not available on this device right now. Please use email sign in or try again later.',
+              'Sign in with Apple is not available on this device right now. Use email sign in or try again later.',
           icon: Icons.apple,
         );
         return;
@@ -153,7 +154,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
         ],
       );
 
-      final seededName = _appleDisplayName(credential);
+      final seededName = _appleKeeperName(credential);
       _pendingSeed = PendingCredentialSeed(
         intent: CredentialGateIntent.appleProfile,
         appleUserIdentifier: credential.userIdentifier ?? '',
@@ -172,14 +173,14 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
       _showNotice(
         title: 'Apple sign in paused',
         message:
-            'Apple did not complete the sign in. Please try again or use email sign in.',
+            'Apple did not complete the sign in. Try again or use email sign in.',
         icon: Icons.apple,
       );
     } catch (_) {
       _showNotice(
         title: 'Apple sign in paused',
         message:
-            'Morrowly could not complete Apple sign in. Please check your Apple account and try again.',
+            'Morrowly could not complete Apple sign in. Check your Apple account and try again.',
         icon: Icons.apple,
       );
     }
@@ -210,7 +211,16 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
 
   Future<void> _completeProfile(ProfileIntakeDraft profile) async {
     final store = await _ensureStore();
-    await store.completeProfile(seed: _pendingSeed, profile: profile);
+    try {
+      await store.completeProfile(seed: _pendingSeed, profile: profile);
+    } on MorrowlyContentSafetyException catch (issue) {
+      _showNotice(
+        title: issue.title,
+        message: issue.message,
+        icon: Icons.verified_user_outlined,
+      );
+      return;
+    }
 
     if (!mounted) {
       return;
@@ -238,7 +248,7 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
     });
   }
 
-  String _appleDisplayName(AuthorizationCredentialAppleID credential) {
+  String _appleKeeperName(AuthorizationCredentialAppleID credential) {
     final givenName = credential.givenName?.trim() ?? '';
     final familyName = credential.familyName?.trim() ?? '';
     final fullName = [
@@ -254,12 +264,12 @@ class _WelcomeGateHostState extends State<WelcomeGateHost> {
       return email.split('@').first;
     }
 
-    final savedName = _gateStore?.savedDisplayName ?? '';
+    final savedName = _gateStore?.savedKeeperName ?? '';
     if (savedName.isNotEmpty) {
       return savedName;
     }
 
-    return 'Morrowly friend';
+    return 'New Timekeeper';
   }
 
   void _setAgreementAccepted(bool accepted) {

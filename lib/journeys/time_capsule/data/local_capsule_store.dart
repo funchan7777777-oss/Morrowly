@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalCapsuleStore extends ChangeNotifier {
@@ -12,13 +13,17 @@ class LocalCapsuleStore extends ChangeNotifier {
 
   static const _capsulesKey = 'morrowly.timeCapsules.localCapsules';
 
-  final List<CapsuleSquareNote> _capsules = [];
+  final List<PublicCapsuleSeal> _capsules = [];
   SharedPreferences? _preferences;
   Future<void>? _loading;
 
-  List<CapsuleSquareNote> get capsules => List.unmodifiable(_capsules);
-  List<CapsuleSquareNote> get publicCapsules => _capsules
-      .where((capsule) => capsule.visibility == CapsuleVisibility.publicSquare)
+  List<PublicCapsuleSeal> get capsules => List.unmodifiable(_capsules);
+  List<PublicCapsuleSeal> get publicCapsules => _capsules
+      .where(
+        (capsule) =>
+            capsule.shelfScope == CapsuleShelfScope.publicSquare &&
+            !capsule.isLocalDraft,
+      )
       .toList();
 
   int get archivedCount => _capsules.length;
@@ -41,18 +46,20 @@ class LocalCapsuleStore extends ChangeNotifier {
     return load;
   }
 
-  Future<void> add(CapsuleSquareNote capsule) async {
+  Future<void> add(PublicCapsuleSeal capsule) async {
     await load();
-    _capsules.removeWhere((item) => item.noteKey == capsule.noteKey);
+    _ensureCapsuleIsSafe(capsule);
+    _capsules.removeWhere((item) => item.sealId == capsule.sealId);
     _capsules.insert(0, capsule);
     await _save();
     notifyListeners();
   }
 
-  Future<void> replace(CapsuleSquareNote capsule) async {
+  Future<void> replace(PublicCapsuleSeal capsule) async {
     await load();
+    _ensureCapsuleIsSafe(capsule);
     for (var index = 0; index < _capsules.length; index++) {
-      if (_capsules[index].noteKey == capsule.noteKey) {
+      if (_capsules[index].sealId == capsule.sealId) {
         _capsules[index] = capsule;
         await _save();
         notifyListeners();
@@ -61,15 +68,18 @@ class LocalCapsuleStore extends ChangeNotifier {
     }
   }
 
-  Future<void> remove(String noteKey) async {
+  Future<void> remove(String sealId) async {
     await load();
-    _capsules.removeWhere((item) => item.noteKey == noteKey);
+    _capsules.removeWhere((item) => item.sealId == sealId);
     await _save();
     notifyListeners();
   }
 
-  Future<void> replaceAll(List<CapsuleSquareNote> capsules) async {
+  Future<void> replaceAll(List<PublicCapsuleSeal> capsules) async {
     await load();
+    for (final capsule in capsules) {
+      _ensureCapsuleIsSafe(capsule);
+    }
     _capsules
       ..clear()
       ..addAll(capsules);
@@ -99,13 +109,26 @@ class LocalCapsuleStore extends ChangeNotifier {
     );
   }
 
-  List<CapsuleSquareNote> _decodeCapsules(String raw) {
+  void _ensureCapsuleIsSafe(PublicCapsuleSeal capsule) {
+    MorrowlyContentSafety.ensureText(
+      capsule.sealedMessage,
+      surface: MorrowlySafetySurface.publicCapsule,
+    );
+    for (final reply in capsule.replies) {
+      MorrowlyContentSafety.ensureText(
+        reply.sealedMessage,
+        surface: MorrowlySafetySurface.comment,
+      );
+    }
+  }
+
+  List<PublicCapsuleSeal> _decodeCapsules(String raw) {
     final decoded = jsonDecode(raw);
     if (decoded is! List) {
       return const [];
     }
 
-    final capsules = <CapsuleSquareNote>[];
+    final capsules = <PublicCapsuleSeal>[];
     for (final item in decoded) {
       if (item is Map) {
         final capsule = _capsuleFromJson(Map<String, Object?>.from(item));
@@ -117,104 +140,157 @@ class LocalCapsuleStore extends ChangeNotifier {
     return capsules;
   }
 
-  Map<String, Object?> _capsuleToJson(CapsuleSquareNote capsule) {
+  Map<String, Object?> _capsuleToJson(PublicCapsuleSeal capsule) {
     return {
-      'noteKey': capsule.noteKey,
-      'keeperDisplayName': capsule.keeper.displayName,
-      'keeperAgeLine': capsule.keeper.ageLine,
-      'keeperPlaceLine': capsule.keeper.placeLine,
-      'keeperAvatarAsset': capsule.keeper.avatarAsset,
-      'keeperAvatarLocalPath': capsule.keeper.avatarLocalPath,
-      'messageLine': capsule.messageLine,
-      'mediaSnaps': capsule.mediaSnaps.map(_mediaToJson).toList(),
+      'sealId': capsule.sealId,
+      'keeperPublicName': capsule.keeper.publicName,
+      'keeperAgeLine': capsule.keeper.ageMark,
+      'keeperPlaceLine': capsule.keeper.homeRegion,
+      'keeperAvatarAsset': capsule.keeper.portraitAsset,
+      'keeperAvatarLocalPath': capsule.keeper.localPortraitPath,
+      'sealedMessage': capsule.sealedMessage,
+      'memoryFragments': capsule.memoryFragments.map(_fragmentToJson).toList(),
       'sealedAt': capsule.sealedAt.toIso8601String(),
-      'openingAt': capsule.openingAt.toIso8601String(),
-      'visibility': capsule.visibility.name,
-      'leftMessageCount': capsule.leftMessageCount,
+      'unlocksAt': capsule.unlocksAt.toIso8601String(),
+      'shelfScope': capsule.shelfScope.name,
+      'replyTrailCount': capsule.replyTrailCount,
+      'replies': capsule.replies.map(_replyToJson).toList(),
       'isLocalDraft': capsule.isLocalDraft,
     };
   }
 
-  CapsuleSquareNote? _capsuleFromJson(Map<String, Object?> json) {
-    final noteKey = json['noteKey'];
-    final messageLine = json['messageLine'];
+  PublicCapsuleSeal? _capsuleFromJson(Map<String, Object?> json) {
+    final sealId = json['sealId'];
+    final sealedMessage = json['sealedMessage'];
     final sealedAt = DateTime.tryParse('${json['sealedAt'] ?? ''}');
-    final openingAt = DateTime.tryParse('${json['openingAt'] ?? ''}');
-    if (noteKey is! String ||
-        messageLine is! String ||
+    final unlocksAt = DateTime.tryParse('${json['unlocksAt'] ?? ''}');
+    if (sealId is! String ||
+        sealedMessage is! String ||
         sealedAt == null ||
-        openingAt == null) {
+        unlocksAt == null) {
       return null;
     }
 
-    final mediaList = json['mediaSnaps'];
-    final visibilityName = '${json['visibility'] ?? ''}';
-    final visibility = CapsuleVisibility.values.firstWhere(
+    final fragmentList = json['memoryFragments'];
+    final replyList = json['replies'];
+    final visibilityName = '${json['shelfScope'] ?? ''}';
+    final shelfScope = CapsuleShelfScope.values.firstWhere(
       (value) => value.name == visibilityName,
-      orElse: () => CapsuleVisibility.publicSquare,
+      orElse: () => CapsuleShelfScope.publicSquare,
     );
 
-    final leftMessageCount = json['leftMessageCount'];
-    return CapsuleSquareNote(
-      noteKey: noteKey,
+    final replyTrailCount = json['replyTrailCount'];
+    return PublicCapsuleSeal(
+      sealId: sealId,
       keeper: CapsuleKeeper(
-        keeperKey: CapsuleSquareSeed.currentKeeper.keeperKey,
-        displayName:
-            '${json['keeperDisplayName'] ?? CapsuleSquareSeed.currentKeeper.displayName}',
-        ageLine:
-            '${json['keeperAgeLine'] ?? CapsuleSquareSeed.currentKeeper.ageLine}',
-        placeLine:
-            '${json['keeperPlaceLine'] ?? CapsuleSquareSeed.currentKeeper.placeLine}',
+        keeperId: CapsuleSquareSeed.currentKeeper.keeperId,
+        publicName:
+            '${json['keeperPublicName'] ?? CapsuleSquareSeed.currentKeeper.publicName}',
+        ageMark:
+            '${json['keeperAgeLine'] ?? CapsuleSquareSeed.currentKeeper.ageMark}',
+        homeRegion:
+            '${json['keeperPlaceLine'] ?? CapsuleSquareSeed.currentKeeper.homeRegion}',
         signalBand: CapsuleSquareSeed.currentKeeper.signalBand,
-        avatarAsset:
-            '${json['keeperAvatarAsset'] ?? CapsuleSquareSeed.currentKeeper.avatarAsset}',
-        avatarLocalPath: '${json['keeperAvatarLocalPath'] ?? ''}',
+        portraitAsset:
+            '${json['keeperAvatarAsset'] ?? CapsuleSquareSeed.currentKeeper.portraitAsset}',
+        localPortraitPath: '${json['keeperAvatarLocalPath'] ?? ''}',
       ),
-      messageLine: messageLine,
-      mediaSnaps: mediaList is List
-          ? mediaList
+      sealedMessage: sealedMessage,
+      memoryFragments: fragmentList is List
+          ? fragmentList
                 .whereType<Map>()
-                .map((item) => _mediaFromJson(Map<String, Object?>.from(item)))
-                .whereType<CapsuleMediaSnap>()
+                .map(
+                  (item) => _fragmentFromJson(Map<String, Object?>.from(item)),
+                )
+                .whereType<CapsuleMemoryFragment>()
                 .toList()
           : const [],
       sealedAt: sealedAt,
-      openingAt: openingAt,
-      visibility: visibility,
+      unlocksAt: unlocksAt,
+      shelfScope: shelfScope,
       visitorTrail: CapsuleSquareSeed.allKeepers,
-      leftMessageCount: leftMessageCount is int ? leftMessageCount : 0,
+      replyTrailCount: replyTrailCount is int ? replyTrailCount : 0,
+      replies: replyList is List
+          ? replyList
+                .whereType<Map>()
+                .map((item) => _replyFromJson(Map<String, Object?>.from(item)))
+                .whereType<CapsuleReply>()
+                .toList()
+          : const [],
       isLocalDraft: json['isLocalDraft'] == true,
     );
   }
 
-  Map<String, Object?> _mediaToJson(CapsuleMediaSnap media) {
+  Map<String, Object?> _fragmentToJson(CapsuleMemoryFragment fragment) {
     return {
-      'snapKey': media.snapKey,
-      'assetPath': media.assetPath,
-      'kind': media.kind.name,
-      'captionTrace': media.captionTrace,
-      'isLocalFile': media.isLocalFile,
+      'fragmentId': fragment.fragmentId,
+      'sourcePath': fragment.sourcePath,
+      'fragmentKind': fragment.fragmentKind.name,
+      'captionTrace': fragment.captionTrace,
+      'isLocalFile': fragment.isLocalFile,
     };
   }
 
-  CapsuleMediaSnap? _mediaFromJson(Map<String, Object?> json) {
-    final snapKey = json['snapKey'];
-    final assetPath = json['assetPath'];
-    if (snapKey is! String || assetPath is! String) {
+  CapsuleMemoryFragment? _fragmentFromJson(Map<String, Object?> json) {
+    final fragmentId = json['fragmentId'];
+    final sourcePath = json['sourcePath'];
+    if (fragmentId is! String || sourcePath is! String) {
       return null;
     }
 
-    final kindName = '${json['kind'] ?? ''}';
-    final kind = CapsuleMediaKind.values.firstWhere(
+    final kindName = '${json['fragmentKind'] ?? json['kind'] ?? ''}';
+    final kind = MemoryFragmentKind.values.firstWhere(
       (value) => value.name == kindName,
-      orElse: () => CapsuleMediaKind.still,
+      orElse: () => MemoryFragmentKind.still,
     );
-    return CapsuleMediaSnap(
-      snapKey: snapKey,
-      assetPath: assetPath,
-      kind: kind,
+    return CapsuleMemoryFragment(
+      fragmentId: fragmentId,
+      sourcePath: sourcePath,
+      fragmentKind: kind,
       captionTrace: '${json['captionTrace'] ?? ''}',
       isLocalFile: json['isLocalFile'] == true,
+    );
+  }
+
+  Map<String, Object?> _replyToJson(CapsuleReply reply) {
+    return {
+      'replyId': reply.replyId,
+      'authorKeeperId': reply.author.keeperId,
+      'authorName': reply.author.publicName,
+      'authorAgeMark': reply.author.ageMark,
+      'authorHomeRegion': reply.author.homeRegion,
+      'authorSignalBand': reply.author.signalBand.name,
+      'authorPortraitAsset': reply.author.portraitAsset,
+      'authorLocalPortraitPath': reply.author.localPortraitPath,
+      'sealedMessage': reply.sealedMessage,
+      'arrivalLabel': reply.arrivalLabel,
+    };
+  }
+
+  CapsuleReply? _replyFromJson(Map<String, Object?> json) {
+    final replyId = json['replyId'];
+    final sealedMessage = json['sealedMessage'];
+    if (replyId is! String || sealedMessage is! String) {
+      return null;
+    }
+    final signalBandName = '${json['authorSignalBand'] ?? ''}';
+    final signalBand = KeeperSignalBand.values.firstWhere(
+      (value) => value.name == signalBandName,
+      orElse: () => KeeperSignalBand.bloom,
+    );
+    return CapsuleReply(
+      replyId: replyId,
+      author: CapsuleKeeper(
+        keeperId: '${json['authorKeeperId'] ?? ''}',
+        publicName: '${json['authorName'] ?? 'Morrowly keeper'}',
+        ageMark: '${json['authorAgeMark'] ?? ''}',
+        homeRegion: '${json['authorHomeRegion'] ?? ''}',
+        signalBand: signalBand,
+        portraitAsset: '${json['authorPortraitAsset'] ?? ''}',
+        localPortraitPath: '${json['authorLocalPortraitPath'] ?? ''}',
+      ),
+      sealedMessage: sealedMessage,
+      arrivalLabel: '${json['arrivalLabel'] ?? ''}',
     );
   }
 }

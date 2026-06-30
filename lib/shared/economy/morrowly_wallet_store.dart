@@ -82,9 +82,9 @@ class MorrowlyCoinCost {
 abstract final class MorrowlyCoinCosts {
   static const welcomeGift = 600;
 
-  static const releaseLifeSnippet = MorrowlyCoinCost(
-    title: 'Release Life Snippet',
-    description: 'Submit a public moment for review before it appears.',
+  static const releaseMemorySeal = MorrowlyCoinCost(
+    title: 'Release Memory Seal',
+    description: 'Submit a public memory seal for review before it appears.',
     amount: 30,
   );
 
@@ -100,7 +100,18 @@ abstract final class MorrowlyCoinCosts {
     amount: 50,
   );
 
-  static const paidFeatures = [releaseLifeSnippet, sealCapsule, openCapsule];
+  static const sealTomorrowCompass = MorrowlyCoinCost(
+    title: 'Seal Tomorrow Compass',
+    description: 'Save a focused tomorrow guide into your local compass.',
+    amount: 45,
+  );
+
+  static const paidFeatures = [
+    releaseMemorySeal,
+    sealCapsule,
+    openCapsule,
+    sealTomorrowCompass,
+  ];
 }
 
 enum MorrowlyPurchaseStartStatus {

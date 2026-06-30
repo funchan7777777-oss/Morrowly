@@ -1,130 +1,130 @@
 enum KeeperSignalBand { bloom, muse }
 
-enum CapsuleMediaKind { still, motion }
+enum MemoryFragmentKind { still, motion }
 
-enum CapsuleVisibility { publicSquare, privateShelf }
+enum CapsuleShelfScope { publicSquare, privateShelf }
 
-enum CapsuleCraftKind { pictureLetter, videoMemory }
+enum CapsuleSealFormat { pictureLetter, videoMemory }
 
 class CapsuleKeeper {
   const CapsuleKeeper({
-    required this.keeperKey,
-    required this.displayName,
-    required this.ageLine,
-    required this.placeLine,
+    required this.keeperId,
+    required this.publicName,
+    required this.ageMark,
+    required this.homeRegion,
     required this.signalBand,
-    required this.avatarAsset,
-    this.avatarLocalPath = '',
+    required this.portraitAsset,
+    this.localPortraitPath = '',
   });
 
-  final String keeperKey;
-  final String displayName;
-  final String ageLine;
-  final String placeLine;
+  final String keeperId;
+  final String publicName;
+  final String ageMark;
+  final String homeRegion;
   final KeeperSignalBand signalBand;
-  final String avatarAsset;
-  final String avatarLocalPath;
+  final String portraitAsset;
+  final String localPortraitPath;
 }
 
-class CapsuleMediaSnap {
-  const CapsuleMediaSnap({
-    required this.snapKey,
-    required this.assetPath,
-    required this.kind,
+class CapsuleMemoryFragment {
+  const CapsuleMemoryFragment({
+    required this.fragmentId,
+    required this.sourcePath,
+    required this.fragmentKind,
     required this.captionTrace,
     this.isLocalFile = false,
   });
 
-  final String snapKey;
-  final String assetPath;
-  final CapsuleMediaKind kind;
+  final String fragmentId;
+  final String sourcePath;
+  final MemoryFragmentKind fragmentKind;
   final String captionTrace;
   final bool isLocalFile;
 }
 
 class CapsuleOpeningPreset {
   const CapsuleOpeningPreset({
-    required this.presetKey,
+    required this.presetId,
     required this.label,
-    required this.openingAt,
-    this.noteLine,
+    required this.unlocksAt,
+    this.guidanceLine,
   });
 
-  final String presetKey;
+  final String presetId;
   final String label;
-  final DateTime openingAt;
-  final String? noteLine;
+  final DateTime unlocksAt;
+  final String? guidanceLine;
 }
 
-class CapsuleSquareComment {
-  const CapsuleSquareComment({
-    required this.commentKey,
+class CapsuleReply {
+  const CapsuleReply({
+    required this.replyId,
     required this.author,
-    required this.messageLine,
-    required this.timeAgoLine,
+    required this.sealedMessage,
+    required this.arrivalLabel,
   });
 
-  final String commentKey;
+  final String replyId;
   final CapsuleKeeper author;
-  final String messageLine;
-  final String timeAgoLine;
+  final String sealedMessage;
+  final String arrivalLabel;
 }
 
-class CapsuleSquareNote {
-  const CapsuleSquareNote({
-    required this.noteKey,
+class PublicCapsuleSeal {
+  const PublicCapsuleSeal({
+    required this.sealId,
     required this.keeper,
-    required this.messageLine,
-    required this.mediaSnaps,
+    required this.sealedMessage,
+    required this.memoryFragments,
     required this.sealedAt,
-    required this.openingAt,
-    required this.visibility,
+    required this.unlocksAt,
+    required this.shelfScope,
     required this.visitorTrail,
-    required this.leftMessageCount,
-    this.comments = const [],
+    required this.replyTrailCount,
+    this.replies = const [],
     this.isLocalDraft = false,
   });
 
-  final String noteKey;
+  final String sealId;
   final CapsuleKeeper keeper;
-  final String messageLine;
-  final List<CapsuleMediaSnap> mediaSnaps;
+  final String sealedMessage;
+  final List<CapsuleMemoryFragment> memoryFragments;
   final DateTime sealedAt;
-  final DateTime openingAt;
-  final CapsuleVisibility visibility;
+  final DateTime unlocksAt;
+  final CapsuleShelfScope shelfScope;
   final List<CapsuleKeeper> visitorTrail;
-  final int leftMessageCount;
-  final List<CapsuleSquareComment> comments;
+  final int replyTrailCount;
+  final List<CapsuleReply> replies;
   final bool isLocalDraft;
 
   bool get canOpenNow {
-    return !DateTime.now().isBefore(openingAt);
+    return !DateTime.now().isBefore(unlocksAt);
   }
 
-  CapsuleSquareNote copyWith({
-    String? noteKey,
+  PublicCapsuleSeal copyWith({
+    String? sealId,
     CapsuleKeeper? keeper,
-    String? messageLine,
-    List<CapsuleMediaSnap>? mediaSnaps,
+    String? sealedMessage,
+    List<CapsuleMemoryFragment>? memoryFragments,
     DateTime? sealedAt,
-    DateTime? openingAt,
-    CapsuleVisibility? visibility,
+    DateTime? unlocksAt,
+    CapsuleShelfScope? shelfScope,
     List<CapsuleKeeper>? visitorTrail,
-    int? leftMessageCount,
-    List<CapsuleSquareComment>? comments,
+    int? replyTrailCount,
+    List<CapsuleReply>? replies,
     bool? isLocalDraft,
   }) {
-    return CapsuleSquareNote(
-      noteKey: noteKey ?? this.noteKey,
+    return PublicCapsuleSeal(
+      sealId: sealId ?? this.sealId,
       keeper: keeper ?? this.keeper,
-      messageLine: messageLine ?? this.messageLine,
-      mediaSnaps: mediaSnaps ?? this.mediaSnaps,
+      sealedMessage: sealedMessage ?? this.sealedMessage,
+      memoryFragments: memoryFragments ?? this.memoryFragments,
       sealedAt: sealedAt ?? this.sealedAt,
-      openingAt: openingAt ?? this.openingAt,
-      visibility: visibility ?? this.visibility,
+      unlocksAt: unlocksAt ?? this.unlocksAt,
+      shelfScope: shelfScope ?? this.shelfScope,
       visitorTrail: visitorTrail ?? this.visitorTrail,
-      leftMessageCount: leftMessageCount ?? this.leftMessageCount,
-      comments: comments ?? this.comments,
+      replyTrailCount: replyTrailCount ?? this.replyTrailCount,
+      replies: replies ?? this.replies,
       isLocalDraft: isLocalDraft ?? this.isLocalDraft,
     );
   }
@@ -132,34 +132,34 @@ class CapsuleSquareNote {
 
 class CapsuleDraftLedger {
   const CapsuleDraftLedger({
-    required this.craftKind,
-    required this.messageLine,
-    required this.mediaSnaps,
-    required this.openingAt,
-    required this.visibility,
+    required this.sealFormat,
+    required this.sealedMessage,
+    required this.memoryFragments,
+    required this.unlocksAt,
+    required this.shelfScope,
   });
 
-  final CapsuleCraftKind craftKind;
-  final String messageLine;
-  final List<CapsuleMediaSnap> mediaSnaps;
-  final DateTime openingAt;
-  final CapsuleVisibility visibility;
+  final CapsuleSealFormat sealFormat;
+  final String sealedMessage;
+  final List<CapsuleMemoryFragment> memoryFragments;
+  final DateTime unlocksAt;
+  final CapsuleShelfScope shelfScope;
 
-  bool get hasRequiredStory => messageLine.trim().isNotEmpty;
+  bool get hasRequiredStory => sealedMessage.trim().isNotEmpty;
 
   CapsuleDraftLedger copyWith({
-    CapsuleCraftKind? craftKind,
-    String? messageLine,
-    List<CapsuleMediaSnap>? mediaSnaps,
-    DateTime? openingAt,
-    CapsuleVisibility? visibility,
+    CapsuleSealFormat? sealFormat,
+    String? sealedMessage,
+    List<CapsuleMemoryFragment>? memoryFragments,
+    DateTime? unlocksAt,
+    CapsuleShelfScope? shelfScope,
   }) {
     return CapsuleDraftLedger(
-      craftKind: craftKind ?? this.craftKind,
-      messageLine: messageLine ?? this.messageLine,
-      mediaSnaps: mediaSnaps ?? this.mediaSnaps,
-      openingAt: openingAt ?? this.openingAt,
-      visibility: visibility ?? this.visibility,
+      sealFormat: sealFormat ?? this.sealFormat,
+      sealedMessage: sealedMessage ?? this.sealedMessage,
+      memoryFragments: memoryFragments ?? this.memoryFragments,
+      unlocksAt: unlocksAt ?? this.unlocksAt,
+      shelfScope: shelfScope ?? this.shelfScope,
     );
   }
 }

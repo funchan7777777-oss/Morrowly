@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum MorrowlyModerationKind {
   capsule,
-  snippet,
+  memorySeal,
   comment,
   profile,
   message,
@@ -29,20 +29,20 @@ extension MorrowlyReportReasonCopy on MorrowlyReportReason {
 class MorrowlyModerationTarget {
   const MorrowlyModerationTarget({
     required this.contentKey,
-    required this.authorKey,
+    required this.authorKeeperId,
     required this.authorName,
-    required this.kind,
+    required this.sourceKind,
   });
 
   final String contentKey;
-  final String authorKey;
+  final String authorKeeperId;
   final String authorName;
-  final MorrowlyModerationKind kind;
+  final MorrowlyModerationKind sourceKind;
 
   String get contentLabel {
-    return switch (kind) {
+    return switch (sourceKind) {
       MorrowlyModerationKind.capsule => 'capsule',
-      MorrowlyModerationKind.snippet => 'snippet',
+      MorrowlyModerationKind.memorySeal => 'memory seal',
       MorrowlyModerationKind.comment => 'comment',
       MorrowlyModerationKind.profile => 'profile',
       MorrowlyModerationKind.message => 'message',
@@ -58,17 +58,17 @@ class MorrowlyModerationStore extends ChangeNotifier {
 
   static const _reportedContentKeysKey =
       'morrowly.moderation.reportedContentKeys';
-  static const _blockedAuthorKeysKey = 'morrowly.moderation.blockedAuthorKeys';
+  static const _blockedKeeperIdsKey = 'morrowly.moderation.blockedKeeperIds';
   static const _reportRecordsKey = 'morrowly.moderation.reportRecords';
 
   SharedPreferences? _preferences;
   Future<void>? _loading;
   final Set<String> _reportedContentKeys = {};
-  final Set<String> _blockedAuthorKeys = {};
+  final Set<String> _blockedKeeperIds = {};
 
   bool get isLoaded => _preferences != null;
   Set<String> get reportedContentKeys => Set.unmodifiable(_reportedContentKeys);
-  Set<String> get blockedAuthorKeys => Set.unmodifiable(_blockedAuthorKeys);
+  Set<String> get blockedKeeperIds => Set.unmodifiable(_blockedKeeperIds);
 
   Future<void> load() {
     final activeLoad = _loading;
@@ -85,12 +85,15 @@ class MorrowlyModerationStore extends ChangeNotifier {
     return _reportedContentKeys.contains(contentKey);
   }
 
-  bool isAuthorBlocked(String authorKey) {
-    return _blockedAuthorKeys.contains(authorKey);
+  bool isKeeperBlocked(String authorKeeperId) {
+    return _blockedKeeperIds.contains(authorKeeperId);
   }
 
-  bool shouldHide({required String contentKey, required String authorKey}) {
-    return isContentReported(contentKey) || isAuthorBlocked(authorKey);
+  bool shouldHide({
+    required String contentKey,
+    required String authorKeeperId,
+  }) {
+    return isContentReported(contentKey) || isKeeperBlocked(authorKeeperId);
   }
 
   Future<void> reportContent({
@@ -108,24 +111,24 @@ class MorrowlyModerationStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> blockAuthor(MorrowlyModerationTarget target) async {
+  Future<void> blockKeeper(MorrowlyModerationTarget target) async {
     await load();
 
-    _blockedAuthorKeys.add(target.authorKey);
+    _blockedKeeperIds.add(target.authorKeeperId);
     await _preferences!.setStringList(
-      _blockedAuthorKeysKey,
-      _blockedAuthorKeys.toList()..sort(),
+      _blockedKeeperIdsKey,
+      _blockedKeeperIds.toList()..sort(),
     );
     notifyListeners();
   }
 
-  Future<void> unblockAuthor(String authorKey) async {
+  Future<void> unblockKeeper(String authorKeeperId) async {
     await load();
 
-    _blockedAuthorKeys.remove(authorKey);
+    _blockedKeeperIds.remove(authorKeeperId);
     await _preferences!.setStringList(
-      _blockedAuthorKeysKey,
-      _blockedAuthorKeys.toList()..sort(),
+      _blockedKeeperIdsKey,
+      _blockedKeeperIds.toList()..sort(),
     );
     notifyListeners();
   }
@@ -134,9 +137,9 @@ class MorrowlyModerationStore extends ChangeNotifier {
     await load();
 
     _reportedContentKeys.clear();
-    _blockedAuthorKeys.clear();
+    _blockedKeeperIds.clear();
     await _preferences!.remove(_reportedContentKeysKey);
-    await _preferences!.remove(_blockedAuthorKeysKey);
+    await _preferences!.remove(_blockedKeeperIdsKey);
     await _preferences!.remove(_reportRecordsKey);
     notifyListeners();
   }
@@ -147,9 +150,9 @@ class MorrowlyModerationStore extends ChangeNotifier {
     _reportedContentKeys
       ..clear()
       ..addAll(preferences.getStringList(_reportedContentKeysKey) ?? const []);
-    _blockedAuthorKeys
+    _blockedKeeperIds
       ..clear()
-      ..addAll(preferences.getStringList(_blockedAuthorKeysKey) ?? const []);
+      ..addAll(preferences.getStringList(_blockedKeeperIdsKey) ?? const []);
     notifyListeners();
   }
 
@@ -161,11 +164,11 @@ class MorrowlyModerationStore extends ChangeNotifier {
     records.add(
       jsonEncode({
         'contentKey': target.contentKey,
-        'authorKey': target.authorKey,
+        'authorKeeperId': target.authorKeeperId,
         'authorName': target.authorName,
-        'kind': target.kind.name,
+        'sourceKind': target.sourceKind.name,
         'reason': reason.name,
-        'createdAt': DateTime.now().toIso8601String(),
+        'recordedAt': DateTime.now().toIso8601String(),
       }),
     );
     await _preferences!.setStringList(_reportRecordsKey, records);

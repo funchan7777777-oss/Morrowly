@@ -12,6 +12,8 @@ import 'package:morrowly/journeys/welcome_gate/widgets/lit_action_pill.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/soft_entry_field.dart';
 import 'package:morrowly/journeys/welcome_gate/widgets/welcome_artwork.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
+import 'package:morrowly/shared/widgets/morrowly_avatar_placeholder.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProfileIntakeScreen extends StatefulWidget {
@@ -32,7 +34,7 @@ class ProfileIntakeScreen extends StatefulWidget {
 
 class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
   final ImagePicker _imagePicker = ImagePicker();
-  late final TextEditingController _displayNameController;
+  late final TextEditingController _keeperNameController;
   late final TextEditingController _handleController;
   late final TextEditingController _signatureController;
   ProfileIntakeDraft _draft = const ProfileIntakeDraft();
@@ -43,17 +45,17 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
     super.initState();
     final seededName = widget.seed.profileName.trim();
     _draft = ProfileIntakeDraft(
-      displayName: seededName,
+      keeperName: seededName,
       chosenHandle: seededName,
     );
-    _displayNameController = TextEditingController(text: seededName);
+    _keeperNameController = TextEditingController(text: seededName);
     _handleController = TextEditingController(text: seededName);
     _signatureController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _displayNameController.dispose();
+    _keeperNameController.dispose();
     _handleController.dispose();
     _signatureController.dispose();
     super.dispose();
@@ -120,20 +122,21 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
                     ),
                     const SizedBox(height: 24),
                     _AvatarCameraSpot(
-                      avatarPath: _draft.avatarLocalPath,
+                      avatarPath: _draft.localPortraitPath,
                       picking: _pickingImage,
+                      label: _keeperNameController.text,
                       onPressed: _showAvatarSourceSheet,
                     ),
                     const SizedBox(height: 16),
                     SoftEntryField(
                       label: 'Name',
-                      placeholder: 'Please enter...',
-                      controller: _displayNameController,
+                      placeholder: 'Name shown on your capsules',
+                      controller: _keeperNameController,
                       trailingKind: FieldTrailingKind.clear,
                       textInputAction: TextInputAction.next,
                       textCapitalization: TextCapitalization.words,
                       onChanged: (value) {
-                        _draft = _draft.copyWith(displayName: value);
+                        _draft = _draft.copyWith(keeperName: value);
                       },
                     ),
                     const SizedBox(height: 16),
@@ -188,7 +191,7 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
                       height: 102,
                       textCapitalization: TextCapitalization.sentences,
                       onChanged: (value) {
-                        _draft = _draft.copyWith(signatureLine: value);
+                        _draft = _draft.copyWith(morrowLine: value);
                       },
                     ),
                     const SizedBox(height: 28),
@@ -282,7 +285,7 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
 
       final savedPath = await _copyAvatarIntoLocalShelf(picked.path);
       setState(() {
-        _draft = _draft.copyWith(avatarLocalPath: savedPath);
+        _draft = _draft.copyWith(localPortraitPath: savedPath);
       });
     } catch (_) {
       if (!mounted) {
@@ -291,7 +294,7 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
       _showNotice(
         title: 'Photo unavailable',
         message:
-            'Morrowly could not open this photo source. Please check photo or camera permission and try again.',
+            'Morrowly could not open this photo source. Check photo or camera access, then try again.',
         icon: Icons.photo_camera_back_outlined,
       );
     } finally {
@@ -320,25 +323,39 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
   }
 
   void _submitProfile() {
-    final displayName = _displayNameController.text.trim();
+    final keeperName = _keeperNameController.text.trim();
     final handle = _handleController.text.trim();
     final signature = _signatureController.text.trim();
 
-    if (displayName.isEmpty || handle.isEmpty || signature.isEmpty) {
+    if (keeperName.isEmpty || handle.isEmpty || signature.isEmpty) {
       _showNotice(
         title: 'Finish your profile',
         message:
-            'Please enter your name, Morrowly name, and signature before continuing.',
+            'Add a name, a Morrowly name, and one signature line for future notes.',
         icon: Icons.badge_outlined,
+      );
+      return;
+    }
+    try {
+      MorrowlyContentSafety.ensureProfile(
+        keeperName: keeperName,
+        handle: handle,
+        morrowLine: signature,
+      );
+    } on MorrowlyContentSafetyException catch (issue) {
+      _showNotice(
+        title: issue.title,
+        message: issue.message,
+        icon: Icons.verified_user_outlined,
       );
       return;
     }
 
     widget.onProfileSubmitted(
       _draft.copyWith(
-        displayName: displayName,
+        keeperName: keeperName,
         chosenHandle: handle,
-        signatureLine: signature,
+        morrowLine: signature,
       ),
     );
   }
@@ -361,11 +378,13 @@ class _AvatarCameraSpot extends StatelessWidget {
   const _AvatarCameraSpot({
     required this.avatarPath,
     required this.picking,
+    required this.label,
     required this.onPressed,
   });
 
   final String avatarPath;
   final bool picking;
+  final String label;
   final VoidCallback onPressed;
 
   @override
@@ -385,14 +404,7 @@ class _AvatarCameraSpot extends StatelessWidget {
             ),
             clipBehavior: Clip.antiAlias,
             child: avatarPath.isEmpty
-                ? Center(
-                    child: Image.asset(
-                      WelcomeArtwork.camera,
-                      width: 64,
-                      height: 64,
-                      filterQuality: FilterQuality.high,
-                    ),
-                  )
+                ? MorrowlyAvatarPlaceholder(radius: 46, label: label)
                 : Image.file(
                     File(avatarPath),
                     fit: BoxFit.cover,
@@ -419,15 +431,41 @@ class _AvatarCameraSpot extends StatelessWidget {
               ),
             ),
           Positioned(
-            top: -1,
-            right: 4,
-            child: Image.asset(
-              WelcomeArtwork.fieldClear,
-              width: 18,
-              height: 18,
-              filterQuality: FilterQuality.high,
+            right: 2,
+            bottom: 0,
+            child: Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: const Color(0xFFB66DFF),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.photo_camera_rounded,
+                color: Colors.white,
+                size: 14,
+              ),
             ),
           ),
+          if (avatarPath.isNotEmpty)
+            Positioned(
+              top: -1,
+              right: 4,
+              child: Image.asset(
+                WelcomeArtwork.fieldClear,
+                width: 18,
+                height: 18,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
         ],
       ),
     );

@@ -22,7 +22,7 @@ class GroundingRhythmCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  rhythm.displayName,
+                  rhythm.rhythmName,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),

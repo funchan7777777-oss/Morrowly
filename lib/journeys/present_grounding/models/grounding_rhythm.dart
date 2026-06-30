@@ -1,7 +1,7 @@
 class GroundingRhythm {
   const GroundingRhythm({
     required this.rhythmKey,
-    required this.displayName,
+    required this.rhythmName,
     required this.settlingPhrase,
     required this.minutes,
     required this.bodyCue,
@@ -10,7 +10,7 @@ class GroundingRhythm {
   });
 
   final String rhythmKey;
-  final String displayName;
+  final String rhythmName;
   final String settlingPhrase;
   final int minutes;
   final String bodyCue;

@@ -1,5 +1,6 @@
 import 'package:morrowly/journeys/welcome_gate/models/credential_gate_seed.dart';
 import 'package:morrowly/journeys/welcome_gate/models/profile_intake_draft.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalGateStore {
@@ -39,7 +40,7 @@ class LocalGateStore {
     return email.isNotEmpty && password.isNotEmpty;
   }
 
-  String get savedDisplayName {
+  String get savedKeeperName {
     return _preferences.getString(_profileNameKey) ?? '';
   }
 
@@ -85,6 +86,12 @@ class LocalGateStore {
     required PendingCredentialSeed seed,
     required ProfileIntakeDraft profile,
   }) async {
+    MorrowlyContentSafety.ensureProfile(
+      keeperName: profile.keeperName,
+      handle: profile.chosenHandle,
+      morrowLine: profile.morrowLine,
+    );
+
     if (seed.isRegistration) {
       await _preferences.setString(
         _registeredEmailKey,
@@ -100,18 +107,18 @@ class LocalGateStore {
       await _preferences.setString(_lastProviderKey, 'local');
     }
 
-    await _preferences.setString(_profileNameKey, profile.displayName.trim());
+    await _preferences.setString(_profileNameKey, profile.keeperName.trim());
     await _preferences.setString(
       _profileHandleKey,
       profile.chosenHandle.trim(),
     );
     await _preferences.setString(
       _profileSignatureKey,
-      profile.signatureLine.trim(),
+      profile.morrowLine.trim(),
     );
     await _preferences.setString(
       _profileAvatarPathKey,
-      profile.avatarLocalPath,
+      profile.localPortraitPath,
     );
     await _preferences.setString(
       _profileGenderKey,
@@ -122,16 +129,21 @@ class LocalGateStore {
   }
 
   Future<void> updateProfile({
-    required String displayName,
-    required String signatureLine,
-    required String avatarLocalPath,
+    required String keeperName,
+    required String morrowLine,
+    required String localPortraitPath,
     required String gender,
     required String region,
     required String birthDate,
   }) async {
-    await _preferences.setString(_profileNameKey, displayName.trim());
-    await _preferences.setString(_profileSignatureKey, signatureLine.trim());
-    await _preferences.setString(_profileAvatarPathKey, avatarLocalPath);
+    MorrowlyContentSafety.ensureProfile(
+      keeperName: keeperName,
+      handle: keeperName,
+      morrowLine: morrowLine,
+    );
+    await _preferences.setString(_profileNameKey, keeperName.trim());
+    await _preferences.setString(_profileSignatureKey, morrowLine.trim());
+    await _preferences.setString(_profileAvatarPathKey, localPortraitPath);
     await _preferences.setString(_profileGenderKey, gender);
     await _preferences.setString(_profileRegionKey, region);
     await _preferences.setString(_profileBirthDateKey, birthDate.trim());

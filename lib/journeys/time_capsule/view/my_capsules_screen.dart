@@ -17,17 +17,17 @@ class MyCapsulesScreen extends StatefulWidget {
     this.onCapsulesChanged,
   });
 
-  final List<CapsuleSquareNote> capsules;
+  final List<PublicCapsuleSeal> capsules;
   final int coinBalance;
   final ValueChanged<int>? onCoinBalanceChanged;
-  final ValueChanged<List<CapsuleSquareNote>>? onCapsulesChanged;
+  final ValueChanged<List<PublicCapsuleSeal>>? onCapsulesChanged;
 
   @override
   State<MyCapsulesScreen> createState() => _MyCapsulesScreenState();
 }
 
 class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
-  late List<CapsuleSquareNote> _capsules = [...widget.capsules];
+  late List<PublicCapsuleSeal> _capsules = [...widget.capsules];
   final MorrowlyWalletStore _wallet = MorrowlyWalletStore.instance;
 
   @override
@@ -117,21 +117,21 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
     }
   }
 
-  void _confirmDelete(CapsuleSquareNote capsule) {
+  void _confirmDelete(PublicCapsuleSeal capsule) {
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.62),
       builder: (context) => CapsuleConfirmDialog(
-        title: 'Please confirm',
+        title: 'Confirm deletion',
         message:
-            'After deletion, all content will be cleared and cannot be restored. Are you sure you want to delete it?',
+            'This capsule will leave your local shelf and cannot be restored.',
         actionLabel: 'Confirm',
         onAction: () {
           Navigator.of(context).pop();
           setState(() {
             _capsules = [
               for (final item in _capsules)
-                if (item.noteKey != capsule.noteKey) item,
+                if (item.sealId != capsule.sealId) item,
             ];
           });
           widget.onCapsulesChanged?.call(_capsules);
@@ -140,7 +140,7 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
     );
   }
 
-  Future<void> _confirmOpen(CapsuleSquareNote capsule) async {
+  Future<void> _confirmOpen(PublicCapsuleSeal capsule) async {
     final spent = await confirmAndSpendMorrowlyCoins(
       context,
       cost: MorrowlyCoinCosts.openCapsule,
@@ -151,7 +151,7 @@ class _MyCapsulesScreenState extends State<MyCapsulesScreen> {
     _showUnlockedCapsule(capsule);
   }
 
-  void _showUnlockedCapsule(CapsuleSquareNote capsule) {
+  void _showUnlockedCapsule(PublicCapsuleSeal capsule) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -169,7 +169,7 @@ class _MyCapsuleCard extends StatelessWidget {
     required this.onCheck,
   });
 
-  final CapsuleSquareNote capsule;
+  final PublicCapsuleSeal capsule;
   final VoidCallback onDelete;
   final VoidCallback? onCheck;
 
@@ -186,7 +186,7 @@ class _MyCapsuleCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.asset(
-            capsule.visibility == CapsuleVisibility.publicSquare
+            capsule.shelfScope == CapsuleShelfScope.publicSquare
                 ? CapsuleArtwork.publicChip
                 : CapsuleArtwork.privateChip,
             width: 72,
@@ -207,7 +207,7 @@ class _MyCapsuleCard extends StatelessWidget {
           Text(
             canOpen
                 ? 'Can be opened'
-                : 'Opens ${capsuleDateStamp(capsule.openingAt)}',
+                : 'Opens ${capsuleDateStamp(capsule.unlocksAt)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -263,7 +263,7 @@ class _MyCapsuleCard extends StatelessWidget {
 class _UnlockedCapsuleSheet extends StatelessWidget {
   const _UnlockedCapsuleSheet({required this.capsule});
 
-  final CapsuleSquareNote capsule;
+  final PublicCapsuleSeal capsule;
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +307,7 @@ class _UnlockedCapsuleSheet extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                capsule.messageLine,
+                capsule.sealedMessage,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.74),
                   fontSize: 14,
@@ -320,7 +320,7 @@ class _UnlockedCapsuleSheet extends StatelessWidget {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  for (final snap in capsule.mediaSnaps)
+                  for (final snap in capsule.memoryFragments)
                     CapsuleMediaTile(snap: snap, size: 92),
                 ],
               ),

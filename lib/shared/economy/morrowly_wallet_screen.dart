@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/journeys/present_grounding/widgets/keeper_memory_widgets.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
-const _walletCoinAsset = 'assets/images/Timelock.png';
-const _walletWashAsset = 'assets/images/Shareable.png';
-const _walletEmptyAsset = 'assets/images/Reminder.png';
+const _walletCoinAsset = 'assets/morrowly_art/ui/morrowly_ui_timelock.png';
+const _walletWashAsset = 'assets/morrowly_art/ui/morrowly_ui_shareable.png';
+const _walletEmptyAsset = 'assets/morrowly_art/ui/morrowly_ui_reminder.png';
 
 class MorrowlyCoinBalancePill extends StatefulWidget {
   const MorrowlyCoinBalancePill({
@@ -99,7 +99,7 @@ class _MorrowlyWalletScreenState extends State<MorrowlyWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -185,7 +185,7 @@ class _MorrowlyWalletScreenState extends State<MorrowlyWalletScreen> {
                       );
                     },
                   ),
-                  LifeTopBar(
+                  MorrowlyMemoryTopBar(
                     title: 'Wallet',
                     onBack: () => Navigator.of(context).pop(),
                     trailing: IconButton(
@@ -233,7 +233,7 @@ class _MorrowlyWalletScreenState extends State<MorrowlyWalletScreen> {
       builder: (context) => _WalletNoticeDialog(
         title: 'Purchase unavailable',
         message: result.message,
-        actionLabel: 'Got it',
+        actionLabel: 'Back to wallet',
       ),
     );
   }
@@ -435,7 +435,7 @@ class _UsagePanel extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Text(
-              'Chat and video chat cost 0 coins. They are only available after mutual follow.',
+              'Free: editing drafts, viewing your saved compass, profile changes, chat and video chat. Chat features stay available only after mutual follow.',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 11,

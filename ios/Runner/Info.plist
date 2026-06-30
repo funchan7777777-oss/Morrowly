@@ -27,11 +27,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Morrowly uses the camera when you choose to take photos, record videos, or start a video call preview.</string>
+	<string>Use the camera to take an avatar photo, capture capsule media, or show your local self-preview after you start a video call.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Morrowly uses the microphone when you choose to record video or start a video call.</string>
+	<string>Use the microphone only when you record a video capsule or start a video call that includes your voice.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Morrowly lets you choose local photos and videos for your profile avatar or capsule.</string>
+	<string>Choose photos or videos for your avatar, memory seals, and capsules. Selected media is copied into your local Morrowly data.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

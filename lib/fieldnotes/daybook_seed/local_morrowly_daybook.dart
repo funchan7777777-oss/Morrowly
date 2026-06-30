@@ -11,7 +11,7 @@ abstract final class LocalMorrowlyDaybook {
   static const activeBrief = MorrowlyDayBrief(
     briefKey: 'handoff-quiet-friday',
     calendarFaceLabel: 'Tonight into tomorrow',
-    dayToneLine: 'A lighter plan is more likely to survive the morning.',
+    dayToneLine: 'A lighter plan is more likely to reach the morning.',
     openingNudge: 'Choose the first thing tomorrow should protect.',
     energyWeatherLabel: 'Clear, but shallow',
     carryForwardThread:
@@ -22,8 +22,7 @@ abstract final class LocalMorrowlyDaybook {
         intentionKey: 'reply-before-feed',
         narrativeLabel: 'Send the reply before opening the feed',
         workSurface: 'Inbox handoff',
-        whyItMatters:
-            'It keeps a small promise from becoming background noise.',
+        whyItMatters: 'It keeps a small promise from fading into the day.',
         firstVisibleStep: 'Open the draft and write the last paragraph.',
         fallbackLanding:
             'Leave a two-line update if the full reply needs more time.',
@@ -48,7 +47,7 @@ abstract final class LocalMorrowlyDaybook {
         narrativeLabel: 'Step outside after the first finished block',
         workSurface: 'Recovery margin',
         whyItMatters:
-            'A short reset makes the second half of the day less brittle.',
+            'A short reset gives the second half of the day softer edges.',
         firstVisibleStep: 'Put shoes near the door before bed.',
         fallbackLanding: 'Stand near a window for five slow breaths.',
         weightBand: FocusWeightBand.lightTouch,
@@ -98,7 +97,7 @@ abstract final class LocalMorrowlyDaybook {
   static const groundingRhythms = [
     GroundingRhythm(
       rhythmKey: 'rhythm-countertop-reset',
-      displayName: 'Countertop reset',
+      rhythmName: 'Countertop reset',
       settlingPhrase:
           'Clear one visible surface before making another decision.',
       minutes: 7,
@@ -108,16 +107,16 @@ abstract final class LocalMorrowlyDaybook {
     ),
     GroundingRhythm(
       rhythmKey: 'rhythm-two-song-sort',
-      displayName: 'Two-song sort',
+      rhythmName: 'Two-song sort',
       settlingPhrase: 'Let two songs carry one tiny organizing pass.',
       minutes: 9,
       bodyCue: 'Stand, sort, stop',
-      repeatPattern: 'Useful when the room feels louder than the plan',
+      repeatPattern: 'Useful when the room feels busier than the plan',
       colorMood: 'moss',
     ),
     GroundingRhythm(
       rhythmKey: 'rhythm-window-note',
-      displayName: 'Window note',
+      rhythmName: 'Window note',
       settlingPhrase: 'Write one sentence while looking away from the screen.',
       minutes: 4,
       bodyCue: 'Eyes far, jaw loose',

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
+import 'package:morrowly/journeys/present_grounding/data/keeper_memory_store.dart';
 import 'package:morrowly/journeys/time_capsule/data/capsule_square_seed.dart';
 import 'package:morrowly/journeys/time_capsule/models/capsule_chronicle.dart';
 import 'package:morrowly/journeys/time_capsule/view/capsule_success_screen.dart';
@@ -8,6 +8,8 @@ import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
+import 'package:morrowly/shared/moderation/morrowly_content_safety.dart';
+import 'package:morrowly/shared/widgets/morrowly_safety_notice.dart';
 
 class CapsulePreviewScreen extends StatefulWidget {
   const CapsulePreviewScreen({
@@ -24,7 +26,7 @@ class CapsulePreviewScreen extends StatefulWidget {
 }
 
 class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
-  late CapsuleVisibility _visibility = widget.draft.visibility;
+  late CapsuleShelfScope _visibility = widget.draft.shelfScope;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +83,7 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${capsuleDateStamp(widget.draft.openingAt)} open',
+                      '${capsuleDateStamp(widget.draft.unlocksAt)} open',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.28),
                         fontSize: 13,
@@ -90,7 +92,7 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      widget.draft.messageLine,
+                      widget.draft.sealedMessage,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.66),
                         fontSize: 14,
@@ -98,18 +100,18 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (widget.draft.mediaSnaps.isNotEmpty) ...[
+                    if (widget.draft.memoryFragments.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       SizedBox(
                         height: 88,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
-                          itemCount: widget.draft.mediaSnaps.length,
+                          itemCount: widget.draft.memoryFragments.length,
                           separatorBuilder: (context, index) =>
                               const SizedBox(width: 12),
                           itemBuilder: (context, index) {
                             return CapsuleMediaTile(
-                              snap: widget.draft.mediaSnaps[index],
+                              snap: widget.draft.memoryFragments[index],
                               size: 88,
                             );
                           },
@@ -120,7 +122,7 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
                     _PreviewInfoRow(
                       title: 'Start time',
                       value:
-                          '${capsuleDateStamp(widget.draft.openingAt)} ${capsuleClockStamp(widget.draft.openingAt)}',
+                          '${capsuleDateStamp(widget.draft.unlocksAt)} ${capsuleClockStamp(widget.draft.unlocksAt)}',
                     ),
                     const SizedBox(height: 12),
                     _VisibilityRow(
@@ -154,6 +156,18 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
   }
 
   Future<void> _confirmSealing() async {
+    try {
+      MorrowlyContentSafety.ensureText(
+        widget.draft.sealedMessage,
+        surface: MorrowlySafetySurface.publicCapsule,
+      );
+    } on MorrowlyContentSafetyException catch (issue) {
+      await showMorrowlySafetyNotice(context, issue);
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
     final spent = await confirmAndSpendMorrowlyCoins(
       context,
       cost: MorrowlyCoinCosts.sealCapsule,
@@ -165,28 +179,28 @@ class _CapsulePreviewScreenState extends State<CapsulePreviewScreen> {
   }
 
   void _sealCapsule() {
-    final currentUser = LifeSnippetStore.instance.currentUser;
-    final sealed = CapsuleSquareNote(
-      noteKey: 'local-${DateTime.now().microsecondsSinceEpoch}',
+    final signedInKeeper = KeeperMemoryStore.instance.signedInKeeper;
+    final sealed = PublicCapsuleSeal(
+      sealId: 'local-${DateTime.now().microsecondsSinceEpoch}',
       keeper: CapsuleKeeper(
-        keeperKey: currentUser.userKey,
-        displayName: currentUser.displayName,
-        ageLine: currentUser.ageLine,
-        placeLine: currentUser.placeLine,
+        keeperId: signedInKeeper.keeperId,
+        publicName: signedInKeeper.publicName,
+        ageMark: signedInKeeper.ageMark,
+        homeRegion: signedInKeeper.homeRegion,
         signalBand: KeeperSignalBand.bloom,
-        avatarAsset: currentUser.avatarAsset,
-        avatarLocalPath: currentUser.avatarLocalPath,
+        portraitAsset: signedInKeeper.portraitAsset,
+        localPortraitPath: signedInKeeper.localPortraitPath,
       ),
-      messageLine: widget.draft.messageLine,
-      mediaSnaps: widget.draft.mediaSnaps,
+      sealedMessage: widget.draft.sealedMessage,
+      memoryFragments: widget.draft.memoryFragments,
       sealedAt: DateTime.now(),
-      openingAt: widget.draft.openingAt,
-      visibility: _visibility,
+      unlocksAt: widget.draft.unlocksAt,
+      shelfScope: _visibility,
       visitorTrail: CapsuleSquareSeed.allKeepers,
-      leftMessageCount: 0,
+      replyTrailCount: 0,
       isLocalDraft: true,
     );
-    Navigator.of(context).pushReplacement<CapsuleSquareNote, void>(
+    Navigator.of(context).pushReplacement<PublicCapsuleSeal, void>(
       MaterialPageRoute(builder: (_) => CapsuleSuccessScreen(capsule: sealed)),
     );
   }
@@ -234,8 +248,8 @@ class _PreviewInfoRow extends StatelessWidget {
 class _VisibilityRow extends StatelessWidget {
   const _VisibilityRow({required this.value, required this.onChanged});
 
-  final CapsuleVisibility value;
-  final ValueChanged<CapsuleVisibility> onChanged;
+  final CapsuleShelfScope value;
+  final ValueChanged<CapsuleShelfScope> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -243,9 +257,9 @@ class _VisibilityRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: () {
         onChanged(
-          value == CapsuleVisibility.publicSquare
-              ? CapsuleVisibility.privateShelf
-              : CapsuleVisibility.publicSquare,
+          value == CapsuleShelfScope.publicSquare
+              ? CapsuleShelfScope.privateShelf
+              : CapsuleShelfScope.publicSquare,
         );
       },
       child: Container(
@@ -266,7 +280,7 @@ class _VisibilityRow extends StatelessWidget {
             ),
             const Spacer(),
             Text(
-              value == CapsuleVisibility.publicSquare
+              value == CapsuleShelfScope.publicSquare
                   ? 'Public (visible to everyone)'
                   : 'Private (only you)',
               style: TextStyle(

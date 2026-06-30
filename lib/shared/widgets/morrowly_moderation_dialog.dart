@@ -5,10 +5,10 @@ enum MorrowlyModerationResult { reported, blocked }
 
 enum _MorrowlyModerationAction { report, block }
 
-const _preludeAsset = 'assets/images/Prelude.png';
-const _reportAsset = 'assets/images/Outbox.png';
-const _blockAsset = 'assets/images/Confession.png';
-const _confirmAsset = 'assets/images/Flashback.png';
+const _preludeAsset = 'assets/morrowly_art/ui/morrowly_ui_prelude.png';
+const _reportAsset = 'assets/morrowly_art/ui/morrowly_ui_outbox.png';
+const _blockAsset = 'assets/morrowly_art/ui/morrowly_ui_confession.png';
+const _confirmAsset = 'assets/morrowly_art/ui/morrowly_ui_flashback.png';
 
 Future<MorrowlyModerationResult?> showMorrowlyModerationFlow({
   required BuildContext context,
@@ -64,7 +64,7 @@ Future<MorrowlyModerationResult?> showMorrowlyModerationFlow({
 
   final blockHandler = onBlock;
   if (blockHandler == null) {
-    await moderationStore.blockAuthor(target);
+    await moderationStore.blockKeeper(target);
   } else {
     await blockHandler();
   }
@@ -98,7 +98,7 @@ class _ModerationActionDialogState extends State<_ModerationActionDialog> {
   @override
   Widget build(BuildContext context) {
     return _MorrowlyDialogShell(
-      title: 'Please select',
+      title: 'Choose action',
       actionAsset: _confirmAsset,
       actionLabel: 'Confirm',
       onAction: () => Navigator.of(context).pop(_selectedAction),
@@ -106,7 +106,7 @@ class _ModerationActionDialogState extends State<_ModerationActionDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ModerationChoiceTile(
-            assetPath: _reportAsset,
+            sourcePath: _reportAsset,
             fallbackLabel: 'Report',
             selected: _selectedAction == _MorrowlyModerationAction.report,
             onTap: () {
@@ -117,7 +117,7 @@ class _ModerationActionDialogState extends State<_ModerationActionDialog> {
           ),
           const SizedBox(height: 14),
           _ModerationChoiceTile(
-            assetPath: _blockAsset,
+            sourcePath: _blockAsset,
             fallbackLabel: 'Block',
             selected: _selectedAction == _MorrowlyModerationAction.block,
             onTap: () {
@@ -221,7 +221,7 @@ class _MorrowlyDialogShell extends StatelessWidget {
       backgroundColor: Colors.transparent,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 336),
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 26),
+        padding: const EdgeInsets.fromLTRB(24, 18, 24, 26),
         decoration: BoxDecoration(
           color: const Color(0xFF4B3653),
           borderRadius: BorderRadius.circular(26),
@@ -236,19 +236,21 @@ class _MorrowlyDialogShell extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Transform.translate(
-              offset: const Offset(0, -18),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+            SizedBox(
+              width: double.infinity,
+              height: 104,
+              child: FittedBox(
+                fit: BoxFit.contain,
                 child: Image.asset(
                   _preludeAsset,
-                  width: 226,
-                  height: 82,
-                  fit: BoxFit.cover,
+                  width: 286,
+                  height: 158,
+                  fit: BoxFit.contain,
                   filterQuality: FilterQuality.high,
                 ),
               ),
             ),
+            const SizedBox(height: 6),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -277,7 +279,7 @@ class _MorrowlyDialogShell extends StatelessWidget {
             if (child is! SizedBox) ...[const SizedBox(height: 22), child],
             const SizedBox(height: 26),
             _AssetDialogButton(
-              assetPath: actionAsset,
+              sourcePath: actionAsset,
               semanticLabel: actionLabel,
               enabled: actionEnabled,
               onTap: onAction,
@@ -291,13 +293,13 @@ class _MorrowlyDialogShell extends StatelessWidget {
 
 class _ModerationChoiceTile extends StatelessWidget {
   const _ModerationChoiceTile({
-    required this.assetPath,
+    required this.sourcePath,
     required this.fallbackLabel,
     required this.selected,
     required this.onTap,
   });
 
-  final String assetPath;
+  final String sourcePath;
   final String fallbackLabel;
   final bool selected;
   final VoidCallback onTap;
@@ -311,29 +313,15 @@ class _ModerationChoiceTile extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: AnimatedScale(
+        child: AnimatedOpacity(
           duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOutCubic,
-          scale: selected ? 1 : 0.985,
-          child: Stack(
-            alignment: Alignment.centerRight,
-            children: [
-              Image.asset(
-                assetPath,
-                width: double.infinity,
-                height: 58,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
-              ),
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 160),
-                opacity: selected ? 1 : 0,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: _SelectionMark(selected: selected),
-                ),
-              ),
-            ],
+          opacity: selected ? 1 : 0.54,
+          child: Image.asset(
+            sourcePath,
+            width: double.infinity,
+            height: 54,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
           ),
         ),
       ),
@@ -433,19 +421,20 @@ class _SelectionMark extends StatelessWidget {
 
 class _AssetDialogButton extends StatelessWidget {
   const _AssetDialogButton({
-    required this.assetPath,
+    required this.sourcePath,
     required this.semanticLabel,
     required this.onTap,
     required this.enabled,
   });
 
-  final String assetPath;
+  final String sourcePath;
   final String semanticLabel;
   final VoidCallback onTap;
   final bool enabled;
 
   @override
   Widget build(BuildContext context) {
+    final isConfirmButton = sourcePath == _confirmAsset;
     return Semantics(
       label: semanticLabel,
       button: true,
@@ -456,10 +445,10 @@ class _AssetDialogButton extends StatelessWidget {
         child: Opacity(
           opacity: enabled ? 1 : 0.45,
           child: Image.asset(
-            assetPath,
-            width: 186,
-            height: 42,
-            fit: BoxFit.fill,
+            sourcePath,
+            width: isConfirmButton ? 196 : 238,
+            height: isConfirmButton ? 44 : 47,
+            fit: BoxFit.contain,
             filterQuality: FilterQuality.high,
           ),
         ),

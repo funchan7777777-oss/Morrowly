@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/memory_ribbon/view/memory_ribbon_screen.dart';
-import 'package:morrowly/journeys/present_grounding/data/life_snippet_store.dart';
-import 'package:morrowly/journeys/present_grounding/models/life_snippet_models.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_chat_screen.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_detail_screen.dart';
-import 'package:morrowly/journeys/present_grounding/view/life_snippet_profile_screen.dart';
-import 'package:morrowly/journeys/present_grounding/widgets/life_snippet_widgets.dart';
+import 'package:morrowly/journeys/present_grounding/data/keeper_memory_store.dart';
+import 'package:morrowly/journeys/present_grounding/models/keeper_memory_thread.dart';
+import 'package:morrowly/journeys/present_grounding/view/keeper_letter_thread_screen.dart';
+import 'package:morrowly/journeys/present_grounding/view/memory_seal_detail_screen.dart';
+import 'package:morrowly/journeys/present_grounding/view/keeper_home_screen.dart';
+import 'package:morrowly/journeys/present_grounding/widgets/keeper_memory_widgets.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
 
@@ -28,12 +28,12 @@ class TimeMailScreen extends StatefulWidget {
 }
 
 class _TimeMailScreenState extends State<TimeMailScreen> {
-  final LifeSnippetStore _store = LifeSnippetStore.instance;
+  final KeeperMemoryStore _store = KeeperMemoryStore.instance;
   late final Future<void> _loadFuture = _store.load();
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: FutureBuilder<void>(
         future: _loadFuture,
         builder: (context, snapshot) {
@@ -46,16 +46,16 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
           return AnimatedBuilder(
             animation: _store,
             builder: (context, _) {
-              final currentUser = _store.currentUser;
-              final commentNotices = _store.commentNotices;
-              final likedPosts = _store.likedPosts;
+              final signedInKeeper = _store.signedInKeeper;
+              final replyNotices = _store.replyNotices;
+              final glowedSeals = _store.glowedSeals;
               final incomingRequests = _store.incomingFollowRequestUsers;
               final mutualFriends = _store.mutualFriendUsers;
               final threads = [
-                for (final userKey in _store.chatThreadUserKeys)
+                for (final keeperId in _store.letterThreadKeeperIds)
                   _MailThread(
-                    user: _store.userByKey(userKey),
-                    message: _store.chatMessagesFor(userKey).last,
+                    user: _store.keeperById(keeperId),
+                    message: _store.chatMessagesFor(keeperId).last,
                   ),
               ];
 
@@ -97,14 +97,14 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _MailHeader(
-                              currentUser: currentUser,
+                              signedInKeeper: signedInKeeper,
                               onProfile: _openProfileCenter,
                               onWallet: _openWallet,
                             ),
                             const SizedBox(height: 28),
                             _MailShortcutRow(
-                              commentCount: commentNotices.length,
-                              likeCount: likedPosts.length,
+                              replyCount: replyNotices.length,
+                              glowCount: glowedSeals.length,
                               requestCount: incomingRequests.length,
                               friendCount: mutualFriends.length,
                               onComments: _openComments,
@@ -123,9 +123,11 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
                               for (final thread in threads) ...[
                                 _MailThreadTile(
                                   thread: thread,
-                                  onTap: () => _openChat(thread.user.userKey),
-                                  onProfile: () =>
-                                      _openProfile(thread.user.userKey),
+                                  onTap: () => _openChat(thread.user.keeperId),
+                                  onProfile: () => _openProfile(
+                                    context,
+                                    thread.user.keeperId,
+                                  ),
                                 ),
                                 if (thread != threads.last)
                                   const _MailThreadDivider(),
@@ -162,24 +164,24 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
     );
   }
 
-  Future<void> _openChat(String userKey) {
+  Future<void> _openChat(String keeperId) {
     return Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder: (_) => LifeSnippetChatScreen(userKey: userKey),
+        builder: (_) => KeeperLetterThreadScreen(keeperId: keeperId),
       ),
     );
   }
 
   Future<void> _openComments() {
     return Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const _CommentNoticesScreen()),
+      MaterialPageRoute(builder: (_) => const _ReplyNoticeLedgerScreen()),
     );
   }
 
   Future<void> _openLikes() {
     return Navigator.of(
       context,
-    ).push<void>(MaterialPageRoute(builder: (_) => const _LikedPostsScreen()));
+    ).push<void>(MaterialPageRoute(builder: (_) => const _GlowLedgerScreen()));
   }
 
   Future<void> _openFriendRequests() {
@@ -197,12 +199,12 @@ class _TimeMailScreenState extends State<TimeMailScreen> {
 
 class _MailHeader extends StatelessWidget {
   const _MailHeader({
-    required this.currentUser,
+    required this.signedInKeeper,
     required this.onProfile,
     required this.onWallet,
   });
 
-  final LifeSnippetUser currentUser;
+  final KeeperProfile signedInKeeper;
   final VoidCallback onProfile;
   final VoidCallback onWallet;
 
@@ -239,7 +241,11 @@ class _MailHeader extends StatelessWidget {
         const SizedBox(width: 10),
         Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: LifeAvatar(user: currentUser, radius: 20, onTap: onProfile),
+          child: KeeperAvatar(
+            user: signedInKeeper,
+            radius: 20,
+            onTap: onProfile,
+          ),
         ),
       ],
     );
@@ -248,8 +254,8 @@ class _MailHeader extends StatelessWidget {
 
 class _MailShortcutRow extends StatelessWidget {
   const _MailShortcutRow({
-    required this.commentCount,
-    required this.likeCount,
+    required this.replyCount,
+    required this.glowCount,
     required this.requestCount,
     required this.friendCount,
     required this.onComments,
@@ -258,8 +264,8 @@ class _MailShortcutRow extends StatelessWidget {
     required this.onFriends,
   });
 
-  final int commentCount;
-  final int likeCount;
+  final int replyCount;
+  final int glowCount;
   final int requestCount;
   final int friendCount;
   final VoidCallback onComments;
@@ -275,13 +281,13 @@ class _MailShortcutRow extends StatelessWidget {
         _MailShortcut(
           asset: ProfileCenterAssets.messageStat,
           label: 'Comments',
-          badgeLabel: _badgeText(commentCount),
+          badgeLabel: _badgeText(replyCount),
           onTap: onComments,
         ),
         _MailShortcut(
           asset: ProfileCenterAssets.likeStat,
           label: 'Likes',
-          badgeLabel: _badgeText(likeCount),
+          badgeLabel: _badgeText(glowCount),
           onTap: onLikes,
         ),
         _MailShortcut(
@@ -464,7 +470,7 @@ class _MailThreadTile extends StatelessWidget {
               child: CircleAvatar(
                 radius: 26,
                 backgroundColor: Colors.white.withValues(alpha: 0.18),
-                backgroundImage: lifeAvatarProvider(thread.user),
+                backgroundImage: keeperAvatarProvider(thread.user),
               ),
             ),
             const SizedBox(width: 13),
@@ -474,7 +480,7 @@ class _MailThreadTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    thread.user.displayName,
+                    thread.user.publicName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -487,7 +493,7 @@ class _MailThreadTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 9),
                   Text(
-                    thread.message.body,
+                    thread.message.letterText,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -507,7 +513,7 @@ class _MailThreadTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  _clockLabel(thread.message.createdAt),
+                  _clockLabel(thread.message.sentAt),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.24),
                     fontSize: 13,
@@ -543,8 +549,8 @@ class _MailThreadDivider extends StatelessWidget {
 class _MailThread {
   const _MailThread({required this.user, required this.message});
 
-  final LifeSnippetUser user;
-  final LifeChatMessage message;
+  final KeeperProfile user;
+  final KeeperLetter message;
 }
 
 class _EmptyMailThreads extends StatelessWidget {
@@ -567,16 +573,16 @@ class _EmptyMailThreads extends StatelessWidget {
   }
 }
 
-class _CommentNoticesScreen extends StatelessWidget {
-  const _CommentNoticesScreen();
+class _ReplyNoticeLedgerScreen extends StatelessWidget {
+  const _ReplyNoticeLedgerScreen();
 
   @override
   Widget build(BuildContext context) {
-    final store = LifeSnippetStore.instance;
+    final store = KeeperMemoryStore.instance;
     return AnimatedBuilder(
       animation: store,
       builder: (context, _) {
-        final notices = store.commentNotices;
+        final notices = store.replyNotices;
         return _MailDetailScaffold(
           title: 'Comments',
           children: notices.isEmpty
@@ -585,11 +591,13 @@ class _CommentNoticesScreen extends StatelessWidget {
                   for (final notice in notices) ...[
                     _CommentNoticeTile(
                       notice: notice,
-                      commenter: store.userByKey(notice.comment.authorKey),
-                      postAuthor: store.userByKey(notice.post.authorKey),
-                      onTap: () => _openPost(context, notice.post.postKey),
+                      commenter: store.keeperById(
+                        notice.comment.authorKeeperId,
+                      ),
+                      postAuthor: store.keeperById(notice.post.authorKeeperId),
+                      onTap: () => _openPost(context, notice.post.sealId),
                       onProfile: () =>
-                          _openProfile(context, notice.comment.authorKey),
+                          _openProfile(context, notice.comment.authorKeeperId),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -600,16 +608,16 @@ class _CommentNoticesScreen extends StatelessWidget {
   }
 }
 
-class _LikedPostsScreen extends StatelessWidget {
-  const _LikedPostsScreen();
+class _GlowLedgerScreen extends StatelessWidget {
+  const _GlowLedgerScreen();
 
   @override
   Widget build(BuildContext context) {
-    final store = LifeSnippetStore.instance;
+    final store = KeeperMemoryStore.instance;
     return AnimatedBuilder(
       animation: store,
       builder: (context, _) {
-        final posts = store.likedPosts;
+        final posts = store.glowedSeals;
         return _MailDetailScaffold(
           title: 'Likes',
           children: posts.isEmpty
@@ -618,11 +626,12 @@ class _LikedPostsScreen extends StatelessWidget {
                   for (final post in posts) ...[
                     _LikedPostTile(
                       post: post,
-                      author: store.userByKey(post.authorKey),
-                      commentCount: store.visibleCommentCount(post),
-                      likeCount: store.visibleLikeCount(post),
-                      onTap: () => _openPost(context, post.postKey),
-                      onProfile: () => _openProfile(context, post.authorKey),
+                      author: store.keeperById(post.authorKeeperId),
+                      replyCount: store.visibleReplyCount(post),
+                      glowCount: store.visibleLikeCount(post),
+                      onTap: () => _openPost(context, post.sealId),
+                      onProfile: () =>
+                          _openProfile(context, post.authorKeeperId),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -638,7 +647,7 @@ class _FriendRequestsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = LifeSnippetStore.instance;
+    final store = KeeperMemoryStore.instance;
     return AnimatedBuilder(
       animation: store,
       builder: (context, _) {
@@ -651,16 +660,16 @@ class _FriendRequestsScreen extends StatelessWidget {
                   for (final user in users) ...[
                     _FriendRequestTile(
                       user: user,
-                      onProfile: () => _openProfile(context, user.userKey),
+                      onProfile: () => _openProfile(context, user.keeperId),
                       onAccept: () async {
-                        await store.acceptIncomingFollow(user.userKey);
+                        await store.acceptIncomingFollow(user.keeperId);
                         if (!context.mounted) {
                           return;
                         }
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              '${user.displayName} is now a friend.',
+                              '${user.publicName} is now a friend.',
                             ),
                             backgroundColor: lifePanel,
                             behavior: SnackBarBehavior.floating,
@@ -685,7 +694,7 @@ class _MutualFriendsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = LifeSnippetStore.instance;
+    final store = KeeperMemoryStore.instance;
     return AnimatedBuilder(
       animation: store,
       builder: (context, _) {
@@ -698,8 +707,8 @@ class _MutualFriendsScreen extends StatelessWidget {
                   for (final user in users) ...[
                     _FriendTile(
                       user: user,
-                      onProfile: () => _openProfile(context, user.userKey),
-                      onChat: () => _openChat(context, user.userKey),
+                      onProfile: () => _openProfile(context, user.keeperId),
+                      onChat: () => _openChat(context, user.keeperId),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -718,7 +727,7 @@ class _MailDetailScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LifeSnippetStage(
+    return MorrowlyMemoryStage(
       child: Stack(
         children: [
           LayoutBuilder(
@@ -748,7 +757,7 @@ class _MailDetailScaffold extends StatelessWidget {
               );
             },
           ),
-          LifeTopBar(
+          MorrowlyMemoryTopBar(
             title: title,
             onBack: () => Navigator.of(context).pop(),
             topMinimum: 58,
@@ -769,9 +778,9 @@ class _CommentNoticeTile extends StatelessWidget {
     required this.onProfile,
   });
 
-  final LifeCommentNotice notice;
-  final LifeSnippetUser commenter;
-  final LifeSnippetUser postAuthor;
+  final KeeperReplyNotice notice;
+  final KeeperProfile commenter;
+  final KeeperProfile postAuthor;
   final VoidCallback onTap;
   final VoidCallback onProfile;
 
@@ -782,19 +791,19 @@ class _CommentNoticeTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LifeAvatar(user: commenter, radius: 25, onTap: onProfile),
+          KeeperAvatar(user: commenter, radius: 25, onTap: onProfile),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _MailTileHeader(
-                  title: commenter.displayName,
-                  trailing: _clockLabel(notice.comment.createdAt),
+                  title: commenter.publicName,
+                  trailing: _clockLabel(notice.comment.pennedAt),
                 ),
                 const SizedBox(height: 7),
                 Text(
-                  notice.comment.body,
+                  notice.comment.noteLine,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -807,7 +816,7 @@ class _CommentNoticeTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${postAuthor.displayName}: ${notice.post.body}',
+                  '${postAuthor.publicName}: ${notice.post.noteLine}',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -831,16 +840,16 @@ class _LikedPostTile extends StatelessWidget {
   const _LikedPostTile({
     required this.post,
     required this.author,
-    required this.commentCount,
-    required this.likeCount,
+    required this.replyCount,
+    required this.glowCount,
     required this.onTap,
     required this.onProfile,
   });
 
-  final LifeSnippetPost post;
-  final LifeSnippetUser author;
-  final int commentCount;
-  final int likeCount;
+  final MemorySeal post;
+  final KeeperProfile author;
+  final int replyCount;
+  final int glowCount;
   final VoidCallback onTap;
   final VoidCallback onProfile;
 
@@ -851,18 +860,20 @@ class _LikedPostTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (post.media.isNotEmpty)
+          if (post.attachments.isNotEmpty)
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
                 width: 74,
                 height: 74,
-                child: LifeMediaImage(media: post.media.first),
+                child: MemoryAttachmentImage(
+                  attachment: post.attachments.first,
+                ),
               ),
             )
           else
             Image.asset(
-              LifeSnippetAssets.likeFilled,
+              MorrowlyAssetKit.likeFilled,
               width: 74,
               height: 74,
               filterQuality: FilterQuality.high,
@@ -876,13 +887,13 @@ class _LikedPostTile extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onTap: onProfile,
                   child: _MailTileHeader(
-                    title: author.displayName,
-                    trailing: _clockLabel(post.createdAt),
+                    title: author.publicName,
+                    trailing: _clockLabel(post.sealedAt),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  post.body,
+                  post.noteLine,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -894,10 +905,7 @@ class _LikedPostTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _MailPostCounts(
-                  commentCount: commentCount,
-                  likeCount: likeCount,
-                ),
+                _MailPostCounts(replyCount: replyCount, glowCount: glowCount),
               ],
             ),
           ),
@@ -914,7 +922,7 @@ class _FriendRequestTile extends StatelessWidget {
     required this.onAccept,
   });
 
-  final LifeSnippetUser user;
+  final KeeperProfile user;
   final VoidCallback onProfile;
   final VoidCallback onAccept;
 
@@ -945,7 +953,7 @@ class _FriendTile extends StatelessWidget {
     required this.onChat,
   });
 
-  final LifeSnippetUser user;
+  final KeeperProfile user;
   final VoidCallback onProfile;
   final VoidCallback onChat;
 
@@ -966,7 +974,7 @@ class _FriendTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
           ),
           child: Image.asset(
-            LifeSnippetAssets.send,
+            MorrowlyAssetKit.send,
             width: 22,
             height: 22,
             filterQuality: FilterQuality.high,
@@ -984,7 +992,7 @@ class _MailUserTile extends StatelessWidget {
     required this.trailing,
   });
 
-  final LifeSnippetUser user;
+  final KeeperProfile user;
   final VoidCallback onProfile;
   final Widget trailing;
 
@@ -995,14 +1003,14 @@ class _MailUserTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LifeAvatar(user: user, radius: 28, onTap: onProfile),
+          KeeperAvatar(user: user, radius: 28, onTap: onProfile),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.displayName,
+                  user.publicName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -1015,7 +1023,7 @@ class _MailUserTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  user.regionLine,
+                  user.profileTrail,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -1027,7 +1035,7 @@ class _MailUserTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 9),
                 Text(
-                  user.signatureLine,
+                  user.morrowLine,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -1115,18 +1123,18 @@ class _MailTileHeader extends StatelessWidget {
 }
 
 class _MailPostCounts extends StatelessWidget {
-  const _MailPostCounts({required this.commentCount, required this.likeCount});
+  const _MailPostCounts({required this.replyCount, required this.glowCount});
 
-  final int commentCount;
-  final int likeCount;
+  final int replyCount;
+  final int glowCount;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _MailCount(asset: LifeSnippetAssets.comment, count: commentCount),
+        _MailCount(asset: MorrowlyAssetKit.comment, count: replyCount),
         const SizedBox(width: 18),
-        _MailCount(asset: LifeSnippetAssets.likeFilled, count: likeCount),
+        _MailCount(asset: MorrowlyAssetKit.likeFilled, count: glowCount),
       ],
     );
   }
@@ -1181,25 +1189,23 @@ class _MailEmptyArtwork extends StatelessWidget {
   }
 }
 
-Future<void> _openPost(BuildContext context, String postKey) {
+Future<void> _openPost(BuildContext context, String sealId) {
   return Navigator.of(context).push<void>(
-    MaterialPageRoute(
-      builder: (_) => LifeSnippetDetailScreen(postKey: postKey),
-    ),
+    MaterialPageRoute(builder: (_) => MemorySealDetailScreen(sealId: sealId)),
   );
 }
 
-Future<void> _openProfile(BuildContext context, String userKey) {
+Future<void> _openProfile(BuildContext context, String keeperId) {
   return Navigator.of(context).push<void>(
-    MaterialPageRoute(
-      builder: (_) => LifeSnippetProfileScreen(userKey: userKey),
-    ),
+    MaterialPageRoute(builder: (_) => KeeperHomeScreen(keeperId: keeperId)),
   );
 }
 
-Future<void> _openChat(BuildContext context, String userKey) {
+Future<void> _openChat(BuildContext context, String keeperId) {
   return Navigator.of(context).push<void>(
-    MaterialPageRoute(builder: (_) => LifeSnippetChatScreen(userKey: userKey)),
+    MaterialPageRoute(
+      builder: (_) => KeeperLetterThreadScreen(keeperId: keeperId),
+    ),
   );
 }
 
