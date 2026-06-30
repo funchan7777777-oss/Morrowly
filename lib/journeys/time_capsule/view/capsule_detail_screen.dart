@@ -304,6 +304,9 @@ class _CapsuleDetailPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final previewSnap = note.memoryFragments.isEmpty
+        ? null
+        : note.memoryFragments.first;
     final openingLabel = note.canOpenNow
         ? 'Ready to open'
         : 'Opens ${capsuleDateStamp(note.unlocksAt)}';
@@ -332,9 +335,9 @@ class _CapsuleDetailPanel extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          if (note.memoryFragments.isNotEmpty) ...[
+          if (previewSnap != null) ...[
             const SizedBox(height: 16),
-            _DetailMediaGallery(snaps: note.memoryFragments),
+            _DetailMediaPreview(snap: previewSnap),
           ],
           const SizedBox(height: 14),
           Wrap(
@@ -452,32 +455,24 @@ class _KeeperHeader extends StatelessWidget {
   }
 }
 
-class _DetailMediaGallery extends StatelessWidget {
-  const _DetailMediaGallery({required this.snaps});
+class _DetailMediaPreview extends StatelessWidget {
+  const _DetailMediaPreview({required this.snap});
 
-  final List<CapsuleMemoryFragment> snaps;
+  final CapsuleMemoryFragment snap;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isSingle = snaps.length == 1;
-        final tileSize = isSingle
-            ? constraints.maxWidth
-            : ((constraints.maxWidth - 10) / 2).clamp(0.0, 220.0);
-        return Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            for (final snap in snaps)
-              CapsuleMediaTile(
-                snap: snap,
-                size: tileSize.toDouble(),
-                showMotionIndicator: false,
-              ),
-          ],
-        );
-      },
+    return AspectRatio(
+      aspectRatio: 1,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return CapsuleMediaTile(
+            snap: snap,
+            size: constraints.maxWidth,
+            showMotionIndicator: false,
+          );
+        },
+      ),
     );
   }
 }

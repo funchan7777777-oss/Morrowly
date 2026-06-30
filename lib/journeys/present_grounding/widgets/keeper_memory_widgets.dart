@@ -342,63 +342,66 @@ class _RelationshipGateDialog extends StatelessWidget {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 28),
       backgroundColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
-        decoration: BoxDecoration(
-          color: const Color(0xFF4A3852),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.32),
-              blurRadius: 34,
-              offset: const Offset(0, 18),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              MorrowlyAssetKit.compose,
-              width: 72,
-              height: 72,
-              filterQuality: FilterQuality.high,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Mutual follow required',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 336),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4A3852),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.32),
+                blurRadius: 34,
+                offset: const Offset(0, 18),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'For safety, chat and video calls are only available after both people have accepted each other.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.64),
-                fontSize: 13,
-                height: 1.36,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 18),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => Navigator.of(context).pop(),
-              child: Image.asset(
-                MorrowlyAssetKit.goNow,
-                width: 178,
-                height: 40,
-                fit: BoxFit.fill,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                MorrowlyAssetKit.compose,
+                width: 72,
+                height: 72,
                 filterQuality: FilterQuality.high,
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              const Text(
+                'Mutual follow required',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'For safety, chat and video calls are only available after both people have accepted each other.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.64),
+                  fontSize: 13,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 18),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.of(context).pop(),
+                child: Image.asset(
+                  MorrowlyAssetKit.goNow,
+                  width: 178,
+                  height: 40,
+                  fit: BoxFit.fill,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

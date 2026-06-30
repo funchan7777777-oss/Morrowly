@@ -37,16 +37,16 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
             animation: _store,
             builder: (context, _) {
               final posts = _store.visiblePosts(_filter);
-              return Stack(
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final side = MorrowlyFrameGuard.sideGutter(
-                        constraints.maxWidth,
-                        maxWidth: 430,
-                        phoneGutter: 18,
-                      );
-                      return SingleChildScrollView(
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final side = MorrowlyFrameGuard.sideGutter(
+                    constraints.maxWidth,
+                    maxWidth: 430,
+                    phoneGutter: 18,
+                  );
+                  return Stack(
+                    children: [
+                      SingleChildScrollView(
                         padding: EdgeInsets.fromLTRB(
                           side,
                           MorrowlyFrameGuard.topClearance(
@@ -108,24 +108,24 @@ class _PresentGroundingScreenState extends State<PresentGroundingScreen> {
                               ],
                           ],
                         ),
-                      );
-                    },
-                  ),
-                  Positioned(
-                    right: 18,
-                    bottom: 136,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _openCompose,
-                      child: Image.asset(
-                        MorrowlyAssetKit.compose,
-                        width: 58,
-                        height: 58,
-                        filterQuality: FilterQuality.high,
                       ),
-                    ),
-                  ),
-                ],
+                      Positioned(
+                        right: side,
+                        bottom: 136,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _openCompose,
+                          child: Image.asset(
+                            MorrowlyAssetKit.compose,
+                            width: 58,
+                            height: 58,
+                            filterQuality: FilterQuality.high,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           );

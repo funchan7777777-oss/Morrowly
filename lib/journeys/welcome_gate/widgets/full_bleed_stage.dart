@@ -27,7 +27,7 @@ class FullBleedStage extends StatelessWidget {
           children: [
             Image.asset(
               backgroundAsset,
-              fit: BoxFit.fill,
+              fit: BoxFit.cover,
               filterQuality: FilterQuality.high,
             ),
             child,

@@ -230,39 +230,47 @@ class _ProfileIntakeScreenState extends State<ProfileIntakeScreen> {
           minimum: 18,
           extra: 10,
         );
-        return Padding(
-          padding: EdgeInsets.fromLTRB(18, 0, 18, bottomPadding),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFF3A273F),
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            ),
+        return Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 430),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _AvatarSourceRow(
-                    icon: Icons.photo_library_outlined,
-                    title: 'Choose from library',
-                    subtitle: 'Use a local photo as your Morrowly avatar.',
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _pickAvatar(ImageSource.gallery);
-                    },
+              padding: EdgeInsets.fromLTRB(18, 0, 18, bottomPadding),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3A273F),
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
                   ),
-                  const SizedBox(height: 10),
-                  _AvatarSourceRow(
-                    icon: Icons.photo_camera_outlined,
-                    title: 'Take a photo',
-                    subtitle: 'Open the camera and save a fresh avatar.',
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _pickAvatar(ImageSource.camera);
-                    },
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _AvatarSourceRow(
+                        icon: Icons.photo_library_outlined,
+                        title: 'Choose from library',
+                        subtitle: 'Use a local photo as your Morrowly avatar.',
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          _pickAvatar(ImageSource.gallery);
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      _AvatarSourceRow(
+                        icon: Icons.photo_camera_outlined,
+                        title: 'Take a photo',
+                        subtitle: 'Open the camera and save a fresh avatar.',
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          _pickAvatar(ImageSource.camera);
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

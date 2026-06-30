@@ -792,75 +792,78 @@ class _CompassNoticeDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-        decoration: BoxDecoration(
-          color: const Color(0xFF4D3657),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.28),
-              blurRadius: 30,
-              offset: const Offset(0, 18),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Image.asset(
-                  celebratory
-                      ? 'assets/morrowly_art/ui/morrowly_ui_shareable.png'
-                      : 'assets/morrowly_art/ui/morrowly_ui_reminder.png',
-                  width: 126,
-                  height: 86,
-                  fit: BoxFit.contain,
-                  opacity: const AlwaysStoppedAnimation(0.22),
-                  filterQuality: FilterQuality.high,
-                ),
-                Image.asset(
-                  'assets/morrowly_art/ui/morrowly_ui_compass.png',
-                  width: 66,
-                  height: 66,
-                  filterQuality: FilterQuality.high,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                height: 1.1,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 336),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4D3657),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 30,
+                offset: const Offset(0, 18),
               ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.64),
-                fontSize: 13,
-                height: 1.36,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    celebratory
+                        ? 'assets/morrowly_art/ui/morrowly_ui_shareable.png'
+                        : 'assets/morrowly_art/ui/morrowly_ui_reminder.png',
+                    width: 126,
+                    height: 86,
+                    fit: BoxFit.contain,
+                    opacity: const AlwaysStoppedAnimation(0.22),
+                    filterQuality: FilterQuality.high,
+                  ),
+                  Image.asset(
+                    'assets/morrowly_art/ui/morrowly_ui_compass.png',
+                    width: 66,
+                    height: 66,
+                    filterQuality: FilterQuality.high,
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 19),
-            _CompassActionButton(
-              label: actionLabel,
-              filled: true,
-              onTap: () => Navigator.of(context).pop(),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  height: 1.1,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.64),
+                  fontSize: 13,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 19),
+              _CompassActionButton(
+                label: actionLabel,
+                filled: true,
+                onTap: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
         ),
       ),
     );

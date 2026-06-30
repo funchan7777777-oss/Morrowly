@@ -2436,79 +2436,86 @@ class _ProfilePhotoSourceSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF4D3A55),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.28),
-                blurRadius: 30,
-                offset: const Offset(0, 16),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 24),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4D3A55),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    blurRadius: 30,
+                    offset: const Offset(0, 16),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Profile photo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: _ProfilePhotoSourceTile(
-                      icon: Icons.photo_camera_rounded,
-                      label: 'Camera',
-                      onTap: () =>
-                          Navigator.of(context).pop(ImageSource.camera),
+                  const Text(
+                    'Profile photo',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _ProfilePhotoSourceTile(
-                      icon: Icons.photo_library_rounded,
-                      label: 'Album',
-                      onTap: () =>
-                          Navigator.of(context).pop(ImageSource.gallery),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ProfilePhotoSourceTile(
+                          icon: Icons.photo_camera_rounded,
+                          label: 'Camera',
+                          onTap: () =>
+                              Navigator.of(context).pop(ImageSource.camera),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _ProfilePhotoSourceTile(
+                          icon: Icons.photo_library_rounded,
+                          label: 'Album',
+                          onTap: () =>
+                              Navigator.of(context).pop(ImageSource.gallery),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.72),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.72),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -2671,106 +2678,115 @@ class _CountrySelectionSheetState extends State<_CountrySelectionSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
-        child: Container(
-          height: MediaQuery.sizeOf(context).height * 0.72,
-          margin: const EdgeInsets.all(18),
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-          decoration: BoxDecoration(
-            color: lifePanel,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Column(
-            children: [
-              Container(
-                height: 46,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  cursorColor: Colors.white,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    icon: Icon(
-                      Icons.search_rounded,
-                      color: Colors.white.withValues(alpha: 0.58),
-                    ),
-                    hintText: 'Search country',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.46),
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  onChanged: (value) => setState(() => _query = value),
-                ),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 430),
+            child: Container(
+              width: double.infinity,
+              height: MediaQuery.sizeOf(context).height * 0.72,
+              margin: const EdgeInsets.all(18),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              decoration: BoxDecoration(
+                color: lifePanel,
+                borderRadius: BorderRadius.circular(24),
               ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: countries.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No country found',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.58),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
+              child: Column(
+                children: [
+                  Container(
+                    height: 46,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      cursorColor: Colors.white,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        icon: Icon(
+                          Icons.search_rounded,
+                          color: Colors.white.withValues(alpha: 0.58),
                         ),
-                      )
-                    : ListView.separated(
-                        keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior.onDrag,
-                        itemCount: countries.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 2),
-                        itemBuilder: (context, index) {
-                          final country = countries[index];
-                          final selected = country == widget.selectedCountry;
-                          return ListTile(
-                            dense: true,
-                            visualDensity: VisualDensity.compact,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            selected: selected,
-                            selectedTileColor: Colors.white.withValues(
-                              alpha: 0.08,
-                            ),
-                            title: Text(
-                              country,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                        hintText: 'Search country',
+                        hintStyle: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.46),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      onChanged: (value) => setState(() => _query = value),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: countries.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No country found',
                               style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontWeight: selected
-                                    ? FontWeight.w900
-                                    : FontWeight.w800,
-                                letterSpacing: 0,
+                                color: Colors.white.withValues(alpha: 0.58),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                            trailing: selected
-                                ? const Icon(
-                                    Icons.check_circle_rounded,
-                                    color: lifePurple,
-                                    size: 20,
-                                  )
-                                : null,
-                            onTap: () => Navigator.of(context).pop(country),
-                          );
-                        },
-                      ),
+                          )
+                        : ListView.separated(
+                            keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior.onDrag,
+                            itemCount: countries.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 2),
+                            itemBuilder: (context, index) {
+                              final country = countries[index];
+                              final selected =
+                                  country == widget.selectedCountry;
+                              return ListTile(
+                                dense: true,
+                                visualDensity: VisualDensity.compact,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                selected: selected,
+                                selectedTileColor: Colors.white.withValues(
+                                  alpha: 0.08,
+                                ),
+                                title: Text(
+                                  country,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: selected
+                                        ? FontWeight.w900
+                                        : FontWeight.w800,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                                trailing: selected
+                                    ? const Icon(
+                                        Icons.check_circle_rounded,
+                                        color: lifePurple,
+                                        size: 20,
+                                      )
+                                    : null,
+                                onTap: () => Navigator.of(context).pop(country),
+                              );
+                            },
+                          ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -2880,64 +2896,67 @@ class _ProfileConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
-        decoration: BoxDecoration(
-          color: lifePanel,
-          borderRadius: BorderRadius.circular(26),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              ProfileCenterAssets.phone,
-              width: 62,
-              height: 62,
-              filterQuality: FilterQuality.high,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 336),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+          decoration: BoxDecoration(
+            color: lifePanel,
+            borderRadius: BorderRadius.circular(26),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                ProfileCenterAssets.phone,
+                width: 62,
+                height: 62,
+                filterQuality: FilterQuality.high,
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.62),
-                fontSize: 12,
-                height: 1.36,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
                 ),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: lifePurple,
-                      foregroundColor: Colors.white,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.62),
+                  fontSize: 12,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
                     ),
-                    child: const Text('Confirm'),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: lifePurple,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Confirm'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2963,74 +2982,77 @@ class _ProfileSessionProgressDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
-        decoration: BoxDecoration(
-          color: lifePanel,
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.26),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              child: completed
-                  ? Container(
-                      key: const ValueKey('done'),
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: lifePurple,
-                      ),
-                      child: const Icon(
-                        Icons.check_rounded,
-                        color: Colors.white,
-                        size: 38,
-                      ),
-                    )
-                  : const SizedBox(
-                      key: ValueKey('loading'),
-                      width: 64,
-                      height: 64,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 5,
-                        color: lifePurple,
-                        backgroundColor: Color(0xFF6A4C77),
-                      ),
-                    ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              completed ? successTitle : loadingTitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 336),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
+          decoration: BoxDecoration(
+            color: lifePanel,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.26),
+                blurRadius: 28,
+                offset: const Offset(0, 14),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              completed ? successMessage : loadingMessage,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.64),
-                fontSize: 12,
-                height: 1.36,
-                fontWeight: FontWeight.w700,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: completed
+                    ? Container(
+                        key: const ValueKey('done'),
+                        width: 64,
+                        height: 64,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: lifePurple,
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Colors.white,
+                          size: 38,
+                        ),
+                      )
+                    : const SizedBox(
+                        key: ValueKey('loading'),
+                        width: 64,
+                        height: 64,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 5,
+                          color: lifePurple,
+                          backgroundColor: Color(0xFF6A4C77),
+                        ),
+                      ),
               ),
-            ),
-          ],
+              const SizedBox(height: 18),
+              Text(
+                completed ? successTitle : loadingTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                completed ? successMessage : loadingMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.64),
+                  fontSize: 12,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

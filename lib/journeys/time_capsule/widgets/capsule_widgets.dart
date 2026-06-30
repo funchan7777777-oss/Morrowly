@@ -389,72 +389,75 @@ class CapsuleConfirmDialog extends StatelessWidget {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 34),
       backgroundColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 26),
-        decoration: BoxDecoration(
-          color: const Color(0xFF4B3653),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.28),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Transform.translate(
-              offset: const Offset(0, -18),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  CapsuleArtwork.dialogPrelude,
-                  height: 82,
-                  width: 226,
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.high,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 336),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 26),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4B3653),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 28,
+                offset: const Offset(0, 14),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Transform.translate(
+                offset: const Offset(0, -18),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    CapsuleArtwork.dialogPrelude,
+                    height: 82,
+                    width: 226,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.high,
+                  ),
                 ),
               ),
-            ),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 21,
-                height: 1.14,
-                fontWeight: FontWeight.w900,
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 21,
+                  height: 1.14,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.68),
-                fontSize: 14,
-                height: 1.36,
-                fontWeight: FontWeight.w700,
+              const SizedBox(height: 18),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.68),
+                  fontSize: 14,
+                  height: 1.36,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 26),
-            if (actionLabel == 'Confirm')
-              CapsuleAssetTap(
-                assetName: CapsuleArtwork.confirmButton,
-                width: 186,
-                height: 42,
-                semanticLabel: actionLabel,
-                onTap: onAction,
-              )
-            else
-              CapsuleGlowButton(
-                label: actionLabel,
-                width: 186,
-                onPressed: onAction,
-              ),
-          ],
+              const SizedBox(height: 26),
+              if (actionLabel == 'Confirm')
+                CapsuleAssetTap(
+                  assetName: CapsuleArtwork.confirmButton,
+                  width: 186,
+                  height: 42,
+                  semanticLabel: actionLabel,
+                  onTap: onAction,
+                )
+              else
+                CapsuleGlowButton(
+                  label: actionLabel,
+                  width: 186,
+                  onPressed: onAction,
+                ),
+            ],
+          ),
         ),
       ),
     );

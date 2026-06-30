@@ -272,62 +272,69 @@ class _UnlockedCapsuleSheet extends StatelessWidget {
       minimum: 24,
       extra: 18,
     );
-    return DraggableScrollableSheet(
-      initialChildSize: 0.72,
-      minChildSize: 0.42,
-      maxChildSize: 0.9,
-      builder: (context, controller) {
-        return Container(
-          padding: EdgeInsets.fromLTRB(18, 14, 18, bottom),
-          decoration: const BoxDecoration(
-            color: Color(0xFF39283F),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: ListView(
-            controller: controller,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 430),
+        child: DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.72,
+          minChildSize: 0.42,
+          maxChildSize: 0.9,
+          builder: (context, controller) {
+            return Container(
+              padding: EdgeInsets.fromLTRB(18, 14, 18, bottom),
+              decoration: const BoxDecoration(
+                color: Color(0xFF39283F),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              const SizedBox(height: 18),
-              const Text(
-                'Opened capsule',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                capsule.sealedMessage,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.74),
-                  fontSize: 14,
-                  height: 1.4,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+              child: ListView(
+                controller: controller,
                 children: [
-                  for (final snap in capsule.memoryFragments)
-                    CapsuleMediaTile(snap: snap, size: 92),
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Opened capsule',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    capsule.sealedMessage,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.74),
+                      fontSize: 14,
+                      height: 1.4,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      for (final snap in capsule.memoryFragments)
+                        CapsuleMediaTile(snap: snap, size: 92),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }

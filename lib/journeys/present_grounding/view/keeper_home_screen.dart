@@ -36,6 +36,8 @@ class _KeeperHomeScreenState extends State<KeeperHomeScreen> {
                 MorrowlyMemoryTopBar(
                   title: 'User home',
                   onBack: () => Navigator.of(context).pop(),
+                  topMinimum: 40,
+                  topExtra: -8,
                 ),
               ],
             );
@@ -135,6 +137,8 @@ class _KeeperHomeScreenState extends State<KeeperHomeScreen> {
               MorrowlyMemoryTopBar(
                 title: 'User home',
                 onBack: () => Navigator.of(context).pop(),
+                topMinimum: 40,
+                topExtra: -8,
                 trailing: IconButton(
                   onPressed: user.belongsToSignedInKeeper
                       ? null

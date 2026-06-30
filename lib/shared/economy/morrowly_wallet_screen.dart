@@ -671,105 +671,108 @@ class _WelcomeGiftDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.92, end: 1),
-        duration: const Duration(milliseconds: 520),
-        curve: Curves.easeOutBack,
-        builder: (context, value, child) {
-          return Transform.scale(scale: value, child: child);
-        },
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF4D3657),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            boxShadow: [
-              BoxShadow(
-                color: lifePurple.withValues(alpha: 0.28),
-                blurRadius: 32,
-                offset: const Offset(0, 18),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    _walletEmptyAsset,
-                    width: 132,
-                    height: 112,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
-                    opacity: const AlwaysStoppedAnimation(0.22),
-                  ),
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: -0.08, end: 0.08),
-                    duration: const Duration(milliseconds: 900),
-                    curve: Curves.easeInOut,
-                    builder: (context, turn, child) {
-                      return Transform.rotate(angle: turn, child: child);
-                    },
-                    child: Image.asset(
-                      _walletCoinAsset,
-                      width: 88,
-                      height: 88,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 336),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.92, end: 1),
+          duration: const Duration(milliseconds: 520),
+          curve: Curves.easeOutBack,
+          builder: (context, value, child) {
+            return Transform.scale(scale: value, child: child);
+          },
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4D3657),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+              boxShadow: [
+                BoxShadow(
+                  color: lifePurple.withValues(alpha: 0.28),
+                  blurRadius: 32,
+                  offset: const Offset(0, 18),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      _walletEmptyAsset,
+                      width: 132,
+                      height: 112,
+                      fit: BoxFit.contain,
                       filterQuality: FilterQuality.high,
+                      opacity: const AlwaysStoppedAnimation(0.22),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'A time coin spark arrived',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 23,
-                  height: 1.08,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: -0.08, end: 0.08),
+                      duration: const Duration(milliseconds: 900),
+                      curve: Curves.easeInOut,
+                      builder: (context, turn, child) {
+                        return Transform.rotate(angle: turn, child: child);
+                      },
+                      child: Image.asset(
+                        _walletCoinAsset,
+                        width: 88,
+                        height: 88,
+                        filterQuality: FilterQuality.high,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '+${MorrowlyWalletStore.formatCoins(amount)} coins have been placed in your wallet for your first future capsule.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.68),
-                  fontSize: 13,
-                  height: 1.36,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0,
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: lifePurple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                  child: const Text(
-                    'Start Morrowly',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
-                    ),
+                const SizedBox(height: 10),
+                const Text(
+                  'A time coin spark arrived',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 23,
+                    height: 1.08,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Text(
+                  '+${MorrowlyWalletStore.formatCoins(amount)} coins have been placed in your wallet for your first future capsule.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.68),
+                    fontSize: 13,
+                    height: 1.36,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: lifePurple,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    child: const Text(
+                      'Start Morrowly',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -799,92 +802,97 @@ class _WalletDialogFrame extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-        decoration: BoxDecoration(
-          color: const Color(0xFF4D3657),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.28),
-              blurRadius: 30,
-              offset: const Offset(0, 18),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: lifePurple.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 336),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4D3657),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 30,
+                offset: const Offset(0, 18),
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    _walletCoinAsset,
-                    width: 54,
-                    height: 54,
-                    filterQuality: FilterQuality.high,
-                    opacity: const AlwaysStoppedAnimation(0.36),
-                  ),
-                  Icon(icon, color: Colors.white, size: 30),
-                ],
-              ),
-            ),
-            const SizedBox(height: 15),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                height: 1.1,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.64),
-                fontSize: 13,
-                height: 1.38,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                if (cancelLabel != null) ...[
-                  Expanded(
-                    child: _DialogButton(
-                      label: cancelLabel!,
-                      filled: false,
-                      onTap: () => Navigator.of(context).pop(false),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Expanded(
-                  child: _DialogButton(
-                    label: actionLabel,
-                    filled: true,
-                    onTap: onAction,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: lifePurple.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
-              ],
-            ),
-          ],
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      _walletCoinAsset,
+                      width: 54,
+                      height: 54,
+                      filterQuality: FilterQuality.high,
+                      opacity: const AlwaysStoppedAnimation(0.36),
+                    ),
+                    Icon(icon, color: Colors.white, size: 30),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  height: 1.1,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.64),
+                  fontSize: 13,
+                  height: 1.38,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  if (cancelLabel != null) ...[
+                    Expanded(
+                      child: _DialogButton(
+                        label: cancelLabel!,
+                        filled: false,
+                        onTap: () => Navigator.of(context).pop(false),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Expanded(
+                    child: _DialogButton(
+                      label: actionLabel,
+                      filled: true,
+                      onTap: onAction,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

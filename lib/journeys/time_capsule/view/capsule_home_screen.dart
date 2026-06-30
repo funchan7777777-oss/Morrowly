@@ -882,75 +882,83 @@ class _VisitorsSheet extends StatelessWidget {
       minimum: 24,
       extra: 18,
     );
-    return DraggableScrollableSheet(
-      initialChildSize: 0.68,
-      minChildSize: 0.35,
-      maxChildSize: 0.9,
-      builder: (context, controller) {
-        return Container(
-          padding: EdgeInsets.fromLTRB(18, 14, 18, bottom),
-          decoration: const BoxDecoration(
-            color: Color(0xFF38283D),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 430),
+        child: DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.68,
+          minChildSize: 0.35,
+          maxChildSize: 0.9,
+          builder: (context, controller) {
+            return Container(
+              padding: EdgeInsets.fromLTRB(18, 14, 18, bottom),
+              decoration: const BoxDecoration(
+                color: Color(0xFF38283D),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              const SizedBox(height: 18),
-              const Text(
-                'People waiting with this capsule',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Expanded(
-                child: GridView.builder(
-                  controller: controller,
-                  itemCount: keepers.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 0.78,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
                   ),
-                  itemBuilder: (context, index) {
-                    final keeper = keepers[index];
-                    return Column(
-                      children: [
-                        CapsuleKeeperAvatar(keeper: keeper, radius: 31),
-                        const SizedBox(height: 6),
-                        Text(
-                          keeper.publicName.split(' ').first,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.72),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                  const SizedBox(height: 18),
+                  const Text(
+                    'People waiting with this capsule',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Expanded(
+                    child: GridView.builder(
+                      controller: controller,
+                      itemCount: keepers.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            mainAxisSpacing: 14,
+                            crossAxisSpacing: 14,
+                            childAspectRatio: 0.78,
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                      itemBuilder: (context, index) {
+                        final keeper = keepers[index];
+                        return Column(
+                          children: [
+                            CapsuleKeeperAvatar(keeper: keeper, radius: 31),
+                            const SizedBox(height: 6),
+                            Text(
+                              keeper.publicName.split(' ').first,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.72),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }

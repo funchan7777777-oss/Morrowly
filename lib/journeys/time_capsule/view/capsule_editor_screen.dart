@@ -716,77 +716,83 @@ class _MediaPickerSheet extends StatelessWidget {
         ? '1 attachment slot left'
         : '$remainingSlots attachment slots left';
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(18, 0, 18, bottom),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: const Color(0xFF37273C),
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 430),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 42,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(999),
+          padding: EdgeInsets.fromLTRB(18, 0, 18, bottom),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xFF37273C),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Add photos/videos',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    slotLabel,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.44),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _MediaSourceRow(
+                    icon: Icons.photo_library_outlined,
+                    title: 'Choose photos',
+                    subtitle: 'Select local photos from your library.',
+                    action: _MediaPickAction.galleryPhotos,
+                  ),
+                  const SizedBox(height: 10),
+                  _MediaSourceRow(
+                    icon: Icons.video_library_outlined,
+                    title: 'Choose videos',
+                    subtitle: 'Select local videos from your library.',
+                    action: _MediaPickAction.galleryVideos,
+                  ),
+                  const SizedBox(height: 10),
+                  _MediaSourceRow(
+                    icon: Icons.photo_camera_outlined,
+                    title: 'Take a photo',
+                    subtitle: 'Open the camera and add a new photo.',
+                    action: _MediaPickAction.cameraPhoto,
+                  ),
+                  const SizedBox(height: 10),
+                  _MediaSourceRow(
+                    icon: Icons.videocam_outlined,
+                    title: 'Record a video',
+                    subtitle: 'Open the camera and add a new video.',
+                    action: _MediaPickAction.cameraVideo,
+                  ),
+                ],
               ),
-              const SizedBox(height: 18),
-              const Text(
-                'Add photos/videos',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                slotLabel,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.44),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 14),
-              _MediaSourceRow(
-                icon: Icons.photo_library_outlined,
-                title: 'Choose photos',
-                subtitle: 'Select local photos from your library.',
-                action: _MediaPickAction.galleryPhotos,
-              ),
-              const SizedBox(height: 10),
-              _MediaSourceRow(
-                icon: Icons.video_library_outlined,
-                title: 'Choose videos',
-                subtitle: 'Select local videos from your library.',
-                action: _MediaPickAction.galleryVideos,
-              ),
-              const SizedBox(height: 10),
-              _MediaSourceRow(
-                icon: Icons.photo_camera_outlined,
-                title: 'Take a photo',
-                subtitle: 'Open the camera and add a new photo.',
-                action: _MediaPickAction.cameraPhoto,
-              ),
-              const SizedBox(height: 10),
-              _MediaSourceRow(
-                icon: Icons.videocam_outlined,
-                title: 'Record a video',
-                subtitle: 'Open the camera and add a new video.',
-                action: _MediaPickAction.cameraVideo,
-              ),
-            ],
+            ),
           ),
         ),
       ),
