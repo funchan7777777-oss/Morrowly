@@ -13,6 +13,7 @@ import 'package:morrowly/journeys/time_capsule/view/my_capsules_screen.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_stage.dart';
 import 'package:morrowly/journeys/time_capsule/widgets/capsule_widgets.dart';
 import 'package:morrowly/journeys/tomorrow_compass/view/tomorrow_compass_screen.dart';
+import 'package:morrowly/journeys/tomorrow_compass/widgets/tomorrow_compass_mark.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
@@ -485,21 +486,7 @@ class _CompassEntryCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Image.asset(
-                    'assets/morrowly_art/ui/morrowly_ui_compass.png',
-                    filterQuality: FilterQuality.high,
-                  ),
-                ),
-              ),
+              const TomorrowCompassMark(size: 58),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

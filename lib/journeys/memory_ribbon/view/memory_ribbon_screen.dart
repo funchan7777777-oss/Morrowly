@@ -47,7 +47,6 @@ abstract final class ProfileCenterAssets {
   static const edit = 'assets/morrowly_art/ui/morrowly_ui_messenger.png';
   static const camera = 'assets/morrowly_art/ui/morrowly_ui_continuum.png';
   static const message = 'assets/morrowly_art/ui/morrowly_ui_awakening.png';
-  static const send = 'assets/morrowly_art/ui/morrowly_ui_compass.png';
   static const settingsDelete =
       'assets/morrowly_art/ui/morrowly_ui_recollection.png';
   static const settingsDoc = 'assets/morrowly_art/ui/morrowly_ui_moonrise.png';

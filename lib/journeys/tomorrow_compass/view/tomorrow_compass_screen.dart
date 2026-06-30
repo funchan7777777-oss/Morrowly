@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:morrowly/journeys/present_grounding/widgets/keeper_memory_widgets.dart';
 import 'package:morrowly/journeys/tomorrow_compass/data/tomorrow_compass_store.dart';
+import 'package:morrowly/journeys/tomorrow_compass/widgets/tomorrow_compass_mark.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_screen.dart';
 import 'package:morrowly/shared/economy/morrowly_wallet_store.dart';
 import 'package:morrowly/shared/layout/morrowly_frame_guard.dart';
@@ -255,21 +256,7 @@ class _CompassHero extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Image.asset(
-                'assets/morrowly_art/ui/morrowly_ui_compass.png',
-                filterQuality: FilterQuality.high,
-              ),
-            ),
-          ),
+          const TomorrowCompassMark(size: 72),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -811,26 +798,36 @@ class _CompassNoticeDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Image.asset(
-                    celebratory
-                        ? 'assets/morrowly_art/ui/morrowly_ui_shareable.png'
-                        : 'assets/morrowly_art/ui/morrowly_ui_reminder.png',
-                    width: 126,
-                    height: 86,
-                    fit: BoxFit.contain,
-                    opacity: const AlwaysStoppedAnimation(0.22),
-                    filterQuality: FilterQuality.high,
-                  ),
-                  Image.asset(
-                    'assets/morrowly_art/ui/morrowly_ui_compass.png',
-                    width: 66,
-                    height: 66,
-                    filterQuality: FilterQuality.high,
-                  ),
-                ],
+              SizedBox(
+                width: 126,
+                height: 86,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 118,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: LinearGradient(
+                          begin: celebratory
+                              ? Alignment.topLeft
+                              : Alignment.bottomLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            lifePurple.withValues(alpha: 0.18),
+                            const Color(0xFFFFD6F6).withValues(alpha: 0.1),
+                            Colors.white.withValues(alpha: 0.04),
+                          ],
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                      ),
+                    ),
+                    const TomorrowCompassMark(size: 66),
+                  ],
+                ),
               ),
               const SizedBox(height: 10),
               Text(
